@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Detalle de mezclilla azul">
+  <rect width="800" height="1000" fill="#edf9fd"/>
+  <path d="M170 0h460v1000H170z" fill="#5a9fbe"/>
+  <path d="M230 0v1000M570 0v1000M170 170h460M170 500h460M170 830h460" fill="none" stroke="#c9eefa" stroke-width="10"/>
+  <path d="M330 110h140v250H330z" fill="#4a8fab"/>
+</svg>

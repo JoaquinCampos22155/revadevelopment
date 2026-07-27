@@ -1,39 +1,68 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import Link from "next/link";
+import type {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  ReactNode,
+} from "react";
 
-type ButtonVariant = "solid" | "outline" | "soft";
+type ButtonVariant = "solid" | "outline";
 
-type ButtonProps = Readonly<
-  ButtonHTMLAttributes<HTMLButtonElement> & {
+type ButtonLinkProps = Readonly<
+  AnchorHTMLAttributes<HTMLAnchorElement> & {
     children: ReactNode;
+    href: string;
     variant?: ButtonVariant;
   }
 >;
 
+type ButtonActionProps = Readonly<
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    children: ReactNode;
+    href?: never;
+    variant?: ButtonVariant;
+  }
+>;
+
+type ButtonProps = ButtonActionProps | ButtonLinkProps;
+
 const variantClasses: Record<ButtonVariant, string> = {
-  solid: "bg-neutral-950 text-white hover:bg-neutral-800",
+  solid: "bg-cyan-700 text-white hover:bg-cyan-800",
   outline:
-    "border border-neutral-300 bg-white text-neutral-950 hover:border-neutral-950",
-  soft: "bg-neutral-100 text-neutral-950 hover:bg-neutral-200",
+    "border border-cyan-200 bg-white text-slate-950 hover:border-cyan-700 hover:bg-cyan-50",
 };
 
-/** Renders a reusable action button with an exploratory visual treatment. */
-export function Button({
-  children,
-  className,
-  type = "button",
-  variant = "solid",
-  ...props
-}: ButtonProps) {
-  const classes = [
+function getButtonClasses(variant: ButtonVariant, className?: string) {
+  return [
     "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors",
     variantClasses[variant],
     className,
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+/** Renders a reusable action button or a navigational CTA link. */
+export function Button(props: ButtonProps) {
+  if ("href" in props) {
+    const { children, className, href, variant = "outline", ...linkProps } =
+      props as ButtonLinkProps;
+
+    return (
+      <Link className={getButtonClasses(variant, className)} href={href} {...linkProps}>
+        {children}
+      </Link>
+    );
+  }
+
+  const { children, className, type = "button", variant = "outline", ...buttonProps } =
+    props as ButtonActionProps;
 
   return (
-    <button className={classes} type={type} {...props}>
+    <button
+      className={getButtonClasses(variant, className)}
+      type={type}
+      {...buttonProps}
+    >
       {children}
     </button>
   );
