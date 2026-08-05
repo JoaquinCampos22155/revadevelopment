@@ -1,3 +1,5 @@
+import type { ProductImage } from "@/types/product";
+
 export interface CatalogCollection {
   description: string;
   title: string;
@@ -8,3 +10,11 @@ export interface ReviewPreview {
   quote: string;
   role: string;
 }
+
+export type CatalogProductPreview = Readonly<{
+  category: string;
+  condition: string;
+  href: string;
+  image: ProductImage;
+  name: string;
+}>;

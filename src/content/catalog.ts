@@ -1,19 +1,38 @@
-import type { CatalogCollection, ReviewPreview } from "@/types/catalog";
+import denimBack from "@/assets/product-denim-back.svg";
+import denimDetail from "@/assets/product-denim-detail.svg";
+import denimFront from "@/assets/product-denim-front.svg";
+import type { CatalogProductPreview, ReviewPreview } from "@/types/catalog";
 
-export const catalogCategories = ["Denim", "Básicos", "Streetwear", "Temporada"];
+export const catalogCategories = ["Todo", "Denim", "Básicos", "Streetwear", "Temporada"] as const;
 
-export const catalogCollections: CatalogCollection[] = [
+export const catalogProducts: CatalogProductPreview[] = [
   {
-    title: "Vintage Denim",
-    description: "Denim con carácter y una historia que puede continuar.",
+    category: "Denim",
+    condition: "Excelente estado",
+    href: "/catalog/chaqueta-denim-clasica",
+    image: { alt: "Chaqueta azul de silueta amplia", src: denimFront },
+    name: "Chaqueta denim clásica",
   },
   {
-    title: "Street Essentials",
-    description: "Piezas cotidianas pensadas para moverse contigo.",
+    category: "Básicos",
+    condition: "Cuidado y revisado",
+    href: "/catalog/sueter-azul-punto-suave",
+    image: { alt: "Detalle de textura azul", src: denimDetail },
+    name: "Suéter azul de punto suave",
   },
   {
-    title: "Campus Basics",
-    description: "Estilo versátil para el ritmo universitario.",
+    category: "Streetwear",
+    condition: "Excelente estado",
+    href: "/catalog/sobrecamisa-azul-silueta-amplia",
+    image: { alt: "Prenda azul vista posterior", src: denimBack },
+    name: "Sobrecamisa de silueta amplia",
+  },
+  {
+    category: "Denim",
+    condition: "Cuidado y revisado",
+    href: "/catalog/camisa-denim-corte-relajado",
+    image: { alt: "Camisa de mezclilla azul", src: denimDetail },
+    name: "Camisa denim relajada",
   },
 ];
 
