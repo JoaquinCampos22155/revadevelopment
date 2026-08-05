@@ -33,7 +33,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 function getButtonClasses(variant: ButtonVariant, className?: string) {
   return [
-    "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors",
+    "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-[transform,box-shadow,background-color,border-color,color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
     variantClasses[variant],
     className,
   ]

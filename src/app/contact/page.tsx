@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 /** Renders a trust-first contact experience until REVA's official channel is configured. */
 export default function ContactPage() {
   return (
-    <main id="main-content" tabIndex={-1}>
+    <main id="main-content">
       <Section>
         <div className="mx-auto max-w-3xl space-y-6 text-center">
           <Text variant="label">Contacto REVA</Text>

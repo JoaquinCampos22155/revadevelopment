@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+html {
+  background: #ffffff;
+}
+
+body {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+::selection {
+  background: #bae6fd;
+  color: #0f172a;
+}
+
+/* Adds depth to supporting content while keeping the hero ready for its future editorial image. */
+.surface-atmosphere {
+  background:
+    radial-gradient(circle at 8% 10%, rgb(224 242 254 / 0.78), transparent 37%),
+    radial-gradient(circle at 92% 88%, rgb(240 249 255 / 0.9), transparent 42%);
+}

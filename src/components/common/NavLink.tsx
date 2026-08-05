@@ -29,7 +29,6 @@ export function NavLink({ children, className, href, ...linkProps }: NavLinkProp
           : "smooth";
 
         window.scrollTo({ top: 0, behavior });
-        document.getElementById("main-content")?.focus({ preventScroll: true });
       }}
       {...linkProps}
     >

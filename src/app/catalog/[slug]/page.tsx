@@ -40,7 +40,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   return (
-    <main id="main-content" tabIndex={-1}>
+    <main id="main-content">
       <Section>
         <div className="mb-8">
           <Button href="/catalog">Volver al catálogo</Button>

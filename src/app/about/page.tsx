@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 /** Renders REVA's trust-building story and its path back to product discovery. */
 export default function AboutPage() {
   return (
-    <main id="main-content" tabIndex={-1}>
+    <main id="main-content">
       <Section>
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div className="space-y-6">
