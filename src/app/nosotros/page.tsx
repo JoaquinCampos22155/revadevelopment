@@ -106,7 +106,7 @@ export default function AboutPage() {
                 Sigue descubriendo en el catálogo.
               </Heading>
             </div>
-            <Button href="/catalog">Ver catálogo</Button>
+            <Button href="/catalogo">Ver catálogo</Button>
           </div>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {aboutCollections.map((collection) => (

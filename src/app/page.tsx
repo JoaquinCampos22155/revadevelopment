@@ -26,7 +26,7 @@ export default function Home() {
             REVA hace que descubrir, reutilizar y conectar con moda de segunda mano se sienta simple, confiable y deseable.
           </Text>
           <div className="flex flex-wrap gap-3">
-            <Button href="/catalog" variant="solid">Explorar catálogo</Button>
+            <Button href="/catalogo" variant="solid">Explorar catálogo</Button>
             <Button href="#como-funciona">Cómo funciona</Button>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function Home() {
               Somos una iniciativa guatemalteca que busca hacer la moda circular más accesible, cercana y atractiva.
             </Text>
           </div>
-          <Button className="self-start bg-white text-slate-950 hover:bg-sky-100" href="/about">Conocer REVA</Button>
+          <Button className="self-start bg-white text-slate-950 hover:bg-sky-100" href="/nosotros">Conocer REVA</Button>
         </div>
       </Section>
 
@@ -98,8 +98,8 @@ export default function Home() {
           <Text variant="label">Tu próxima prenda puede tener otra vida</Text>
           <Heading className="mx-auto max-w-2xl" level={2} variant="editorial">Explora REVA y descubre lo que sigue.</Heading>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button href="/catalog" variant="solid">Ver catálogo</Button>
-            <Button href="/contact">Contactar a REVA</Button>
+            <Button href="/catalogo" variant="solid">Ver catálogo</Button>
+            <Button href="/contacto">Contactar a REVA</Button>
           </div>
         </div>
       </Section>

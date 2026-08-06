@@ -22,7 +22,7 @@ export function ProductRecommendationCard({
       <div className="space-y-3 p-6">
         <Text variant="label">{recommendation.category}</Text>
         <h3 className="font-serif text-2xl tracking-tight">{recommendation.name}</h3>
-        <Button href={`/catalog/${recommendation.slug}`}>Ver detalle</Button>
+        <Button href={`/productos/${recommendation.slug}`}>Ver detalle</Button>
       </div>
     </article>
   );

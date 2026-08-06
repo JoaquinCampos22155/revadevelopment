@@ -1,19 +1,19 @@
 export const primaryNavigation = [
   { href: "/", label: "Inicio" },
-  { href: "/catalog", label: "Catálogo" },
-  { href: "/about", label: "Nosotros" },
-  { href: "/contact", label: "Contacto" },
+  { href: "/catalogo", label: "Catálogo" },
+  { href: "/nosotros", label: "Nosotros" },
+  { href: "/contacto", label: "Contacto" },
 ] as const;
 
 export const loginNavigation = {
-  href: "/login",
+  href: "/iniciar-sesion",
   label: "Ingresar",
 } as const;
 
 export const footerNavigation = [
-  { href: "/catalog", label: "Catálogo" },
-  { href: "/about", label: "Sobre REVA" },
-  { href: "/contact", label: "Contacto" },
+  { href: "/catalogo", label: "Catálogo" },
+  { href: "/nosotros", label: "Sobre REVA" },
+  { href: "/contacto", label: "Contacto" },
 ] as const;
 
 export const footerLegal = ["Política de privacidad", "Términos y condiciones"] as const;

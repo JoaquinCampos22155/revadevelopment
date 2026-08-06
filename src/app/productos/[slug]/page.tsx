@@ -43,7 +43,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <main id="main-content">
       <Section>
         <div className="mb-8">
-          <Button href="/catalog">Volver al catálogo</Button>
+          <Button href="/catalogo">Volver al catálogo</Button>
         </div>
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
           <ProductGallery images={product.gallery} />
@@ -85,7 +85,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <Text variant="label">También puedes explorar</Text>
           <Heading level={2} variant="editorial">Colecciones relacionadas</Heading>
           <div className="flex flex-wrap gap-3">
-            {product.relatedCollections.map((collection) => <Button href="/catalog" key={collection}>{collection}</Button>)}
+            {product.relatedCollections.map((collection) => <Button href="/catalogo" key={collection}>{collection}</Button>)}
           </div>
         </div>
       </Section>

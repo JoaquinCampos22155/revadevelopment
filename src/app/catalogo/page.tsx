@@ -83,7 +83,7 @@ export default function CatalogPage() {
             ¿Quieres saber más sobre REVA?
           </Heading>
           <div className="mt-6">
-            <Button className="bg-white text-slate-950 hover:bg-sky-100" href="/contact">
+            <Button className="bg-white text-slate-950 hover:bg-sky-100" href="/contacto">
               Contactar a REVA
             </Button>
           </div>

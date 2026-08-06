@@ -39,7 +39,7 @@ export default function ContactPage() {
             prenda te llevarán allí para resolver dudas y continuar tu compra.
             Por ahora, explora las colecciones y conoce nuestra misión.
           </Text>
-          <Button className="mt-6" href="/catalog" variant="solid">
+          <Button className="mt-6" href="/catalogo" variant="solid">
             Explorar catálogo
           </Button>
         </div>

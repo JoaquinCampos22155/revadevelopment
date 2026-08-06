@@ -25,7 +25,7 @@ export default function LoginPage() {
           <Text className="text-lg" variant="body">
             En una próxima etapa, tu cuenta te permitirá guardar favoritos, recibir recomendaciones y conectar mejor con la comunidad REVA.
           </Text>
-          <Button href="/catalog" variant="solid">Explorar catálogo</Button>
+          <Button href="/catalogo" variant="solid">Explorar catálogo</Button>
         </div>
       </Section>
     </main>
