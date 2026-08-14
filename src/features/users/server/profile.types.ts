@@ -1,20 +1,23 @@
-/** Identifies a profile owned by an authenticated user. */
+/** Identifies REVA's business Profile, whose authentication identity is provider-owned. */
 export type ProfileId = string;
 
-/** Represents the business profile kept separate from an authentication provider identity. */
+/** Limits authorization to the two currently approved REVA roles. */
+export type ProfileRole = "customer" | "admin";
+
+/**
+ * Represents REVA business identity and protected authorization state. Ordinary
+ * profile updates must never be able to change role.
+ */
 export type Profile = Readonly<{
-  displayName: string | null;
+  createdAt: Date;
   id: ProfileId;
+  role: ProfileRole;
+  updatedAt: Date;
 }>;
 
-/** Represents independently reversible communication preferences. */
+/** Represents the intentionally minimal, independently reversible consent record. */
 export type MarketingPreferences = Readonly<{
-  productUpdates: boolean;
-  sustainabilityContent: boolean;
-}>;
-
-/** Limits profile changes to business data, never identity credentials or sessions. */
-export type UpdateProfileInput = Readonly<{
-  displayName: string | null;
-  id: ProfileId;
+  isMarketingOptedIn: boolean;
+  profileId: ProfileId;
+  updatedAt: Date;
 }>;

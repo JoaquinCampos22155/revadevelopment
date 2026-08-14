@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local Supabase creates generated runtime files here; they are not source.
+    "supabase/.temp/**",
   ]),
 ]);
 

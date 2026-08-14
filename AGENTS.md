@@ -66,6 +66,8 @@ Use Server Components by default. Create Client Components only when browser API
 
 Do not require every read to pass through a hook. Hooks are for reusable client-side behavior; server-side reads and writes should use the appropriate application or server boundary.
 
+Server-only execution does not imply privileged execution. Ordinary request-scoped services and repositories must preserve the caller's authorization context rather than bypassing provider or persistence controls because code runs on a trusted server.
+
 ## 5. Module and Folder Governance
 
 `src/app` owns routing, route composition, route metadata, loading states, error boundaries, and route-level concerns. It must not own reusable business logic or provider-specific data access.
@@ -110,6 +112,8 @@ Services and infrastructure adapters are the boundaries for provider integration
 
 Provider changes must be possible without redesigning public routes, reusable UI, or the business model. Replacing a provider may require an approved migration, but it must not require reinterpreting REVA's domain concepts.
 
+Privileged provider credentials may exist only inside explicitly privileged infrastructure modules for approved infrastructure operations. They must never become the default data-access mechanism for ordinary request-scoped repositories or services.
+
 ## 8. Storage, Assets, and Image Delivery
 
 Business data references storage keys or other provider-neutral asset identifiers. Delivery URLs, transformations, signatures, CDN behavior, and cache policy are infrastructure concerns resolved at the delivery boundary.
@@ -127,6 +131,8 @@ Authentication must unlock value, never block public discovery. Public visitors 
 Authentication, authorization, and business profiles are separate concerns. Authentication proves identity; authorization determines allowed actions; profile and preference data serve product needs.
 
 Use least privilege, explicit authorization rules, and server-enforced access control. Never trust client-provided identity, role, entitlement, or ownership claims.
+
+Authorization is enforced at trusted application, provider, and persistence boundaries. UI visibility, client state, route hiding, and client-provided role information are never authorization. Provider-level authorization complements application/service authorization and business validation; it does not replace either.
 
 Collect only data necessary for a stated product purpose. Store consent independently from authentication where appropriate, make preferences reversible, and avoid exposing personal data through logs, analytics, URLs, or client state.
 
@@ -167,6 +173,8 @@ Comments explain why a non-obvious decision exists, not what obvious code does. 
 Expected failures must have clear user-safe handling. Unexpected failures must be observable through an approved logging or monitoring boundary without exposing sensitive data. Do not leave debug output, dead code, unexplained temporary behavior, or duplicate logic in production paths.
 
 Hardcoded presentation values are acceptable when local and intentional. Configuration, provider identifiers, contact-channel URLs, secrets, environment-specific values, and business rules must have explicit ownership rather than being scattered through UI code.
+
+Public presentation contracts expose only deliberately approved public information. Internal persistence identifiers, operational data, privileged metadata, and infrastructure references must remain internal unless their publication has an explicit product and security rationale.
 
 ## 13. Quality Validation Principles
 

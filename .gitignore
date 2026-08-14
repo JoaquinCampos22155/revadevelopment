@@ -13,9 +13,6 @@
 # testing
 /coverage
 
-# sprints
-/SPRINTS.md
-
 # next.js
 /.next/
 /out/

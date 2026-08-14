@@ -1,13 +1,9 @@
-import type {
-  MarketingPreferences,
-  Profile,
-  ProfileId,
-} from "@/features/users/server/profile.types";
+import type { Profile } from "@/features/users/server/profile.types";
 
-/** Defines persistence for REVA profile data and preferences independently from authentication. */
+/**
+ * Reads the Profile belonging to the authenticated request only. Ownership is
+ * derived from the verified session, never from a browser-supplied identifier.
+ */
 export interface ProfileRepository {
-  findById(id: ProfileId): Promise<Profile | null>;
-  getMarketingPreferences(id: ProfileId): Promise<MarketingPreferences | null>;
-  save(profile: Profile): Promise<Profile>;
-  saveMarketingPreferences(id: ProfileId, preferences: MarketingPreferences): Promise<MarketingPreferences>;
+  findCurrent(): Promise<Profile | null>;
 }

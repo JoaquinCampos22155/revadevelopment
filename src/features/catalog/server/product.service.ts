@@ -1,21 +1,23 @@
 import type {
-  ChangeProductStatusInput,
-  CreateProductDraftInput,
-  ListPublishedProductsInput,
-  Product,
-  ProductId,
   ProductSlug,
   PublishedProduct,
   PublishedProductPreview,
-  UpdateProductDraftInput,
 } from "@/features/catalog/server/product.types";
+import type { ProductRepository } from "@/features/catalog/server/product.repository";
 
-/** Owns unique-garment lifecycle rules and the published product contract consumed by public routes. */
-export interface ProductService {
-  changeStatus(input: ChangeProductStatusInput): Promise<Product>;
-  createDraft(input: CreateProductDraftInput): Promise<Product>;
-  getPublishedBySlug(slug: ProductSlug): Promise<PublishedProduct | null>;
-  listPublished(input?: ListPublishedProductsInput): Promise<ReadonlyArray<PublishedProductPreview>>;
-  updateDraft(input: UpdateProductDraftInput): Promise<Product>;
-  getById(id: ProductId): Promise<Product | null>;
+/**
+ * Coordinates the read-only public Product use cases currently proven by REVA.
+ * The repository owns persistence; future lifecycle commands belong in a
+ * separate administrative service when the Product Manager actually exists.
+ */
+export class ProductService {
+  public constructor(private readonly productRepository: ProductRepository) {}
+
+  public getPublishedBySlug(slug: ProductSlug): Promise<PublishedProduct | null> {
+    return this.productRepository.findPublishedBySlug(slug);
+  }
+
+  public listPublished(): Promise<ReadonlyArray<PublishedProductPreview>> {
+    return this.productRepository.listPublished();
+  }
 }

@@ -1,38 +1,40 @@
 import type { ProductId } from "@/features/catalog/server/product.types";
 
-/** Identifies an editorial collection independently from persistence. */
+/** Identifies an editorial Collection independently from persistence. */
 export type CollectionId = string;
 
-/** Identifies a public, human-readable collection route. */
+/** Identifies a public, human-readable Collection route. */
 export type CollectionSlug = string;
 
-/** Keeps collection publication separate from the lifecycle of its products. */
+/** Keeps Collection publication separate from the Product commercial lifecycle. */
 export type CollectionStatus = "draft" | "published" | "archived";
 
-/** Represents an editorial grouping that references products without owning their images. */
+/** Represents a curated editorial landing page without independent media ownership. */
 export type Collection = Readonly<{
+  createdAt: Date;
   description: string;
   id: CollectionId;
-  name: string;
   slug: CollectionSlug;
   status: CollectionStatus;
+  title: string;
+  updatedAt: Date;
 }>;
 
-/** Represents a product's ordered membership in an editorial collection. */
+/** Keeps manual Product ordering on the Collection relationship where it belongs. */
 export type CollectionProduct = Readonly<{
   collectionId: CollectionId;
+  position: number;
   productId: ProductId;
-  sortOrder: number;
 }>;
 
-/** Supplies the facts needed to create an unpublished editorial collection. */
+/** Supplies the facts needed to create an unpublished editorial Collection. */
 export type CreateCollectionInput = Readonly<{
   description: string;
-  name: string;
   slug: CollectionSlug;
+  title: string;
 }>;
 
-/** Makes collection membership changes explicit and independently ordered. */
+/** Makes Collection membership changes explicit and independently ordered. */
 export type SetCollectionProductsInput = Readonly<{
   collectionId: CollectionId;
   products: ReadonlyArray<CollectionProduct>;

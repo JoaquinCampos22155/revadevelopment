@@ -1,6 +1,6 @@
-import type { SiteTestimonial } from "@/features/reviews/server/site-testimonial.types";
+import type { PublishedSiteTestimonial } from "@/features/reviews/server/site-testimonial.types";
 
-/** Supplies reviewed social-proof content while keeping future customer-review policy separate. */
+/** Supplies curated social proof without introducing a public review workflow. */
 export interface ReviewService {
-  listPublishedSiteTestimonials(): Promise<ReadonlyArray<SiteTestimonial>>;
+  listPublishedSiteTestimonials(): Promise<ReadonlyArray<PublishedSiteTestimonial>>;
 }

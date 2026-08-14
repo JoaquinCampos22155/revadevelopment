@@ -1,6 +1,6 @@
-import type { SiteTestimonial } from "@/features/reviews/server/site-testimonial.types";
+import type { PublishedSiteTestimonial } from "@/features/reviews/server/site-testimonial.types";
 
-/** Defines the persistence boundary for curated site testimonials without assuming future user reviews. */
+/** Defines the public-read persistence boundary for curated testimonial content. */
 export interface SiteTestimonialRepository {
-  listPublished(): Promise<ReadonlyArray<SiteTestimonial>>;
+  listPublished(): Promise<ReadonlyArray<PublishedSiteTestimonial>>;
 }

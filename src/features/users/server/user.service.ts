@@ -1,14 +1,14 @@
-import type {
-  MarketingPreferences,
-  Profile,
-  ProfileId,
-  UpdateProfileInput,
-} from "@/features/users/server/profile.types";
+import type { ProfileRepository } from "@/features/users/server/profile.repository";
+import type { Profile } from "@/features/users/server/profile.types";
 
-/** Owns future profile and preference use cases without taking responsibility for authentication sessions. */
-export interface UserService {
-  getMarketingPreferences(id: ProfileId): Promise<MarketingPreferences | null>;
-  getProfile(id: ProfileId): Promise<Profile | null>;
-  updateMarketingPreferences(id: ProfileId, preferences: MarketingPreferences): Promise<MarketingPreferences>;
-  updateProfile(input: UpdateProfileInput): Promise<Profile>;
+/**
+ * Coordinates the current caller's business identity without exposing role
+ * mutation or caller-controlled Profile lookup to application code.
+ */
+export class UserService {
+  public constructor(private readonly profileRepository: ProfileRepository) {}
+
+  public getCurrentProfile(): Promise<Profile | null> {
+    return this.profileRepository.findCurrent();
+  }
 }

@@ -1,111 +1,95 @@
-/** Identifies a unique garment independently from its future persistence provider. */
+import type { ConditionRating } from "@/features/catalog/condition";
+import type { IntakeItemId } from "@/features/intake/server/intake.types";
+import type { Money } from "@/types/money";
+import type { ProfileId } from "@/features/users/server/profile.types";
+
+/** Identifies a unique selling opportunity independently from persistence. */
 export type ProductId = string;
 
-/** Identifies a public, human-readable product route. */
+/** Identifies the sole public route for a Product. */
 export type ProductSlug = string;
 
-/** Models the only lifecycle states approved for a unique REVA garment. */
+/** Models the approved commercial lifecycle for a unique garment. */
 export type ProductStatus = "draft" | "published" | "reserved" | "sold" | "archived";
 
-/** Identifies the editorial purpose of an image owned by a product. */
-export type ProductImageKind = "front" | "back" | "detail" | "closeup";
+/** Keeps flexible, garment-specific dimensions separate from fixed catalog fields. */
+export type ProductMeasurements = Readonly<Record<string, string>>;
 
-/** Represents a reusable product brand without coupling it to a database row. */
-export type Brand = Readonly<{
-  id: string;
-  name: string;
-  slug: string;
+/**
+ * Represents a Product's internal domain state. It intentionally carries
+ * operational identity and provenance that must not enter public UI contracts.
+ */
+export type Product = Readonly<{
+  brand: string | null;
+  color: string | null;
+  conditionNotes: string | null;
+  conditionRating: ConditionRating | null;
+  createdAt: Date;
+  createdByProfileId: ProfileId;
+  description: string | null;
+  garmentType: string | null;
+  id: ProductId;
+  intakeItemId: IntakeItemId;
+  materialDetails: string | null;
+  measurements: ProductMeasurements | null;
+  price: Money | null;
+  publishedAt: Date | null;
+  sizeLabel: string | null;
+  sku: string;
+  slug: ProductSlug;
+  status: ProductStatus;
+  title: string;
+  updatedAt: Date;
 }>;
 
-/** Represents a discovery category that products can reference. */
-export type Category = Readonly<{
-  id: string;
-  name: string;
-  slug: string;
-}>;
-
-/** Keeps product image ownership and provider-neutral storage references together. */
+/** Represents ordered product media before a delivery provider resolves its URL. */
 export type ProductImage = Readonly<{
   altText: string;
+  createdAt: Date;
+  height: number;
   id: string;
-  kind: ProductImageKind;
+  mimeType: "image/avif" | "image/jpeg" | "image/png" | "image/webp";
+  position: number;
   productId: ProductId;
-  sortOrder: number;
   storageKey: string;
+  width: number;
 }>;
 
-/** Describes a unique garment and the facts required to manage its lifecycle. */
-export type Product = Readonly<{
-  brandId: Brand["id"];
-  categoryId: Category["id"];
-  conditionDescription: string;
-  description: string;
-  highlights: ReadonlyArray<string>;
-  id: ProductId;
-  name: string;
-  sizeLabel: string;
-  slug: ProductSlug;
-  status: ProductStatus;
+/** Supplies delivery-safe image information to presentation after ImageService resolution. */
+export type ProductImageDelivery = Readonly<{
+  altText: string;
+  height: number;
+  position: number;
+  url: string;
+  width: number;
 }>;
 
-/** Supplies only the data necessary to create an unpublished product draft. */
-export type CreateProductDraftInput = Readonly<{
-  brandId: Brand["id"];
-  categoryId: Category["id"];
-  conditionDescription: string;
-  description: string;
-  highlights: ReadonlyArray<string>;
-  name: string;
-  sizeLabel: string;
-  slug: ProductSlug;
-}>;
-
-/** Limits changes to fields that remain editable before a product lifecycle transition. */
-export type UpdateProductDraftInput = Readonly<{
-  brandId?: Brand["id"];
-  categoryId?: Category["id"];
-  conditionDescription?: string;
-  description?: string;
-  highlights?: ReadonlyArray<string>;
-  id: ProductId;
-  name?: string;
-  sizeLabel?: string;
-  slug?: ProductSlug;
-}>;
-
-/** Makes a lifecycle transition explicit rather than allowing arbitrary status updates in UI code. */
-export type ChangeProductStatusInput = Readonly<{
-  id: ProductId;
-  status: ProductStatus;
-}>;
-
-/** Supplies the facts required by catalog discovery without exposing provider data. */
+/** Supplies a public catalog card without operational or storage information. */
 export type PublishedProductPreview = Readonly<{
-  brandName: string;
-  categoryName: string;
-  conditionDescription: string;
-  id: ProductId;
-  name: string;
+  brand: string | null;
+  conditionRating: ConditionRating;
+  image: ProductImageDelivery | null;
+  price: Money;
   slug: ProductSlug;
-  thumbnail: ProductImage | null;
+  title: string;
 }>;
 
-/** Supplies the published detail model shared by pages, metadata, and future structured data. */
+/**
+ * Supplies the public Product Detail contract. SKU, Intake provenance, creator
+ * identity, and storage keys are deliberately absent.
+ */
 export type PublishedProduct = Readonly<{
-  brand: Brand;
-  category: Category;
-  conditionDescription: string;
+  brand: string | null;
+  color: string | null;
+  conditionNotes: string | null;
+  conditionRating: ConditionRating;
   description: string;
-  highlights: ReadonlyArray<string>;
-  id: ProductId;
-  images: ReadonlyArray<ProductImage>;
-  name: string;
-  sizeLabel: string;
+  garmentType: string;
+  images: ReadonlyArray<ProductImageDelivery>;
+  materialDetails: string | null;
+  measurements: ProductMeasurements | null;
+  price: Money;
+  sizeLabel: string | null;
   slug: ProductSlug;
-}>;
-
-/** Limits future catalog reads without exposing persistence query formats. */
-export type ListPublishedProductsInput = Readonly<{
-  categorySlug?: Category["slug"];
-  limit?: number;
+  title: string;
 }>;
