@@ -88,33 +88,30 @@ Implemented email/password authentication with email confirmation, cookie-backed
 
 Created and remotely applied Migration 004. Published Product reads now flow through explicit `api` schema projections, the request-scoped publishable Supabase context, `SupabasePublicProductRepository`, `ProductService`, and safe public domain contracts. No Product data, Storage, Product Manager, or production UI replacement was introduced; the visible Catalog and Product Detail continue to use editorial static content.
 
+### Sprint 20 — Product Manager Foundation and First Development Garment
+
+Created and remotely applied Migrations 005 and 006, establishing the admin-only, session-bound Product Manager draft workflow. A draft atomically creates one Intake Item and one Product while preserving RLS, private Intake data, exact money handling, automatic SKU generation, and the Product lifecycle boundary.
+
+The first development garment validated the real operational path as `RV-000001` in `draft` state. Product Manager now governs audience, garment type, alpha-size entry, color, and condition through centralized application-owned vocabularies; free text remains only where it represents editorial or genuinely open facts. The controlled vocabularies are intentionally preliminary and their evolution triggers are recorded in `TO_CONSIDER.md`.
+
+No Product was published, no public Catalog presentation changed, and Product images remain intentionally deferred.
+
 ## Current Implementation Snapshot
 
 - The public frontend is visually established and uses Spanish public routes: `/`, `/catalogo`, `/productos/[slug]`, `/nosotros`, `/contacto`, and `/iniciar-sesion`.
 - `/colecciones/[slug]` is an approved public URL architecture but is not yet implemented as a route. `/playground` is internal and non-indexed.
 - Auth is real: email/password signup, email confirmation, cookie-backed sessions, logout, one customer test identity, and one admin test identity exist only in the development environment.
-- Migrations 001–004 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are anonymously readable.
+- Migrations 001–006 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are anonymously readable.
 - The public Product repository is an integration proof. The customer-facing catalog and Product Detail have not yet switched from editorial static content to database-backed presentation.
+- Product Manager can create and edit secure drafts. One development Product exists; it remains unpublished and unavailable through public projections.
 
 ## Next Planned Milestone
 
-### Sprint 20 — First Real Development Product
+### Sprint 21 — Product Media Pipeline
 
-**Status:** Planned — not started.
+**Status:** Next planned milestone.
 
-**Objective:** Prove the complete development read path with one approved development garment:
-
-```text
-Intake Item
--> Product draft
--> Published Product
--> safe api projection
--> Product repository
--> presentation adapter
--> server-rendered REVA UI
-```
-
-Sprint 20 must preserve the existing Intake/Product distinction, RLS model, public-data contract, and provider-neutral image architecture. It does not authorize production inventory, Storage work, Product Manager scope, or unrelated backend features.
+**Objective:** Introduce Product-owned image upload, storage, delivery, and removal boundaries without exposing raw storage keys or weakening the Product Manager security model.
 
 ## Working Method
 

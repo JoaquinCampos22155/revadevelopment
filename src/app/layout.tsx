@@ -22,7 +22,11 @@ export default async function RootLayout({
   return (
     <html lang="es">
       <body>
-        <Navbar isAuthenticated={currentProfile !== null} onSignOut={signOut} />
+        <Navbar
+          isAdmin={currentProfile?.role === "admin"}
+          isAuthenticated={currentProfile !== null}
+          onSignOut={signOut}
+        />
         {children}
         <Footer />
       </body>

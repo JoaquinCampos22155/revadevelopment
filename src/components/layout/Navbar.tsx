@@ -6,6 +6,7 @@ import { loginNavigation, primaryNavigation } from "@/content/navigation";
 
 type NavbarProps = Readonly<{
   isAuthenticated: boolean;
+  isAdmin: boolean;
   onSignOut: () => Promise<void>;
 }>;
 
@@ -13,7 +14,7 @@ type NavbarProps = Readonly<{
  * Makes authentication observable without treating navigation state as an
  * authorization decision. RLS and server boundaries remain authoritative.
  */
-export function Navbar({ isAuthenticated, onSignOut }: NavbarProps) {
+export function Navbar({ isAdmin, isAuthenticated, onSignOut }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <PageContainer>
@@ -33,6 +34,7 @@ export function Navbar({ isAuthenticated, onSignOut }: NavbarProps) {
           <div className="hidden items-center gap-3 md:flex">
             {isAuthenticated ? (
               <>
+                {isAdmin ? <Button href="/admin/productos" variant="outline">Gestión</Button> : null}
                 <span className="text-sm text-slate-600">Sesión activa</span>
                 <form action={onSignOut}>
                   <Button type="submit" variant="outline">
@@ -64,11 +66,14 @@ export function Navbar({ isAuthenticated, onSignOut }: NavbarProps) {
                 </NavLink>
               ))}
               {isAuthenticated ? (
-                <form action={onSignOut} className="mt-2">
-                  <Button className="flex w-full" type="submit" variant="outline">
-                    Cerrar sesión
-                  </Button>
-                </form>
+                <>
+                  {isAdmin ? <Button className="mt-2 flex w-full" href="/admin/productos" variant="outline">Gestión</Button> : null}
+                  <form action={onSignOut} className="mt-2">
+                    <Button className="flex w-full" type="submit" variant="outline">
+                      Cerrar sesión
+                    </Button>
+                  </form>
+                </>
               ) : (
                 <Button
                   className="mt-2 flex w-full"

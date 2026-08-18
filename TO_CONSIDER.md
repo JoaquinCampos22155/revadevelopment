@@ -77,11 +77,11 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ### Product Manager and official Product operations
 
-- **State:** No Product Manager, Product write repository, or Product creation UI exists.
-- **Why deferred:** Sprint 19 proves only safe public reads. Product writes need an approved admin workflow and business validation.
-- **Reconsider:** After Sprint 20's real development Product validates the read path.
-- **Trigger:** Approval to manage Intake and Product drafts through the application.
-- **Required decision:** Admin-only service/repository commands, lifecycle validation, audit behavior, and image coordination without a privileged-client shortcut.
+- **State:** Product Manager creates and edits administrator-owned Intake/Product drafts through session-bound, RLS-enforced RPCs. Images, publication, and contributor association remain absent.
+- **Why deferred:** Each requires its own storage, lifecycle, or privacy boundary; draft entry should not invent those capabilities prematurely.
+- **Reconsider:** Individually when its product boundary is approved.
+- **Trigger:** The Product Media Pipeline, a publication workflow, or a safe contributor lookup design is approved.
+- **Required decision:** Image ownership and deletion coordination; publication completeness and audit behavior; or a safe human-readable Profile lookup that does not expose UUIDs or duplicate Auth identity data.
 - **Category:** Near-term feature.
 
 ### Static catalog to service-backed presentation
@@ -112,6 +112,50 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Category:** Future feature.
 
 ## Product Evolution
+
+### Garment-type taxonomy management
+
+- **State:** Product Manager uses a centralized application-owned controlled garment-type vocabulary. The Product field stores its stable value; labels are presentation.
+- **Why deferred:** The current operational vocabulary is small and changes deliberately. A reference table or taxonomy-management UI would add governance infrastructure before operational volume requires it.
+- **Reconsider:** When updating the centralized application vocabulary through a code deployment becomes operationally limiting.
+- **Trigger:** Frequent approved vocabulary changes, multiple operational teams, or a demonstrated need to manage taxonomy without a deployment.
+- **Required decision:** Database-backed taxonomy, administrative ownership, migration/normalization policy, and how stable stored values map to labels.
+- **Category:** Product data-governance evolution.
+
+### Multi-system garment sizing
+
+- **State:** Product Manager currently uses a centralized, controlled alpha-size vocabulary and persists the selected `size_label` or `NULL`. This is intentionally preliminary, not a claim that alpha sizes are universal.
+- **Why deferred:** Second-hand garments legitimately use alpha sizes, jeans or waist sizes such as `28` or `32`, numeric fashion or dress sizes, European sizes, children's age or manufacturer systems, One Size / Talla Única, and other manufacturer-specific labels. A universal engine now would invent policy before REVA has real inventory evidence.
+- **Reconsider:** When the controlled application vocabulary no longer supports fast, faithful operational entry or Catalog discovery needs distinguishable sizing systems.
+- **Trigger:** Garments frequently fall outside the vocabulary; configuration edits become repetitive; filtering requires systems to be distinguished; cross-system filtering is needed; operators need manufacturer size and REVA-normalized size separately; size recommendations or conversions are approved; or children's inventory requires age/height-based sizing.
+- **Required decision:** Whether to introduce concepts such as `size_system`, `manufacturer_size`, and `normalized_size`, and whether they require database-backed controlled taxonomy or administration. A future model must preserve original manufacturer information — for example `40` with system `EU`, or `32` with system `waist_inches` — independently from any REVA interpretation such as `M`.
+- **Category:** Product data-governance evolution.
+
+### Controlled color evolution
+
+- **State:** A Product currently has one application-controlled color classification. `bicolor` and `multicolor` are valid classifications but do not preserve their constituent colors.
+- **Why deferred:** A Product-to-Color model would add taxonomy and relationship infrastructure before catalog evidence requires it.
+- **Reconsider:** When a customer must discover garments containing a specific color even when classified bicolor/multicolor, those garments become common, operators need primary and secondary colors, recommendations/search require constituent-color semantics, or operators regularly cannot choose one classification.
+- **Required decision:** Whether the smallest suitable model is primary/secondary colors, controlled multiple colors, a Product-to-Color relation, or another deliberate structure.
+- **Category:** Product data-governance evolution.
+
+### Product Manager brand suggestions
+
+- **State:** Brand remains simple free text.
+- **Why deferred:** The first Product entry did not establish a need for a Brand reference table or taxonomy.
+- **Reconsider:** When repeated known brands make entry slower or inconsistent.
+- **Trigger:** Operators benefit from suggestions based on previously used values while retaining simple brand text.
+- **Required decision:** A safe suggestion/read model without prematurely making Brand a reference entity.
+- **Category:** Product Manager UX evolution.
+
+### Product Manager visual refinement with media
+
+- **State:** The first operator test found the draft form fast and its ordering appropriate; its visual hierarchy can improve.
+- **Why deferred:** Sprint 21 media will materially change the Photos section and the form's layout.
+- **Reconsider:** With the approved Product Media Pipeline.
+- **Trigger:** Real media is available to assess the final operational rhythm.
+- **Required decision:** Focused visual polish based on the media-integrated workflow, not a standalone redesign.
+- **Category:** Product Manager UX evolution.
 
 ### Selling and donation experiences
 

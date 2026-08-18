@@ -1,4 +1,5 @@
 import type { ConditionRating } from "@/features/catalog/condition";
+import type { Audience } from "@/features/catalog/audiences";
 import type { IntakeItemId } from "@/features/intake/server/intake.types";
 import type { Money } from "@/types/money";
 import type { ProfileId } from "@/features/users/server/profile.types";
@@ -20,6 +21,7 @@ export type ProductMeasurements = Readonly<Record<string, string>>;
  * operational identity and provenance that must not enter public UI contracts.
  */
 export type Product = Readonly<{
+  audience: Audience | null;
   brand: string | null;
   color: string | null;
   conditionNotes: string | null;

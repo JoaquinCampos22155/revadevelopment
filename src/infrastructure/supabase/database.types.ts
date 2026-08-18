@@ -319,6 +319,7 @@ export type Database = {
       }
       products: {
         Row: {
+          audience: string | null
           brand: string | null
           color: string | null
           condition_notes: string | null
@@ -341,6 +342,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          audience?: string | null
           brand?: string | null
           color?: string | null
           condition_notes?: string | null
@@ -363,6 +365,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          audience?: string | null
           brand?: string | null
           color?: string | null
           condition_notes?: string | null
@@ -490,7 +493,94 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_product_draft_from_intake: {
+        Args: {
+          p_acquisition_cost: string
+          p_audience: string
+          p_brand: string
+          p_color: string
+          p_condition_notes: string
+          p_condition_rating: string
+          p_description: string
+          p_garment_type: string
+          p_material_details: string
+          p_measurements: Json
+          p_price: string
+          p_received_at: string
+          p_size_label: string
+          p_slug: string
+          p_source_profile_id: string
+          p_source_type: string
+          p_title: string
+        }
+        Returns: {
+          intake_item_id: string
+          product_id: string
+          sku: string
+        }[]
+      }
+      get_product_manager_draft: {
+        Args: { p_product_id: string }
+        Returns: {
+          acquisition_cost: string
+          audience: string
+          brand: string
+          color: string
+          condition_notes: string
+          condition_rating: number
+          description: string
+          garment_type: string
+          id: string
+          intake_item_id: string
+          material_details: string
+          measurements: Json
+          price: string
+          received_at: string
+          size_label: string
+          sku: string
+          source_profile_id: string
+          source_type: string
+          status: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      list_product_manager_drafts: {
+        Args: never
+        Returns: {
+          id: string
+          sku: string
+          status: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      save_product_draft: {
+        Args: {
+          p_acquisition_cost: string
+          p_audience: string
+          p_brand: string
+          p_color: string
+          p_condition_notes: string
+          p_condition_rating: string
+          p_description: string
+          p_garment_type: string
+          p_material_details: string
+          p_measurements: Json
+          p_price: string
+          p_product_id: string
+          p_received_at: string
+          p_size_label: string
+          p_source_profile_id: string
+          p_source_type: string
+          p_title: string
+        }
+        Returns: {
+          product_id: string
+          sku: string
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -120,10 +120,11 @@ Tags, filters, gender, type, and collection membership must never create alterna
 | `title`, `description` | Public product and editorial information. |
 | `price` | Exact public selling price. |
 | `brand` | Simple filterable brand text. |
-| `garment_type` | Controlled structured catalog attribute. |
+| `audience` | Controlled single merchandising audience: `hombre`, `mujer`, `ninos`, or `unisex`. |
+| `garment_type` | Controlled structured catalog attribute, persisted as a stable application-owned value. |
 | `color` | Controlled structured catalog attribute. |
 | `material_details` | Human-readable material or composition information. |
-| `size_label`, `measurements` | Sizing information. Measurements are a flexible structured object, normally in centimeters. |
+| `size_label`, `measurements` | Sizing information. `size_label` is nullable manufacturer/garment information, currently captured through Product Manager's controlled application vocabulary. Measurements are a flexible structured object, normally in centimeters. |
 | `condition_rating`, `condition_notes` | Compact persisted condition signal and any product-specific notes. The human-readable label is derived by the application. |
 | `status` | Commercial lifecycle: `draft`, `published`, `reserved`, `sold`, `archived`. |
 | `published_at`, `created_at`, `updated_at` | Publication and audit timestamps. |
@@ -192,6 +193,16 @@ The catalog's stable Product filters are:
 - Garment type
 
 These are simple Product fields. REVA deliberately does not create Brands, Categories, Colors, or Materials reference tables in the current architecture.
+
+`garment_type` is not free-form Product Manager input. The application owns a centralized, controlled vocabulary of stable values and Spanish display labels. A value is not a URL or SEO slug; it is an operational discovery value. This keeps labels independently editable while avoiding inconsistent filtering data.
+
+When a received garment does not fit the current vocabulary, REVA reviews and deliberately adds an approved value to that centralized configuration. A database-backed or admin-managed taxonomy is deferred until centrally editing that configuration becomes operationally limiting.
+
+`color` is likewise one controlled, application-owned Product discovery classification during normal Product Manager entry. It persists a stable normalized value while Spanish labels remain presentation. The current vocabulary includes deliberate `bicolor` and `multicolor` classifications, not a Product-to-Color relationship; the model does not currently retain constituent colors. The vocabulary remains preliminary and evolves deliberately from real operational evidence rather than through arbitrary operator text.
+
+`audience` is a separate, single structured merchandising classification. Its stable persisted values are `hombre`, `mujer`, `ninos`, and `unisex`; labels remain application presentation. It is nullable while a Product is an incomplete draft and is required before it becomes public. It is not a Tag and does not describe a contributor or customer's identity. It supports future Catalog filtering without collapsing flexible style or season discovery into a rigid taxonomy.
+
+Product Manager currently captures `size_label` through a small, centralized controlled alpha-size vocabulary and persists the chosen value or `NULL` when no label is indicated. This is an operational guardrail, not a permanent universal sizing model: alpha, waist, numeric, European, children's, and manufacturer-specific systems remain legitimate future sizing facts. `measurements` stays independent of `size_label`; either may be absent in a draft, while publication requires a non-empty size label or measurements.
 
 ### Tags
 
