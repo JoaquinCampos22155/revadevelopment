@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
 import { ProductDraftForm } from "@/features/product-manager/components/ProductDraftForm";
+import { ProductMediaManager } from "@/features/product-manager/components/ProductMediaManager";
 import { createProductDraftReadService } from "@/features/product-manager/server/product-draft.composition";
+import { createProductMediaService } from "@/features/product-manager/server/product-media.composition";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,7 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
             </div>
           </div>
           <ProductDraftForm draft={draft} today={draft.receivedAt} />
+          <ProductMediaManager images={await (await createProductMediaService()).list(draft.id)} productId={draft.id} />
         </div>
       </Section>
     </main>

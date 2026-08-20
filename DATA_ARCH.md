@@ -178,6 +178,21 @@ Products exclusively own their images. A Product may have a variable number of i
 
 There is no `is_primary`, because it duplicates `position = 1`. Provider delivery URLs, signatures, transformations, and CDN behavior are infrastructure concerns resolved through `ImageService`, never stored as Product business data.
 
+Product media is processed before persistence. Product Manager accepts approved source photography through a trusted Node boundary, corrects orientation, strips unnecessary metadata, and persists only optimized WebP objects under provider-neutral immutable keys. Draft media remains in private Storage and is resolved into short-lived administrator preview URLs; public media delivery is a later publication concern.
+
+The current evidence-backed operational policy is deliberately distinct from Product business data:
+
+| Stage | Current policy |
+|---|---|
+| Accepted source | JPEG/JPG or PNG, at most 12 MiB. |
+| Decoded-image protection | At most 24 MP. |
+| Processing | Trusted Node-side Sharp processing with auto-orientation and no upscaling. |
+| Output | WebP, maximum long edge 2560 px, quality 82. |
+| Metadata | Unnecessary EXIF, GPS, and camera metadata is not persisted. |
+| Storage | Only the optimized WebP is stored; its Storage-object ceiling is 5 MiB. |
+
+These are application-owned operational defaults supported by real REVA photography. They may change with reviewed evidence and do not become Product fields or provider-specific domain rules. Production hosting must support the approved 12 MiB source-media ingress requirement; hosting limitations must not silently reduce trusted image quality or require normal operators to pre-compress photographs.
+
 ## Discovery Architecture
 
 ### Structured Product filters

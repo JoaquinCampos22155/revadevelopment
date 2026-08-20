@@ -263,10 +263,6 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
             </div>
           </fieldset>
 
-          {isEditing ? <section aria-labelledby="photos-heading" className="space-y-2 border-t border-slate-200 pt-8">
-            <h2 className="text-lg font-semibold text-slate-950" id="photos-heading">Fotos</h2>
-            <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">La carga y optimización de imágenes estará disponible próximamente.</p>
-          </section> : null}
       </>
 
       {state.error ? <p aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-900">{state.error}</p> : null}

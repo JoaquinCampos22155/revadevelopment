@@ -101,6 +101,31 @@ export type Database = {
       [_ in never]: never
     }
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       collection_products: {
@@ -519,6 +544,34 @@ export type Database = {
           sku: string
         }[]
       }
+      create_product_image_metadata: {
+        Args: {
+          p_alt_text_prefix: string
+          p_height: number
+          p_image_id: string
+          p_product_id: string
+          p_storage_key: string
+          p_width: number
+        }
+        Returns: {
+          alt_text: string
+          created_at: string
+          height: number
+          id: string
+          image_position: number
+          mime_type: string
+          product_id: string
+          storage_key: string
+          width: number
+        }[]
+      }
+      delete_product_image_metadata: {
+        Args: { p_product_image_id: string }
+        Returns: {
+          deleted_position: number
+          product_id: string
+        }[]
+      }
       get_product_manager_draft: {
         Args: { p_product_id: string }
         Returns: {
@@ -554,6 +607,10 @@ export type Database = {
           title: string
           updated_at: string
         }[]
+      }
+      reorder_product_images: {
+        Args: { p_ordered_image_ids: string[]; p_product_id: string }
+        Returns: undefined
       }
       save_product_draft: {
         Args: {
@@ -710,6 +767,9 @@ export type CompositeTypes<
 
 export const Constants = {
   api: {
+    Enums: {},
+  },
+  graphql_public: {
     Enums: {},
   },
   public: {

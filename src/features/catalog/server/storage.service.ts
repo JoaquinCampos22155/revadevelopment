@@ -1,22 +1,6 @@
-import type { ProductId, ProductImage } from "@/features/catalog/server/product.types";
-import type { StorageUploadIntent } from "@/infrastructure/contracts/storage-provider";
-
-/**
- * Coordinates variable, ordered Product media with future storage operations
- * without treating image presentation labels as persisted media kinds.
- */
+/** Defines server-owned Product media object operations without exposing provider SDKs to features. */
 export interface StorageService {
-  createProductImageUploadIntent(input: Readonly<{
-    mimeType: ProductImage["mimeType"];
-    productId: ProductId;
-  }>): Promise<StorageUploadIntent>;
-  finalizeProductImage(input: Readonly<{
-    altText: string;
-    height: number;
-    mimeType: ProductImage["mimeType"];
-    position: number;
-    productId: ProductId;
-    storageKey: string;
-    width: number;
-  }>): Promise<ProductImage>;
+  createProductImagePreviewUrl(storageKey: string): Promise<string>;
+  deleteProductImage(storageKey: string): Promise<void>;
+  uploadProductImage(input: Readonly<{ bytes: Uint8Array; storageKey: string }>): Promise<void>;
 }

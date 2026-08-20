@@ -96,22 +96,30 @@ The first development garment validated the real operational path as `RV-000001`
 
 No Product was published, no public Catalog presentation changed, and Product images remain intentionally deferred.
 
+### Sprint 21 — Product Media Pipeline
+
+Created and remotely applied Migration 007, establishing the private `product-media` Storage boundary and admin-only Product Image metadata operations. Product media is processed only in the trusted Node boundary: source JPEG/PNG is auto-oriented, resized without upscaling, stripped of metadata, encoded as WebP, stored privately, and represented through ordered Product Image metadata. Admin previews are signed delivery data; raw storage keys remain internal.
+
+The first real media run completed for development Product `RV-000001`, which remains a private draft. Six original camera photographs were independently processed and stored as six optimized WebP assets with contiguous positions. Real operating evidence established the initial source policy: 12 MiB source ceiling, 24 MP decoded-pixel ceiling, maximum 2560 px long edge, WebP quality 82, and a 5 MiB persisted-object ceiling. Original source files are not retained in Supabase.
+
+No Product was published, no public Catalog or Product Detail presentation changed, and draft media remains inaccessible to anonymous visitors and customers.
+
 ## Current Implementation Snapshot
 
 - The public frontend is visually established and uses Spanish public routes: `/`, `/catalogo`, `/productos/[slug]`, `/nosotros`, `/contacto`, and `/iniciar-sesion`.
 - `/colecciones/[slug]` is an approved public URL architecture but is not yet implemented as a route. `/playground` is internal and non-indexed.
 - Auth is real: email/password signup, email confirmation, cookie-backed sessions, logout, one customer test identity, and one admin test identity exist only in the development environment.
-- Migrations 001–006 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are anonymously readable.
+- Migrations 001–007 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are anonymously readable.
 - The public Product repository is an integration proof. The customer-facing catalog and Product Detail have not yet switched from editorial static content to database-backed presentation.
-- Product Manager can create and edit secure drafts. One development Product exists; it remains unpublished and unavailable through public projections.
+- Product Manager can create and edit secure drafts and manage their private optimized media. One development Product exists with six private WebP images; it remains unpublished and unavailable through public projections.
 
 ## Next Planned Milestone
 
-### Sprint 21 — Product Media Pipeline
+### Sprint 22 — Publication & Catalog Integration
 
-**Status:** Next planned milestone.
+**Status:** Recommended next milestone.
 
-**Objective:** Introduce Product-owned image upload, storage, delivery, and removal boundaries without exposing raw storage keys or weakening the Product Manager security model.
+**Objective:** Define publication readiness, safely publish approved Product data and media through the public experience, and integrate the first database-backed Product into Catalog and Product Detail without weakening the established public projection boundary.
 
 ## Working Method
 

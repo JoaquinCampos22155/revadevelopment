@@ -66,22 +66,58 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ## Near-term Backend and Catalog Evolution
 
-### Storage and image delivery
+### Public Product-media delivery
 
-- **State:** Storage buckets, upload flows, image delivery, and deletion workflows are not implemented. `ProductImage.storage_key` remains provider-neutral and internal.
-- **Why deferred:** Public image URLs must not be invented or derived from raw storage keys.
-- **Reconsider:** Before the catalog needs real Product imagery.
-- **Trigger:** A real Product Image workflow is approved.
-- **Required decision:** Bucket ownership/access, upload validation, ImageService delivery contract, stable URLs, responsive WebP/AVIF strategy, metadata, SEO discovery, and coordinated database/object deletion.
-- **Category:** Near-term backend milestone.
+- **State:** Private administrator media upload, ordering, deletion, and signed preview are implemented. Public Product-image delivery remains intentionally absent while Products stay unpublished.
+- **Why deferred:** Public image URLs must be introduced with publication, safe public Product projections, responsive delivery, SEO, and cache behavior rather than derived from raw Storage keys.
+- **Reconsider:** Before the first real Product becomes publicly discoverable.
+- **Required decision:** Public delivery contract, responsive WebP/AVIF strategy, image indexing, caching, and publication-state lifecycle.
+- **Category:** Near-term catalog milestone.
+
+### HEIC / HEIF source photography
+
+- **State:** Initial Product media accepts JPEG and PNG only.
+- **Why deferred:** HEIC support depends on reliable server image-decoder support across development and deployment targets.
+- **Reconsider:** When operators regularly source HEIC photos.
+- **Required decision:** Tested decoder/runtime support and a clear customer-safe conversion path.
+
+### Product-media retention after lifecycle changes
+
+- **State:** Product media is retained while Product lifecycle policy is still being defined.
+- **Reconsider:** Before publishing sold or archived Product pages.
+- **Required decision:** SEO, historical catalog pages, storage cost, and operational-retention policy.
+
+### Production media processing / hosting boundary
+
+- **State:** REVA's trusted processor accepts normal source photography up to 12 MiB, but a final production hosting arrangement has not been selected.
+- **Why deferred:** Hosting must be evaluated against REVA's media requirement rather than lowering image quality or requiring operator compression to fit an unapproved platform.
+- **Reconsider:** Before production deployment.
+- **Required decision:** A Node-capable ingress/processing boundary that accepts at least the approved source limit, preserves server-side Sharp processing, and does not persist originals.
+- **Category:** Pre-launch infrastructure requirement.
+
+### Decoded-image ceiling
+
+- **State:** Source media is limited to 24 MP as a decompression and memory safeguard; the first real REVA set sits exactly at that boundary.
+- **Why deferred:** There is no evidence yet that ordinary REVA devices require a higher ceiling.
+- **Reconsider:** When normal operator devices produce legitimate photography above 24 MP.
+- **Required decision:** Memory/runtime benchmark and an updated safety ceiling that avoids requiring normal operators to resize photographs.
+- **Category:** Product-media operations.
+
+### Existing Product media management / Product lookup
+
+- **State:** Product media operations work against an existing Product ID and Product edit already supports adding, ordering, deleting, and describing media. There is no dedicated lookup or media-management workflow.
+- **Why deferred:** Direct navigation through the current draft list is sufficient for the first operational use; a separate subsystem would be speculative.
+- **Reconsider:** When operators routinely revisit Products after initial entry or the current list is no longer efficient.
+- **Required decision:** The smallest safe lookup by SKU, title, or another approved identifier, plus focused internal navigation for existing Product media operations.
+- **Category:** Product Manager evolution.
 
 ### Product Manager and official Product operations
 
-- **State:** Product Manager creates and edits administrator-owned Intake/Product drafts through session-bound, RLS-enforced RPCs. Images, publication, and contributor association remain absent.
-- **Why deferred:** Each requires its own storage, lifecycle, or privacy boundary; draft entry should not invent those capabilities prematurely.
+- **State:** Product Manager creates and edits administrator-owned Intake/Product drafts through session-bound, RLS-enforced RPCs. Private Product media is implemented; publication and contributor association remain absent.
+- **Why deferred:** Each remaining capability requires its own lifecycle or privacy boundary; draft entry should not invent those capabilities prematurely.
 - **Reconsider:** Individually when its product boundary is approved.
-- **Trigger:** The Product Media Pipeline, a publication workflow, or a safe contributor lookup design is approved.
-- **Required decision:** Image ownership and deletion coordination; publication completeness and audit behavior; or a safe human-readable Profile lookup that does not expose UUIDs or duplicate Auth identity data.
+- **Trigger:** A publication workflow or a safe contributor lookup design is approved.
+- **Required decision:** Publication completeness and audit behavior; or a safe human-readable Profile lookup that does not expose UUIDs or duplicate Auth identity data.
 - **Category:** Near-term feature.
 
 ### Static catalog to service-backed presentation
