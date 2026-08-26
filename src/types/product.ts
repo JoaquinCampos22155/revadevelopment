@@ -1,9 +1,9 @@
 import type { StaticImageData } from "next/image";
 
-export interface ProductImage {
-  alt: string;
-  src: StaticImageData;
-}
+/** Keeps intrinsic metadata mandatory for runtime-delivered Product media. */
+export type ProductImage =
+  | Readonly<{ alt: string; src: StaticImageData }>
+  | Readonly<{ alt: string; height: number; src: string; width: number }>;
 
 export interface ProductRecommendation {
   category: string;

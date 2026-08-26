@@ -48,10 +48,9 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ### Definer-owned public Product projections
 
-- **State:** `api.published_product_previews` and `api.published_product_details` intentionally read through their migration owner so anonymous base-table access can remain denied. Supabase's Security Advisor reports the generic `security_definer_view` warning.
-- **Why deferred:** The views currently have fixed allowlists, a `published` predicate, explicit grants, and no Product data. The warning needs a production-specific security review, not a superficial suppression.
-- **Reconsider:** Before public production catalog data is exposed.
-- **Trigger:** Sprint 20 creates a real development Product, or before production launch.
+- **State:** `api.published_product_previews`, `api.published_product_details`, and `api.published_product_images` intentionally read through their migration owner so anonymous base-table access can remain denied. They use fixed allowlists, a completed-publication predicate, and explicit view grants. Current local Security Advisor validation reports no warning.
+- **Why deferred:** The boundary still needs production-specific review before public catalog data is exposed at scale.
+- **Reconsider:** Before public production catalog launch.
 - **Required decision:** Explicitly accept and document the reviewed exception, harden the current design, or replace it with a demonstrably safer equivalent that still protects base tables and preserves SEO.
 - **Category:** Security hardening / pre-launch requirement.
 
@@ -66,13 +65,30 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ## Near-term Backend and Catalog Evolution
 
-### Public Product-media delivery
+### Post-publication Product-media synchronization
 
-- **State:** Private administrator media upload, ordering, deletion, and signed preview are implemented. Public Product-image delivery remains intentionally absent while Products stay unpublished.
-- **Why deferred:** Public image URLs must be introduced with publication, safe public Product projections, responsive delivery, SEO, and cache behavior rather than derived from raw Storage keys.
-- **Reconsider:** Before the first real Product becomes publicly discoverable.
-- **Required decision:** Public delivery contract, responsive WebP/AVIF strategy, image indexing, caching, and publication-state lifecycle.
-- **Category:** Near-term catalog milestone.
+- **State:** Publication materializes private authoritative WebPs into public delivery copies. Published Product media is intentionally immutable until the Product returns to draft.
+- **Why deferred:** Bidirectional synchronization or in-place public-media replacement would create cross-storage consistency and cache-invalidation complexity before recurring operational use proves it necessary.
+- **Reconsider:** When operators need to change media on already published Products without temporarily removing them from the Catalog.
+- **Required decision:** A safe synchronization, rollback, cache, and public-delivery consistency model.
+- **Category:** Product-media lifecycle evolution.
+
+### Product Detail media gallery / carousel UX
+
+- **State:** The current Product Detail gallery renders all approved Product images as a static responsive composition. It is functional with real six-image media, but can create excessive vertical length and uneven visual weight.
+- **Why deferred:** This is a non-blocking presentation refinement. REVA is prioritizing Product lifecycle and operational capability before broad UX polish.
+- **Reconsider:** Before final UX/UI polish or production launch.
+- **Trigger:** Real Products commonly contain approximately five to six images.
+- **Required decision:** An accessible, responsive gallery interaction that considers primary-image prominence, previous/next controls, thumbnails or position indicators, keyboard and touch interaction, image inspection, PDP length, and Next Image performance. Evaluate dependencies only after the interaction is approved.
+- **Category:** Product Detail UX refinement.
+
+### Public Product image SEO / indexing strategy
+
+- **State:** Public delivery URLs use immutable opaque ProductImage identities rather than mutable Product titles or slugs. Product/image association currently comes from the canonical Product page, semantic image markup, alternative text, surrounding Product content, and stable crawlable delivery URLs.
+- **Why deferred:** Renaming Storage objects for mutable Product facts would create URL churn, cache invalidation, and redirect complexity without evidence of enough SEO benefit.
+- **Reconsider:** Before production launch.
+- **Required decision:** A cohesive Product image SEO strategy covering alt-text quality, canonical Product relationship, Product structured data / schema.org markup, image indexing, image-sitemap need, and whether descriptive image URLs justify their operational cost. Preserve immutable ProductImage identity unless evidence supports a different architecture.
+- **Category:** Pre-launch SEO requirement.
 
 ### HEIC / HEIF source photography
 
@@ -113,21 +129,12 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ### Product Manager and official Product operations
 
-- **State:** Product Manager creates and edits administrator-owned Intake/Product drafts through session-bound, RLS-enforced RPCs. Private Product media is implemented; publication and contributor association remain absent.
+- **State:** Product Manager creates and edits administrator-owned Intake/Product drafts through session-bound, RLS-enforced RPCs. Contributor association remains absent.
 - **Why deferred:** Each remaining capability requires its own lifecycle or privacy boundary; draft entry should not invent those capabilities prematurely.
 - **Reconsider:** Individually when its product boundary is approved.
-- **Trigger:** A publication workflow or a safe contributor lookup design is approved.
-- **Required decision:** Publication completeness and audit behavior; or a safe human-readable Profile lookup that does not expose UUIDs or duplicate Auth identity data.
+- **Trigger:** A safe contributor lookup design is approved.
+- **Required decision:** A safe human-readable Profile lookup that does not expose UUIDs or duplicate Auth identity data.
 - **Category:** Near-term feature.
-
-### Static catalog to service-backed presentation
-
-- **State:** The visible Catalog and Product Detail still use editorial data in `src/content`; the public Product repository currently proves the server-side data path only.
-- **Why deferred:** There are no real Product rows or delivered images yet.
-- **Reconsider:** Once Sprint 20's development Product and its presentation adapter are approved.
-- **Trigger:** A real published development Product is safely available through the public projection.
-- **Required decision:** Incremental replacement strategy that preserves card/detail composition, metadata, loading/error behavior, and image fallback.
-- **Category:** Technical debt / accepted temporary state.
 
 ### Public Tags and Collections data surfaces
 

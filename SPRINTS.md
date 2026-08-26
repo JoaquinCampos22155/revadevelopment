@@ -104,22 +104,24 @@ The first real media run completed for development Product `RV-000001`, which re
 
 No Product was published, no public Catalog or Product Detail presentation changed, and draft media remains inaccessible to anonymous visitors and customers.
 
+### Sprint 22 — Publication & Catalog Integration
+
+Created and remotely applied Migrations 008 and 009, establishing lifecycle-controlled public media materialization and closing the public-media Storage write/delete bypass. Publication now requires approved Product facts, ordered private WebP media, and completed public delivery copies before a Product becomes visible through the safe public projections.
+
+The first real Product, `RV-000001`, was published successfully. Its six private authoritative WebPs remain intact, six matching public delivery WebPs were materialized, and the public `api` projections expose only approved Product and image fields. Catalog and Product Detail now use the server-rendered `ProductService` → `SupabasePublicProductRepository` path with real published data, primary-image Catalog cards, ordered Product Detail galleries, canonical metadata, and normalized customer-facing labels. The first customer-facing visual inspection found no blocking public UX defect.
+
 ## Current Implementation Snapshot
 
 - The public frontend is visually established and uses Spanish public routes: `/`, `/catalogo`, `/productos/[slug]`, `/nosotros`, `/contacto`, and `/iniciar-sesion`.
 - `/colecciones/[slug]` is an approved public URL architecture but is not yet implemented as a route. `/playground` is internal and non-indexed.
 - Auth is real: email/password signup, email confirmation, cookie-backed sessions, logout, one customer test identity, and one admin test identity exist only in the development environment.
-- Migrations 001–007 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are anonymously readable.
-- The public Product repository is an integration proof. The customer-facing catalog and Product Detail have not yet switched from editorial static content to database-backed presentation.
-- Product Manager can create and edit secure drafts and manage their private optimized media. One development Product exists with six private WebP images; it remains unpublished and unavailable through public projections.
+- Migrations 001–009 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are publicly readable.
+- Catalog and Product Detail use database-backed published Product presentation through the public repository while preserving editorial Catalog structure.
+- Product Manager can create and edit secure drafts and manage private optimized media. `RV-000001` is the first published development Product with six private authoritative WebPs and six public delivery copies.
 
-## Next Planned Milestone
+## Next Planning Gate
 
-### Sprint 22 — Publication & Catalog Integration
-
-**Status:** Recommended next milestone.
-
-**Objective:** Define publication readiness, safely publish approved Product data and media through the public experience, and integrate the first database-backed Product into Catalog and Product Detail without weakening the established public projection boundary.
+Sprint 22 is closed. No subsequent Sprint begins without explicit approval.
 
 ## Working Method
 

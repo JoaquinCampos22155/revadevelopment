@@ -14,6 +14,7 @@ export type Database = {
     Views: {
       published_product_details: {
         Row: {
+          audience: string | null
           brand: string | null
           color: string | null
           condition_notes: string | null
@@ -28,6 +29,7 @@ export type Database = {
           title: string | null
         }
         Insert: {
+          audience?: string | null
           brand?: string | null
           color?: string | null
           condition_notes?: string | null
@@ -42,6 +44,7 @@ export type Database = {
           title?: string | null
         }
         Update: {
+          audience?: string | null
           brand?: string | null
           color?: string | null
           condition_notes?: string | null
@@ -57,36 +60,32 @@ export type Database = {
         }
         Relationships: []
       }
+      published_product_images: {
+        Row: {
+          alt_text: string | null
+          height: number | null
+          image_id: string | null
+          position: number | null
+          product_slug: string | null
+          width: number | null
+        }
+        Relationships: []
+      }
       published_product_previews: {
         Row: {
+          audience: string | null
           brand: string | null
           color: string | null
           condition_rating: number | null
           garment_type: string | null
           price: string | null
+          primary_image_alt_text: string | null
+          primary_image_height: number | null
+          primary_image_id: string | null
+          primary_image_width: number | null
           size_label: string | null
           slug: string | null
           title: string | null
-        }
-        Insert: {
-          brand?: string | null
-          color?: string | null
-          condition_rating?: number | null
-          garment_type?: string | null
-          price?: never
-          size_label?: string | null
-          slug?: string | null
-          title?: string | null
-        }
-        Update: {
-          brand?: string | null
-          color?: string | null
-          condition_rating?: number | null
-          garment_type?: string | null
-          price?: never
-          size_label?: string | null
-          slug?: string | null
-          title?: string | null
         }
         Relationships: []
       }
@@ -358,6 +357,7 @@ export type Database = {
           material_details: string | null
           measurements: Json | null
           price: number | null
+          public_media_ready_at: string | null
           published_at: string | null
           size_label: string | null
           sku: string
@@ -381,6 +381,7 @@ export type Database = {
           material_details?: string | null
           measurements?: Json | null
           price?: number | null
+          public_media_ready_at?: string | null
           published_at?: string | null
           size_label?: string | null
           sku?: string
@@ -404,6 +405,7 @@ export type Database = {
           material_details?: string | null
           measurements?: Json | null
           price?: number | null
+          public_media_ready_at?: string | null
           published_at?: string | null
           size_label?: string | null
           sku?: string
@@ -518,6 +520,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      begin_product_unpublish: {
+        Args: { p_product_id: string }
+        Returns: undefined
+      }
+      complete_product_publication: {
+        Args: { p_product_id: string }
+        Returns: {
+          product_id: string
+          slug: string
+        }[]
+      }
+      complete_product_unpublish: {
+        Args: { p_product_id: string }
+        Returns: {
+          product_id: string
+          slug: string
+        }[]
+      }
       create_product_draft_from_intake: {
         Args: {
           p_acquisition_cost: string
@@ -598,6 +618,12 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_product_publication_readiness: {
+        Args: { p_product_id: string }
+        Returns: {
+          missing_requirements: string[]
+        }[]
+      }
       list_product_manager_drafts: {
         Args: never
         Returns: {
@@ -606,6 +632,14 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+        }[]
+      }
+      prepare_product_publication: {
+        Args: { p_product_id: string }
+        Returns: {
+          product_id: string
+          published_at: string
+          slug: string
         }[]
       }
       reorder_product_images: {

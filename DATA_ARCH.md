@@ -127,7 +127,7 @@ Tags, filters, gender, type, and collection membership must never create alterna
 | `size_label`, `measurements` | Sizing information. `size_label` is nullable manufacturer/garment information, currently captured through Product Manager's controlled application vocabulary. Measurements are a flexible structured object, normally in centimeters. |
 | `condition_rating`, `condition_notes` | Compact persisted condition signal and any product-specific notes. The human-readable label is derived by the application. |
 | `status` | Commercial lifecycle: `draft`, `published`, `reserved`, `sold`, `archived`. |
-| `published_at`, `created_at`, `updated_at` | Publication and audit timestamps. |
+| `published_at`, `public_media_ready_at`, `created_at`, `updated_at` | Publication, completed public-media materialization, and audit timestamps. |
 
 Products do not store `source_profile_id`, `acquisition_cost`, or `received_at`. Those facts belong exclusively to the Intake Item.
 
@@ -178,7 +178,9 @@ Products exclusively own their images. A Product may have a variable number of i
 
 There is no `is_primary`, because it duplicates `position = 1`. Provider delivery URLs, signatures, transformations, and CDN behavior are infrastructure concerns resolved through `ImageService`, never stored as Product business data.
 
-Product media is processed before persistence. Product Manager accepts approved source photography through a trusted Node boundary, corrects orientation, strips unnecessary metadata, and persists only optimized WebP objects under provider-neutral immutable keys. Draft media remains in private Storage and is resolved into short-lived administrator preview URLs; public media delivery is a later publication concern.
+Product media is processed before persistence. Product Manager accepts approved source photography through a trusted Node boundary, corrects orientation, strips unnecessary metadata, and persists only optimized WebP objects under provider-neutral immutable keys. Draft media remains in private Storage and is resolved into short-lived administrator preview URLs.
+
+The private `product-media` bucket is authoritative operational media. Publication materializes immutable WebP delivery copies in the public `public-product-media` bucket using the opaque ProductImage identity. The public bucket is delivery materialization, never a second editable media library. Public-bucket writes and deletes require a real ProductImage identity whose Product is `published` with `public_media_ready_at` still `NULL`; this is the only lifecycle staging state for materialization or cleanup. A Product is projectable only when its lifecycle is `published` and `public_media_ready_at` confirms every public copy exists. Public presentation receives delivery-safe URLs and image metadata through `ImageService`, never a private storage key. Returning a Product to draft first removes it from public projections, then removes only its public delivery copies; private source media remains available for correction and later republication.
 
 The current evidence-backed operational policy is deliberately distinct from Product business data:
 
@@ -335,7 +337,7 @@ RLS remains defense in depth for direct PostgREST-style access:
 
 `profiles.role` remains the authorization source of truth. A private, fixed-search-path security-definer authorization helper may read it for RLS evaluation without policy recursion; it has no mutation capability and no public-schema exposure. User metadata, including `raw_user_meta_data`, is never an authorization source.
 
-Deletion is intentionally conservative. Profiles, Marketing Preferences, Intake Items, Products, Collections, Product Images, Tags, and Site Testimonials are not generally deleted through the application. Products are archived; Collections and Testimonials change lifecycle or publication state. Only `product_tags` and `collection_products` may be deleted as pure relationship records. Product Image deletion is deferred until an explicit server workflow can atomically coordinate database metadata and private Storage-object removal.
+Deletion is intentionally conservative. Profiles, Marketing Preferences, Intake Items, Products, Collections, Tags, and Site Testimonials are not generally deleted through the application. Products are archived; Collections and Testimonials change lifecycle or publication state. Only `product_tags` and `collection_products` may be deleted as pure relationship records. Product Image deletion uses an explicit admin-only server workflow that coordinates private Storage and metadata with documented compensation; it does not claim cross-system atomicity.
 
 The RLS auto-enable event-trigger helper belongs in the private schema, uses a fixed safe search path, and has no direct execute grant for browser roles. It preserves automatic RLS activation for future public tables without exposing a callable public `SECURITY DEFINER` helper.
 
@@ -375,10 +377,11 @@ Public catalog reads use the exposed `api` schema. Its only current public Produ
 
 | Projection | Public fields |
 |---|---|
-| `api.published_product_previews` | `slug`, `title`, exact decimal `price`, `brand`, `garment_type`, `color`, `size_label`, `condition_rating` |
-| `api.published_product_details` | Preview fields plus `description`, `material_details`, `measurements`, and `condition_notes` |
+| `api.published_product_previews` | `slug`, `title`, exact decimal `price`, `audience`, `brand`, `garment_type`, `color`, `size_label`, `condition_rating`, and primary-image delivery metadata |
+| `api.published_product_details` | Preview facts plus `description`, `material_details`, `measurements`, and `condition_notes` |
+| `api.published_product_images` | Product slug, opaque image identity, alternative text, position, width, and height for the ordered public gallery |
 
-Each projection explicitly allowlists its columns and enforces `products.status = 'published'`. It never uses `SELECT *` and never exposes Intake data, acquisition cost, contributor or creator identity, SKU, raw Storage keys, draft or operational data, hidden Tags, or unpublished Collections.
+Each projection explicitly allowlists its columns and enforces `products.status = 'published' AND products.public_media_ready_at IS NOT NULL`. It never uses `SELECT *` and never exposes Intake data, acquisition cost, contributor or creator identity, SKU, raw Storage keys, draft or operational data, hidden Tags, or unpublished Collections.
 
 The projections are intentionally readable through the Supabase Data API by `anon` and `authenticated` only after both schema usage and view `SELECT` are granted. The `api` schema must be listed as an exposed Data API schema. No table in `public` receives anonymous access through this design.
 
@@ -386,7 +389,7 @@ Because the underlying business tables retain default-deny RLS for anonymous cal
 
 The views are intentionally definer-owned in the current development design. This produces a generic Supabase Security Advisor warning and remains subject to the explicit pre-launch review recorded in `TO_CONSIDER.md`; it is not silently considered permanently resolved.
 
-`SupabasePublicProductRepository` maps projection rows into `PublishedProductPreview` and `PublishedProduct`. It preserves prices as canonical decimal strings inside `Money`, derives condition language in the application, and does not return persistence rows. Images remain intentionally unresolved: `ProductImage.storage_key` stays internal until `ImageService` can produce delivery-safe image data.
+`SupabasePublicProductRepository` maps projection rows into `PublishedProductPreview` and `PublishedProduct`. It preserves prices as canonical decimal strings inside `Money`, derives condition language in the application, and does not return persistence rows. `PublicProductImageService` resolves only opaque public image identities into stable delivery URLs; private `ProductImage.storage_key` stays internal.
 
 These objects are intentional public data surfaces. A direct Data API request to one must reveal no more than REVA intentionally publishes on its public website. Server Components remain the normal REVA application path so public discovery is rendered as HTML rather than fetched by UI components.
 
@@ -406,7 +409,7 @@ This boundary prevents an elevated credential from silently becoming the default
 
 `SupabasePublicProductRepository` is bound to the request-scoped publishable context and can read only the published `api` projections defined above. It maps database rows into public Product contracts; it does not query `public.products` and has no write methods.
 
-No Product write repository exists yet. Future administrative commands must use a separate, session-bound repository and service boundary when a real Product Manager use case is approved.
+Product Manager uses separate feature-specific, session-bound Supabase adapters and narrow RPCs for draft, media, and publication lifecycle operations. These preserve the authenticated administrator context and do not turn public Product reads into a generic write repository.
 
 ### Image delivery boundary
 
@@ -425,7 +428,6 @@ The current architecture does not include:
 - A generic media library
 - Brand, Category, Color, or Material reference tables
 - Public review submission
-- Storage buckets or storage policies
 
 These capabilities are intentionally absent, not forgotten.
 

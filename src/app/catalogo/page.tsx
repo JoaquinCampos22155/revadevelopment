@@ -5,9 +5,11 @@ import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
-import { catalogCategories, catalogProducts, catalogReviews } from "@/content/catalog";
+import { catalogCategories, catalogReviews } from "@/content/catalog";
 import { CatalogProductCard } from "@/features/catalog/components/CatalogProductCard";
 import { ReviewCard } from "@/features/catalog/components/ReviewCard";
+import { toCatalogProductPreview } from "@/features/catalog/public-product.presentation";
+import { createPublicProductService } from "@/features/catalog/server/public-product.service";
 
 export const metadata: Metadata = {
   title: "Catálogo | REVA",
@@ -15,7 +17,8 @@ export const metadata: Metadata = {
 };
 
 /** Combines REVA's approved editorial catalog hierarchy with trust-forward product cards. */
-export default function CatalogPage() {
+export default async function CatalogPage() {
+  const products = (await (await createPublicProductService()).listPublished()).map(toCatalogProductPreview).filter((product): product is NonNullable<typeof product> => product !== null);
   return (
     <main id="main-content">
       <section className="bg-[#f4f7f8] py-12 sm:py-20">
@@ -51,12 +54,13 @@ export default function CatalogPage() {
               <Text variant="label">Selección REVA</Text>
               <Heading level={2} variant="editorial">Descubre piezas con carácter.</Heading>
             </div>
-            <p className="text-sm text-slate-500">{catalogProducts.length} piezas seleccionadas</p>
+            <p className="text-sm text-slate-500">{products.length} piezas seleccionadas</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-            {catalogProducts.map((product) => (
+            {products.map((product) => (
               <CatalogProductCard key={product.href} product={product} />
             ))}
+            {products.length === 0 ? <p className="text-sm text-slate-600 sm:col-span-2 lg:col-span-4">Próximamente encontrarás piezas seleccionadas por REVA.</p> : null}
           </div>
         </div>
       </Section>

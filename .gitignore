@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# ephemeral artifact-generation workspaces
+/outputs/
+
 # production
 /build
 

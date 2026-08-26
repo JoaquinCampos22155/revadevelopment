@@ -12,6 +12,7 @@ export const catalogProducts: CatalogProductPreview[] = [
     href: "/productos/chaqueta-denim-clasica",
     image: { alt: "Chaqueta azul de silueta amplia", src: denimFront },
     name: "Chaqueta denim clásica",
+    price: null,
   },
   {
     category: "Básicos",
@@ -19,6 +20,7 @@ export const catalogProducts: CatalogProductPreview[] = [
     href: "/productos/sueter-azul-punto-suave",
     image: { alt: "Detalle de textura azul", src: denimDetail },
     name: "Suéter azul de punto suave",
+    price: null,
   },
   {
     category: "Streetwear",
@@ -26,6 +28,7 @@ export const catalogProducts: CatalogProductPreview[] = [
     href: "/productos/sobrecamisa-azul-silueta-amplia",
     image: { alt: "Prenda azul vista posterior", src: denimBack },
     name: "Sobrecamisa de silueta amplia",
+    price: null,
   },
   {
     category: "Denim",
@@ -33,6 +36,7 @@ export const catalogProducts: CatalogProductPreview[] = [
     href: "/productos/camisa-denim-corte-relajado",
     image: { alt: "Camisa de mezclilla azul", src: denimDetail },
     name: "Camisa denim relajada",
+    price: null,
   },
 ];
 

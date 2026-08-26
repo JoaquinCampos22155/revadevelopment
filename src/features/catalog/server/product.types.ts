@@ -66,12 +66,25 @@ export type ProductImageDelivery = Readonly<{
   width: number;
 }>;
 
+/** Holds the opaque public media identity until delivery infrastructure resolves it. */
+export type PublishedProductImage = Readonly<{
+  altText: string;
+  height: number;
+  id: string;
+  position: number;
+  width: number;
+}>;
+
 /** Supplies a public catalog card without operational or storage information. */
 export type PublishedProductPreview = Readonly<{
+  audience: Audience;
   brand: string | null;
+  color: string | null;
   conditionRating: ConditionRating;
+  garmentType: string;
   image: ProductImageDelivery | null;
   price: Money;
+  sizeLabel: string | null;
   slug: ProductSlug;
   title: string;
 }>;
@@ -81,6 +94,7 @@ export type PublishedProductPreview = Readonly<{
  * identity, and storage keys are deliberately absent.
  */
 export type PublishedProduct = Readonly<{
+  audience: Audience;
   brand: string | null;
   color: string | null;
   conditionNotes: string | null;

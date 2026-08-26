@@ -198,6 +198,8 @@ Git state changes require explicit developer approval. Never automatically creat
 
 Keep changes focused, reviewable, and limited to the requested scope. Preserve unrelated work in a dirty tree. Validate intended changes before proposing a commit or merge.
 
+Artifacts generated for external or parallel workstreams must not be written into or versioned in the application repository unless they are explicitly approved as application source or assets. Temporary artifact-generation workspaces must remain outside the repository or in explicitly ignored paths.
+
 Collaboration should make decisions understandable. Explain material trade-offs, surface conflicts early, and ask when a missing decision would materially change the result.
 
 ## 16. Documentation Governance

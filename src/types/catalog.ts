@@ -17,4 +17,5 @@ export type CatalogProductPreview = Readonly<{
   href: string;
   image: ProductImage;
   name: string;
+  price: string | null;
 }>;

@@ -19,6 +19,7 @@ type UploadItem = Readonly<{
 type Props = Readonly<{
   images: ReadonlyArray<ProductManagerImage>;
   productId: string;
+  readOnly?: boolean;
 }>;
 
 const uploadStatusLabel: Readonly<Record<UploadStatus, string>> = {
@@ -32,7 +33,7 @@ const uploadStatusLabel: Readonly<Record<UploadStatus, string>> = {
  * Keeps independent, sequential upload progress visible so one rejected source
  * image never obscures or cancels the result of the remaining selection.
  */
-export function ProductMediaManager({ images, productId }: Props) {
+export function ProductMediaManager({ images, productId, readOnly = false }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -118,10 +119,10 @@ export function ProductMediaManager({ images, productId }: Props) {
     <section aria-labelledby="product-media-heading" className="space-y-4 border-t border-slate-200 pt-8">
       <div>
         <h2 className="text-lg font-semibold text-slate-950" id="product-media-heading">Fotos</h2>
-        <p className="mt-1 text-sm text-slate-600">La primera foto es principal. Puedes seleccionar varias; se procesan una por una.</p>
+        <p className="mt-1 text-sm text-slate-600">{readOnly ? "Las fotos de un producto publicado se editan al retirarlo de publicación." : "La primera foto es principal. Puedes seleccionar varias; se procesan una por una."}</p>
       </div>
 
-      <label className="block rounded-xl border border-dashed border-slate-300 p-4 text-sm font-medium">
+      {!readOnly ? <label className="block rounded-xl border border-dashed border-slate-300 p-4 text-sm font-medium">
         Seleccionar fotos
         <input
           accept="image/jpeg,image/png"
@@ -134,7 +135,7 @@ export function ProductMediaManager({ images, productId }: Props) {
           }}
           type="file"
         />
-      </label>
+      </label> : null}
 
       {uploads.length > 0 ? (
         <ul aria-label="Estado de las fotos seleccionadas" className="space-y-2 text-sm">
@@ -155,7 +156,7 @@ export function ProductMediaManager({ images, productId }: Props) {
           <figure className="rounded-xl border border-slate-200 p-3" key={image.id}>
             <img alt={image.altText} className="aspect-square w-full rounded-lg object-cover" height={image.height} src={image.previewUrl} width={image.width} />
             <figcaption className="mt-2 text-sm">{image.position === 1 ? "Foto principal" : `Foto ${image.position}`}</figcaption>
-            <label className="mt-2 block text-sm">
+            {!readOnly ? <label className="mt-2 block text-sm">
               Texto alternativo
               <input
                 className="mt-1 w-full rounded border border-slate-300 p-2"
@@ -167,12 +168,12 @@ export function ProductMediaManager({ images, productId }: Props) {
                   }
                 }}
               />
-            </label>
-            <div className="mt-2 flex gap-2 text-sm">
+            </label> : null}
+            {!readOnly ? <div className="mt-2 flex gap-2 text-sm">
               <button disabled={busy || index === 0} onClick={() => void change("PATCH", { action: "reorder", imageIds: moveImage(images, index, index - 1) })} type="button">Antes</button>
               <button disabled={busy || index === images.length - 1} onClick={() => void change("PATCH", { action: "reorder", imageIds: moveImage(images, index, index + 1) })} type="button">Después</button>
               <button disabled={busy} onClick={() => { if (confirm("¿Eliminar esta foto?")) void change("DELETE", undefined, `?imageId=${image.id}`); }} type="button">Eliminar</button>
-            </div>
+            </div> : null}
           </figure>
         ))}
       </div>
