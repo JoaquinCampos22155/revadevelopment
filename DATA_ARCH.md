@@ -18,7 +18,7 @@ The schema, authorization foundation, Profile provisioning, and first public Pro
 
 The implemented database surface contains the ten approved business tables in `public`, private helpers in `private`, and the deliberately small published-Product read surface in `api`. Database access is default-deny: base business tables are not anonymously readable. Authentication and normal request-scoped repositories use the publishable provider context together with the real session where one exists; no privileged provider credential is part of ordinary application data access.
 
-The visible Catalog and Product Detail still use editorial static presentation data. The public Product repository and `api` projections establish the safe read path but do not yet supply real Product rows or image delivery to the public UI. The next planned implementation milestone is recorded in `SPRINTS.md`; deferred decisions are recorded in `TO_CONSIDER.md`.
+The visible Catalog and Product Detail use the public Product repository and `api` projections to render real published Product rows and public image delivery. Editorial presentation remains intentionally compositional, while published Product facts and media use the safe public read path. The next planned implementation milestone is recorded in `SPRINTS.md`; deferred decisions are recorded in `TO_CONSIDER.md`.
 
 ## Business Model
 

@@ -71,8 +71,8 @@ Run local validation against an empty local database before proposing a remote m
 - UI components do not query Supabase directly.
 - Normal request-scoped repositories use the publishable key and the real visitor/customer/admin session; they do not use privileged credentials as a shortcut.
 - Public Product reads use safe published-only `api` projections and map them into public domain contracts.
-- The customer-visible Catalog and Product Detail still use editorial static content while the first real Product path is being proven.
-- Product Storage, uploads, Product Manager, Orders, Checkout, and production email infrastructure are intentionally not implemented yet. See `TO_CONSIDER.md`.
+- The customer-visible Catalog and Product Detail use real published Product data through the server-rendered public repository while preserving approved editorial presentation structure.
+- Product Storage, uploads, the Product Manager, and publication are implemented. Orders, Checkout, and production email infrastructure remain intentionally deferred. See `TO_CONSIDER.md`.
 
 ## Contribution Rules
 

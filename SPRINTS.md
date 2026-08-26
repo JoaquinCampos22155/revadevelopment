@@ -110,6 +110,12 @@ Created and remotely applied Migrations 008 and 009, establishing lifecycle-cont
 
 The first real Product, `RV-000001`, was published successfully. Its six private authoritative WebPs remain intact, six matching public delivery WebPs were materialized, and the public `api` projections expose only approved Product and image fields. Catalog and Product Detail now use the server-rendered `ProductService` → `SupabasePublicProductRepository` path with real published data, primary-image Catalog cards, ordered Product Detail galleries, canonical metadata, and normalized customer-facing labels. The first customer-facing visual inspection found no blocking public UX defect.
 
+### Sprint 23 — Immediate Security Remediation
+
+Remediated the known dependency vulnerabilities without changing REVA's domain, Supabase, Storage, or lifecycle architecture. Next.js and `eslint-config-next` now resolve to `16.3.3`; React, React DOM, and Sharp remain on their approved versions. Narrow pnpm overrides resolved the remaining development-tooling advisories, and `pnpm audit` is clean.
+
+Verified public, customer, and admin runtime behavior after the upgrade. RV-000001 remains published with its six private authoritative WebPs and six public delivery copies. The Next agent-guidance auto-generation feature is disabled so REVA's constitutional `AGENTS.md` remains its sole owner.
+
 ## Current Implementation Snapshot
 
 - The public frontend is visually established and uses Spanish public routes: `/`, `/catalogo`, `/productos/[slug]`, `/nosotros`, `/contacto`, and `/iniciar-sesion`.
@@ -121,7 +127,7 @@ The first real Product, `RV-000001`, was published successfully. Its six private
 
 ## Next Planning Gate
 
-Sprint 22 is closed. No subsequent Sprint begins without explicit approval.
+Sprint 23 is closed. No subsequent Sprint begins without explicit approval.
 
 ## Working Method
 
