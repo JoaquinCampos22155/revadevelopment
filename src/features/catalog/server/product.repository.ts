@@ -1,8 +1,8 @@
 import type {
   ProductSlug,
   PublishedProduct,
-  PublishedProductPreview,
 } from "@/features/catalog/server/product.types";
+import type { PublishedCatalogFacets, PublishedCatalogPage, PublishedCatalogQuery } from "@/features/catalog/server/catalog-filter.types";
 
 /**
  * Defines only the published Product persistence boundary currently required.
@@ -11,5 +11,6 @@ import type {
  */
 export interface ProductRepository {
   findPublishedBySlug(slug: ProductSlug): Promise<PublishedProduct | null>;
-  listPublished(): Promise<ReadonlyArray<PublishedProductPreview>>;
+  listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage>;
+  listPublishedFacets(): Promise<PublishedCatalogFacets>;
 }

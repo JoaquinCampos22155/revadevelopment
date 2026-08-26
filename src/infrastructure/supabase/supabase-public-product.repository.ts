@@ -2,8 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { type ConditionRating } from "@/features/catalog/condition";
 import { isAudience, type Audience } from "@/features/catalog/audiences";
+import { isColor, type Color } from "@/features/catalog/colors";
+import { isGarmentType, type GarmentType } from "@/features/catalog/garment-types";
+import { isProductSize, type ProductSize } from "@/features/catalog/sizes";
 import type { PublicImageService } from "@/features/catalog/server/public-image.service";
 import type { ProductRepository } from "@/features/catalog/server/product.repository";
+import type { PublishedCatalogFacets, PublishedCatalogPage, PublishedCatalogQuery } from "@/features/catalog/server/catalog-filter.types";
 import type {
   ProductMeasurements,
   ProductSlug,
@@ -18,6 +22,10 @@ type PublishedProductPreviewRow =
   Database["api"]["Views"]["published_product_previews"]["Row"];
 type PublishedProductDetailRow =
   Database["api"]["Views"]["published_product_details"]["Row"];
+type PublishedProductPreviewData = Pick<
+  PublishedProductPreviewRow,
+  "audience" | "brand" | "color" | "condition_rating" | "garment_type" | "price" | "primary_image_alt_text" | "primary_image_height" | "primary_image_id" | "primary_image_width" | "size_label" | "slug" | "title"
+>;
 
 function requireText(value: string | null, field: string): string {
   if (!value) {
@@ -73,7 +81,34 @@ function mapImage(row: Readonly<{alt_text:string|null;height:number|null;image_i
   return {altText:row.alt_text,height:row.height,id:row.image_id,position:row.position,width:row.width};
 }
 
-function mapPreview(row: PublishedProductPreviewRow, imageService: PublicImageService): PublishedProductPreview {
+function mapCatalogFacets(rows: ReadonlyArray<Pick<PublishedProductPreviewRow, "audience" | "brand" | "color" | "condition_rating" | "garment_type" | "size_label">>): PublishedCatalogFacets {
+  const audiences = new Set<Audience>();
+  const brands = new Set<string>();
+  const colors = new Set<Color>();
+  const conditionRatings = new Set<ConditionRating>();
+  const garmentTypes = new Set<GarmentType>();
+  const sizes = new Set<ProductSize>();
+
+  for (const row of rows) {
+    if (row.audience && isAudience(row.audience)) audiences.add(row.audience);
+    if (row.brand && row.brand.trim()) brands.add(row.brand);
+    if (row.color && isColor(row.color)) colors.add(row.color);
+    if (row.condition_rating === 0 || row.condition_rating === 1 || row.condition_rating === 2 || row.condition_rating === 3) conditionRatings.add(row.condition_rating);
+    if (row.garment_type && isGarmentType(row.garment_type)) garmentTypes.add(row.garment_type);
+    if (row.size_label && isProductSize(row.size_label)) sizes.add(row.size_label);
+  }
+
+  return {
+    audiences: [...audiences],
+    brands: [...brands].sort((left, right) => left.localeCompare(right, "es")),
+    colors: [...colors],
+    conditionRatings: [...conditionRatings],
+    garmentTypes: [...garmentTypes],
+    sizes: [...sizes],
+  };
+}
+
+function mapPreview(row: PublishedProductPreviewData, imageService: PublicImageService): PublishedProductPreview {
   return {
     audience: mapAudience(row.audience),
     brand: row.brand,
@@ -137,19 +172,46 @@ export class SupabasePublicProductRepository implements ProductRepository {
     return mapDetail(data, imageRows.map(mapImage), this.imageService);
   }
 
-  public async listPublished(): Promise<ReadonlyArray<PublishedProductPreview>> {
-    const { data, error } = await this.client
+  public async listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage> {
+    const { filters, page, pageSize } = query;
+    const first = (page - 1) * pageSize;
+    let request = this.client
       .schema("api")
       .from("published_product_previews")
       .select(
         "slug, title, price, audience, brand, garment_type, color, size_label, condition_rating, primary_image_id, primary_image_alt_text, primary_image_width, primary_image_height",
+        { count: "exact" },
       )
       .order("title", { ascending: true });
+
+    if (filters.audiences.length) request = request.in("audience", filters.audiences);
+    if (filters.brands.length) request = request.in("brand", filters.brands);
+    if (filters.colors.length) request = request.in("color", filters.colors);
+    if (filters.conditionRatings.length) request = request.in("condition_rating", filters.conditionRatings);
+    if (filters.garmentTypes.length) request = request.in("garment_type", filters.garmentTypes);
+    if (filters.sizes.length) request = request.in("size_label", filters.sizes);
+    if (filters.minPriceCents !== null) request = request.gte("price_cents", filters.minPriceCents);
+    if (filters.maxPriceCents !== null) request = request.lte("price_cents", filters.maxPriceCents);
+
+    const { count, data, error } = await request.range(first, first + pageSize - 1);
 
     if (error) {
       throw new Error("The public Product catalog could not be read.");
     }
 
-    return data.map((row) => mapPreview(row, this.imageService));
+    return { items: data.map((row) => mapPreview(row, this.imageService)), page, pageSize, total: count ?? 0 };
+  }
+
+  public async listPublishedFacets(): Promise<PublishedCatalogFacets> {
+    const { data, error } = await this.client
+      .schema("api")
+      .from("published_product_previews")
+      .select("audience, brand, garment_type, color, size_label, condition_rating");
+
+    if (error) {
+      throw new Error("The public Product filter options could not be read.");
+    }
+
+    return mapCatalogFacets(data);
   }
 }

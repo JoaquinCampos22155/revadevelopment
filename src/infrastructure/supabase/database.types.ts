@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -79,6 +79,7 @@ export type Database = {
           condition_rating: number | null
           garment_type: string | null
           price: string | null
+          price_cents: number | null
           primary_image_alt_text: string | null
           primary_image_height: number | null
           primary_image_id: string | null

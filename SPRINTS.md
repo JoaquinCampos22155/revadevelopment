@@ -127,7 +127,7 @@ Verified public, customer, and admin runtime behavior after the upgrade. RV-0000
 
 ## Next Planning Gate
 
-Sprint 23 is closed. No subsequent Sprint begins without explicit approval.
+Sprint 24 — Catalog Filtering Foundation — is closed. Migration 010 is deployed; real Catalog filtering passed technical and manual UX validation. Tags, Collections, recommendations, text search, contextual facets, and the broader visual-system refinement remain separate future work.
 
 ## Working Method
 

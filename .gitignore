@@ -43,3 +43,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#Structures
+/SPRINTS.md
+TO_CONSIDER.md
+DATA_ARCH.md

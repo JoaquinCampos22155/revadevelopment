@@ -1,8 +1,8 @@
 import type {
   ProductSlug,
   PublishedProduct,
-  PublishedProductPreview,
 } from "@/features/catalog/server/product.types";
+import type { PublishedCatalogFacets, PublishedCatalogPage, PublishedCatalogQuery } from "@/features/catalog/server/catalog-filter.types";
 import type { ProductRepository } from "@/features/catalog/server/product.repository";
 
 /**
@@ -17,7 +17,11 @@ export class ProductService {
     return this.productRepository.findPublishedBySlug(slug);
   }
 
-  public listPublished(): Promise<ReadonlyArray<PublishedProductPreview>> {
-    return this.productRepository.listPublished();
+  public listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage> {
+    return this.productRepository.listPublished(query);
+  }
+
+  public listPublishedFacets(): Promise<PublishedCatalogFacets> {
+    return this.productRepository.listPublishedFacets();
   }
 }

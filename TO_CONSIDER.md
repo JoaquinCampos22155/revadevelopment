@@ -82,6 +82,16 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Required decision:** An accessible, responsive gallery interaction that considers primary-image prominence, previous/next controls, thumbnails or position indicators, keyboard and touch interaction, image inspection, PDP length, and Next Image performance. Evaluate dependencies only after the interaction is approved.
 - **Category:** Product Detail UX refinement.
 
+### REVA visual-system / UX/UI refinement
+
+- **State:** Real use confirms the current UI is functional but too visually rectangular, rigid, repetitive, and similarly weighted across screens. The intended direction remains modern, clean, editorial, and easy to use — not visually overloaded.
+- **Why deferred:** Catalog filtering is functionally complete. A page-by-page redesign would create inconsistent local fixes instead of a coherent REVA visual system.
+- **Reconsider:** During a dedicated UX/UI refinement milestone, before final public visual polish or production launch.
+- **Required audit:** Home, Navbar, Catalog, filter sidebar, Product cards, Product Detail, Auth, Product Manager, forms, empty/error/loading states, and mobile behavior. Evaluate hierarchy, spacing rhythm, density, composition, excessive card treatment, section differentiation, photography prominence, appropriate asymmetry, brand-color use, interaction states, responsive composition, and accessibility.
+- **Design principle:** More intentional design, not more decoration. Real Product photography should be a primary visual asset rather than surrounded by unnecessary UI chrome.
+- **Out of scope now:** Design-system replacement, component-library dependency, PDP carousel implementation, and isolated Catalog redesign.
+- **Category:** Cross-product UX/UI refinement.
+
 ### Public Product image SEO / indexing strategy
 
 - **State:** Public delivery URLs use immutable opaque ProductImage identities rather than mutable Product titles or slugs. Product/image association currently comes from the canonical Product page, semantic image markup, alternative text, surrounding Product content, and stable crawlable delivery URLs.
@@ -190,6 +200,22 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Trigger:** Operators benefit from suggestions based on previously used values while retaining simple brand text.
 - **Required decision:** A safe suggestion/read model without prematurely making Brand a reference entity.
 - **Category:** Product Manager UX evolution.
+
+### Brand normalization for Catalog filtering
+
+- **State:** Catalog filtering exposes distinct non-empty published Brand strings and matches them exactly. Brand remains free text during Product Manager entry.
+- **Why deferred:** REVA has insufficient real inventory evidence to justify a Brand reference table or automatic rewriting of existing Product data.
+- **Reconsider:** When variants such as `Calvin Klein`, `calvin klein`, and `CALVIN KLEIN` fragment customer-facing filter options.
+- **Required decision:** Deliberate Brand normalization, display-label ownership, historical-data handling, and whether a controlled Brand model is justified.
+- **Category:** Catalog data-governance evolution.
+
+### Contextual Catalog facets and counts
+
+- **State:** Sprint 24 exposes only global published-inventory filter options. Selecting one group does not recompute the visible options or counts of another group.
+- **Why deferred:** Contextual facets require additional query semantics and product evidence beyond the first functional Catalog filter path.
+- **Reconsider:** When inventory volume or customer behavior shows that zero-result combinations create discovery friction.
+- **Required decision:** Contextual facet query contract, count behavior, caching, and whether a narrow aggregate public projection is warranted.
+- **Category:** Catalog discovery evolution.
 
 ### Product Manager visual refinement with media
 

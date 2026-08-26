@@ -11,3 +11,8 @@ export const conditionLabels = {
 
 /** Identifies the compact condition scale used consistently across REVA. */
 export type ConditionRating = keyof typeof conditionLabels;
+
+/** Validates untrusted condition values before they enter catalog queries. */
+export function isConditionRating(value: string): value is `${ConditionRating}` {
+  return value === "0" || value === "1" || value === "2" || value === "3";
+}

@@ -221,6 +221,27 @@ When a received garment does not fit the current vocabulary, REVA reviews and de
 
 Product Manager currently captures `size_label` through a small, centralized controlled alpha-size vocabulary and persists the chosen value or `NULL` when no label is indicated. This is an operational guardrail, not a permanent universal sizing model: alpha, waist, numeric, European, children's, and manufacturer-specific systems remain legitimate future sizing facts. `measurements` stays independent of `size_label`; either may be absent in a draft, while publication requires a non-empty size label or measurements.
 
+### Catalog filtering boundary
+
+Sprint 24's approved Catalog filtering design uses only published Product preview facts. Its implementation is locally validated and awaits the separately approved remote application of Migration 010.
+
+```text
+GET /catalogo search params
+-> application parser and centralized-vocabulary validation
+-> ProductService
+-> ProductRepository
+-> api.published_product_previews
+-> PostgreSQL
+```
+
+Filter groups combine with `AND`; multiple selected values within one group combine with `OR`. The public URL owns the filter state through repeated Spanish parameters: `audiencia`, `tipo`, `talla`, `color`, `condicion`, `marca`, `precio_min`, `precio_max`, and future `pagina`. Invalid, unknown, duplicate, or raw query-expression values never enter repository query construction.
+
+The Catalog represents currently available inventory by construction: only `status = published AND public_media_ready_at IS NOT NULL` remains projectable. It does not expose a lifecycle-status filter.
+
+Public price remains a canonical decimal string in REVA's `Money` contract. Migration 010 adds the safe derived `price_cents` preview field only for exact database-side range comparison; application parsing converts valid decimal input to an exact integer-cent string without JavaScript floating-point arithmetic. It does not change Product price semantics or reveal a new business fact.
+
+MVP filter options are global published-inventory facets: controlled values remain authoritative in application vocabularies, but the Catalog displays only values currently represented by at least one published Product. Non-empty Brand options are distinct persisted public values and match exactly. Contextual facet recomputation and facet counts remain deferred.
+
 ### Tags
 
 Tags are controlled REVA discovery configuration, not user-created text and not SEO landing pages. A Product may have many Tags and a Tag may be assigned to many Products.

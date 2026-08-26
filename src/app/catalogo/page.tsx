@@ -5,20 +5,37 @@ import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
-import { catalogCategories, catalogReviews } from "@/content/catalog";
+import { catalogReviews } from "@/content/catalog";
+import { parseCatalogSearchParams, type CatalogSearchParams } from "@/features/catalog/catalog-filter-params";
+import { CatalogFilters } from "@/features/catalog/components/CatalogFilters";
 import { CatalogProductCard } from "@/features/catalog/components/CatalogProductCard";
 import { ReviewCard } from "@/features/catalog/components/ReviewCard";
 import { toCatalogProductPreview } from "@/features/catalog/public-product.presentation";
 import { createPublicProductService } from "@/features/catalog/server/public-product.service";
 
-export const metadata: Metadata = {
-  title: "Catálogo | REVA",
-  description: "Explora colecciones de moda circular en Guatemala con REVA.",
-};
+type CatalogPageProps = Readonly<{ searchParams: Promise<CatalogSearchParams> }>;
+
+function hasSearchParams(params: CatalogSearchParams): boolean {
+  return Object.values(params).some((value) => typeof value === "string" ? value.length > 0 : value?.length);
+}
+
+export async function generateMetadata({ searchParams }: CatalogPageProps): Promise<Metadata> {
+  const hasFilters = hasSearchParams(await searchParams);
+  return {
+    title: "Catálogo | REVA",
+    description: "Explora colecciones de moda circular en Guatemala con REVA.",
+    alternates: { canonical: "/catalogo" },
+    robots: hasFilters ? { follow: true, index: false } : undefined,
+  };
+}
 
 /** Combines REVA's approved editorial catalog hierarchy with trust-forward product cards. */
-export default async function CatalogPage() {
-  const products = (await (await createPublicProductService()).listPublished()).map(toCatalogProductPreview).filter((product): product is NonNullable<typeof product> => product !== null);
+export default async function CatalogPage({ searchParams }: CatalogPageProps) {
+  const service = await createPublicProductService();
+  const facets = await service.listPublishedFacets();
+  const parsed = parseCatalogSearchParams(await searchParams, facets);
+  const result = await service.listPublished(parsed.query);
+  const products = result.items.map(toCatalogProductPreview).filter((product): product is NonNullable<typeof product> => product !== null);
   return (
     <main id="main-content">
       <section className="bg-[#f4f7f8] py-12 sm:py-20">
@@ -34,33 +51,26 @@ export default async function CatalogPage() {
               Una selección de moda circular pensada para descubrir con calma, claridad y confianza.
             </Text>
           </div>
-          <div aria-label="Categorías de catálogo" className="mt-10 flex flex-wrap gap-2">
-            {catalogCategories.map((category, index) => (
-              <span
-                className={`rounded-full border px-4 py-2 text-sm ${index === 0 ? "border-slate-950 bg-slate-950 text-white" : "border-slate-300 bg-white text-slate-700"}`}
-                key={category}
-              >
-                {category}
-              </span>
-            ))}
-          </div>
         </PageContainer>
       </section>
 
       <Section>
-        <div className="space-y-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="space-y-3">
-              <Text variant="label">Selección REVA</Text>
-              <Heading level={2} variant="editorial">Descubre piezas con carácter.</Heading>
+        <div className="grid gap-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
+          <CatalogFilters facets={facets} filters={parsed.query.filters} hasActiveFilters={parsed.hasActiveFilters} />
+          <div className="min-w-0 space-y-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="space-y-3">
+                <Text variant="label">Selección REVA</Text>
+                <Heading level={2} variant="editorial">Descubre piezas con carácter.</Heading>
+              </div>
+              <p aria-live="polite" className="text-sm text-slate-500">{result.total} piezas seleccionadas</p>
             </div>
-            <p className="text-sm text-slate-500">{products.length} piezas seleccionadas</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-            {products.map((product) => (
-              <CatalogProductCard key={product.href} product={product} />
-            ))}
-            {products.length === 0 ? <p className="text-sm text-slate-600 sm:col-span-2 lg:col-span-4">Próximamente encontrarás piezas seleccionadas por REVA.</p> : null}
+            <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
+              {products.map((product) => (
+                <CatalogProductCard key={product.href} product={product} />
+              ))}
+              {products.length === 0 ? <div className="space-y-3 sm:col-span-2 xl:col-span-3"><p className="text-sm text-slate-600">{parsed.hasActiveFilters ? "No encontramos piezas con esta combinación de filtros." : "Próximamente encontrarás piezas seleccionadas por REVA."}</p>{parsed.hasActiveFilters ? <a className="text-sm font-medium text-cyan-800 underline underline-offset-4" href="/catalogo">Limpiar filtros</a> : null}</div> : null}
+            </div>
           </div>
         </div>
       </Section>
