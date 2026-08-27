@@ -77,16 +77,16 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
   }
 
   return (
-    <form action={formAction} className="space-y-10">
+    <form action={formAction} className="space-y-8">
       {draft ? <input name="productId" type="hidden" value={draft.id} /> : null}
 
-      <fieldset className="space-y-6">
-        <legend className="text-lg font-semibold text-slate-950">Registro de la prenda</legend>
+      <fieldset className="space-y-5">
+        <legend className="text-lg font-semibold text-slate-950">Ingreso</legend>
         <p className="max-w-2xl text-sm leading-6 text-slate-600">
           Registramos cómo llegó la prenda a REVA sin exponer esta información en el catálogo.
         </p>
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-3">
           <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="source-type">
             Origen
             <select
@@ -112,10 +112,9 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
               type="date"
             />
           </label>
-        </div>
 
         {sourceType === "sell" ? (
-          <label className="block max-w-sm space-y-2 text-sm font-medium text-slate-950" htmlFor="acquisition-cost">
+          <label className="block space-y-2 text-sm font-medium text-slate-950" htmlFor="acquisition-cost">
             ¿Cuánto pagó REVA por la prenda? (Q)
             <input
               className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100"
@@ -130,20 +129,20 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
               type="number"
             />
           </label>
-        ) : (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+          ) : (
+          <p className="self-end text-sm leading-6 text-slate-600">
             En una donación no registramos costo de adquisición.
           </p>
-        )}
+          )}
+        </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
-          <p className="font-medium text-slate-950">Contribuidor</p>
-          <p>Sin usuario asociado. La atribución a perfiles se añadirá cuando exista una búsqueda segura y útil.</p>
+        <div className="border-l-2 border-slate-200 pl-3 text-sm leading-6 text-slate-600">
+          <p className="font-medium text-slate-950">Contribuidor</p><p>La atribución a perfiles se añadirá cuando exista una búsqueda segura y útil.</p>
         </div>
       </fieldset>
 
-      <fieldset className="space-y-6 border-t border-slate-200 pt-8">
-        <legend className="text-lg font-semibold text-slate-950">Producto</legend>
+      <fieldset className="space-y-5 border-t border-slate-200 pt-6">
+        <legend className="text-lg font-semibold text-slate-950">Identidad de la prenda</legend>
         <label className="block space-y-2 text-sm font-medium text-slate-950" htmlFor="title">
           Nombre de la prenda
           <input
@@ -154,6 +153,20 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
             required
           />
         </label>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="brand">
+            Marca
+            <input className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.brand ?? ""} id="brand" name="brand" />
+          </label>
+          <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="garment-type">
+            Tipo de prenda
+            <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.garmentType ?? ""} id="garment-type" name="garmentType">
+              <option value="">Aún sin clasificar</option>
+              {garmentTypes.map((garmentType) => (<option key={garmentType.value} value={garmentType.value}>{garmentType.label}</option>))}
+            </select>
+          </label>
+        </div>
 
         <div aria-labelledby="audience-label" className="space-y-3" role="radiogroup">
           <p className="text-sm font-medium text-slate-950" id="audience-label">Público</p>
@@ -169,29 +182,16 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
         </div>
 
         {!isEditing ? (
-          <p className="rounded-xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm leading-6 text-slate-700">
+          <p className="border-l-2 border-cyan-300 pl-3 text-sm leading-6 text-slate-700">
             REVA generará el SKU al guardar. La prenda permanecerá como borrador hasta una publicación futura.
           </p>
         ) : null}
       </fieldset>
 
       <>
-          <fieldset className="space-y-6 border-t border-slate-200 pt-8">
-            <legend className="text-lg font-semibold text-slate-950">Detalles para publicación futura</legend>
+          <fieldset className="space-y-5 border-t border-slate-200 pt-6">
+            <legend className="text-lg font-semibold text-slate-950">Características y venta</legend>
             <div className="grid gap-5 md:grid-cols-2">
-              <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="brand">
-                Marca
-                <input className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.brand ?? ""} id="brand" name="brand" />
-              </label>
-              <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="garment-type">
-                Tipo de prenda
-                <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.garmentType ?? ""} id="garment-type" name="garmentType">
-                  <option value="">Aún sin clasificar</option>
-                  {garmentTypes.map((garmentType) => (
-                    <option key={garmentType.value} value={garmentType.value}>{garmentType.label}</option>
-                  ))}
-                </select>
-              </label>
               <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="color">
                 Color
                 <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.color ?? ""} id="color" name="color">
@@ -231,7 +231,7 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
             </label>
           </fieldset>
 
-          <fieldset className="space-y-6 border-t border-slate-200 pt-8">
+          <fieldset className="space-y-5 border-t border-slate-200 pt-6">
             <legend className="text-lg font-semibold text-slate-950">Talla y condición</legend>
             <label className="block max-w-md space-y-2 text-sm font-medium text-slate-950" htmlFor="condition-rating">
               Condición
@@ -268,7 +268,7 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
       {state.error ? <p aria-live="polite" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-900">{state.error}</p> : null}
       {state.saved ? <p aria-live="polite" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">Borrador guardado.</p> : null}
 
-      <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-8">
+      <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6">
         <Button disabled={isPending} type="submit" variant="solid">
           {isPending ? "Guardando…" : isEditing ? "Guardar borrador" : "Crear borrador"}
         </Button>

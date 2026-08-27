@@ -7,12 +7,15 @@ import { isProductSize, type ProductSize } from "@/features/catalog/sizes";
 import type { IntakeItemId, IntakeSourceType } from "@/features/intake/server/intake.types";
 import type { ProductMeasurements, ProductStatus } from "@/features/catalog/server/product.types";
 import type { ProductDraftRepository } from "@/features/product-manager/server/product-draft.repository";
+import type { ProductManagerRepository } from "@/features/product-manager/server/product-manager.repository";
 import type {
   CreatedProductDraft,
   CreateProductDraftInput,
   ProductDraft,
   ProductDraftId,
   ProductDraftSummary,
+  ProductManagerProductPage,
+  ProductManagerProductSummary,
   SaveProductDraftInput,
 } from "@/features/product-manager/server/product-draft.types";
 import type { Money } from "@/types/money";
@@ -24,6 +27,10 @@ type DraftRow =
   Database["public"]["Functions"]["get_product_manager_draft"]["Returns"][number];
 type DraftSummaryRow =
   Database["public"]["Functions"]["list_product_manager_drafts"]["Returns"][number];
+type ProductManagerProductRow =
+  Database["public"]["Functions"]["get_product_manager_product"]["Returns"][number];
+type ProductManagerProductSummaryRow =
+  Database["public"]["Functions"]["list_product_manager_products"]["Returns"][number];
 
 const moneyPattern = /^\d+\.\d{2}$/;
 
@@ -124,6 +131,19 @@ function mapDraftSummary(row: DraftSummaryRow): ProductDraftSummary {
   };
 }
 
+function mapProductManagerProductSummary(row: ProductManagerProductSummaryRow): ProductManagerProductSummary {
+  return {
+    id: requireText(row.id, "Product id"),
+    isPubliclyVisible: row.is_publicly_visible === true,
+    price: mapMoney(row.price, "selling price"),
+    publishedAt: row.published_at ? new Date(requireText(row.published_at, "publication time")) : null,
+    sku: requireText(row.sku, "SKU"),
+    status: mapStatus(row.status),
+    title: requireText(row.title, "Product title"),
+    updatedAt: new Date(requireText(row.updated_at, "update time")),
+  };
+}
+
 function mapDraft(row: DraftRow): ProductDraft {
   return {
     acquisitionCost: mapMoney(row.acquisition_cost, "acquisition cost"),
@@ -154,7 +174,7 @@ function mapDraft(row: DraftRow): ProductDraft {
  * The functions are SECURITY INVOKER, so this adapter cannot elevate a caller
  * beyond the existing grants and RLS policies.
  */
-export class SupabaseProductDraftRepository implements ProductDraftRepository {
+export class SupabaseProductDraftRepository implements ProductDraftRepository, ProductManagerRepository {
   public constructor(private readonly client: SupabaseClient<Database>) {}
 
   public async createFromIntake(
@@ -205,6 +225,18 @@ export class SupabaseProductDraftRepository implements ProductDraftRepository {
     return data?.[0] ? mapDraft(data[0]) : null;
   }
 
+  public async findById(id: ProductDraftId): Promise<ProductDraft | null> {
+    const { data, error } = await this.client.rpc("get_product_manager_product", {
+      p_product_id: id,
+    });
+
+    if (error) {
+      throw new Error("The Product could not be read.");
+    }
+
+    return data?.[0] ? mapDraft(data[0] as ProductManagerProductRow) : null;
+  }
+
   public async listDrafts(): Promise<ReadonlyArray<ProductDraftSummary>> {
     const { data, error } = await this.client.rpc("list_product_manager_drafts");
 
@@ -213,6 +245,22 @@ export class SupabaseProductDraftRepository implements ProductDraftRepository {
     }
 
     return data.map(mapDraftSummary);
+  }
+
+  public async list(input: Readonly<{ limit: number; offset: number }>): Promise<ProductManagerProductPage> {
+    const { data, error } = await this.client.rpc("list_product_manager_products", {
+      p_limit: input.limit,
+      p_offset: input.offset,
+    });
+
+    if (error) {
+      throw new Error("Products could not be read.");
+    }
+
+    const items = data.map(mapProductManagerProductSummary);
+    const hasNextPage = items.length > 25;
+
+    return { hasNextPage, items: hasNextPage ? items.slice(0, 25) : items };
   }
 
   public async save(input: SaveProductDraftInput): Promise<void> {

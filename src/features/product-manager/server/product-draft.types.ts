@@ -46,6 +46,24 @@ export type ProductDraft = Readonly<{
   updatedAt: Date;
 }>;
 
+/** A compact internal selector row; it intentionally contains no media or Intake data. */
+export type ProductManagerProductSummary = Readonly<{
+  id: ProductDraftId;
+  isPubliclyVisible: boolean;
+  price: Money | null;
+  publishedAt: Date | null;
+  sku: string;
+  status: ProductStatus;
+  title: string;
+  updatedAt: Date;
+}>;
+
+/** Keeps pagination application-owned while the database stays a bounded read surface. */
+export type ProductManagerProductPage = Readonly<{
+  hasNextPage: boolean;
+  items: ReadonlyArray<ProductManagerProductSummary>;
+}>;
+
 /** Supplies the editable operational facts for an existing draft. */
 export type SaveProductDraftInput = Readonly<{
   acquisitionCost: Money | null;

@@ -116,18 +116,28 @@ Remediated the known dependency vulnerabilities without changing REVA's domain, 
 
 Verified public, customer, and admin runtime behavior after the upgrade. RV-000001 remains published with its six private authoritative WebPs and six public delivery copies. The Next agent-guidance auto-generation feature is disabled so REVA's constitutional `AGENTS.md` remains its sole owner.
 
+### Sprint 24 — Catalog Filtering Foundation
+
+Created and remotely applied Migration 010, delivering server-backed published Catalog filtering with URL-owned state, controlled facets, exact price-range filtering, responsive filters, and preserved public security boundaries.
+
+### Sprint 25 — Product Manager Operational Foundation
+
+Created and remotely applied Migration 011, delivering the bounded administrator Product list and selected-Product management surface. Product facts, private media, lifecycle context, and current allowed actions are presented together without exposing private Intake or audit data.
+
+The MVP lifecycle is deliberate: drafts are editable; published Products are immutable until an administrator withdraws them to draft; withdrawn Products can then be edited, revalidated, and republished. Permanent deletion and direct published editing remain deferred.
+
 ## Current Implementation Snapshot
 
 - The public frontend is visually established and uses Spanish public routes: `/`, `/catalogo`, `/productos/[slug]`, `/nosotros`, `/contacto`, and `/iniciar-sesion`.
 - `/colecciones/[slug]` is an approved public URL architecture but is not yet implemented as a route. `/playground` is internal and non-indexed.
 - Auth is real: email/password signup, email confirmation, cookie-backed sessions, logout, one customer test identity, and one admin test identity exist only in the development environment.
-- Migrations 001–009 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are publicly readable.
+- Migrations 001–011 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are publicly readable.
 - Catalog and Product Detail use database-backed published Product presentation through the public repository while preserving editorial Catalog structure.
-- Product Manager can create and edit secure drafts and manage private optimized media. `RV-000001` is the first published development Product with six private authoritative WebPs and six public delivery copies.
+- Product Manager presents a bounded operational list and a state-aware management surface. Draft facts and private media are editable; published Products are immutable until withdrawn. `RV-000001` is the first published development Product with six private authoritative WebPs and six public delivery copies.
 
 ## Next Planning Gate
 
-Sprint 24 — Catalog Filtering Foundation — is closed. Migration 010 is deployed; real Catalog filtering passed technical and manual UX validation. Tags, Collections, recommendations, text search, contextual facets, and the broader visual-system refinement remain separate future work.
+Sprint 25 — Product Manager Operational Foundation — is closed. Permanent Product deletion, direct published editing, reserved/sold workflows, internal Product search, Tags, Collections, recommendations, text search, contextual facets, and the broader visual-system refinement remain separate future work.
 
 ## Working Method
 

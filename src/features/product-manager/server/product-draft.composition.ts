@@ -3,6 +3,7 @@ import { createSupabaseServerActionClient } from "@/infrastructure/supabase/serv
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server-client";
 
 import { ProductDraftService } from "@/features/product-manager/server/product-draft.service";
+import { ProductManagerService } from "@/features/product-manager/server/product-manager.service";
 
 /** Composes the read service with the current request's non-privileged SSR context. */
 export async function createProductDraftReadService(): Promise<ProductDraftService> {
@@ -14,4 +15,10 @@ export async function createProductDraftReadService(): Promise<ProductDraftServi
 export async function createProductDraftActionService(): Promise<ProductDraftService> {
   const client = await createSupabaseServerActionClient();
   return new ProductDraftService(new SupabaseProductDraftRepository(client));
+}
+
+/** Composes bounded Product Manager reads with the verified request session. */
+export async function createProductManagerReadService(): Promise<ProductManagerService> {
+  const client = await createSupabaseServerClient();
+  return new ProductManagerService(new SupabaseProductDraftRepository(client));
 }

@@ -619,6 +619,32 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_product_manager_product: {
+        Args: { p_product_id: string }
+        Returns: {
+          acquisition_cost: string
+          audience: string
+          brand: string
+          color: string
+          condition_notes: string
+          condition_rating: number
+          description: string
+          garment_type: string
+          id: string
+          intake_item_id: string
+          material_details: string
+          measurements: Json
+          price: string
+          received_at: string
+          size_label: string
+          sku: string
+          source_profile_id: string
+          source_type: string
+          status: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_product_publication_readiness: {
         Args: { p_product_id: string }
         Returns: {
@@ -629,6 +655,19 @@ export type Database = {
         Args: never
         Returns: {
           id: string
+          sku: string
+          status: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      list_product_manager_products: {
+        Args: { p_limit: number; p_offset: number }
+        Returns: {
+          id: string
+          is_publicly_visible: boolean
+          price: string
+          published_at: string
           sku: string
           status: string
           title: string

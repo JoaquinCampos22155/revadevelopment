@@ -358,7 +358,7 @@ RLS remains defense in depth for direct PostgREST-style access:
 
 `profiles.role` remains the authorization source of truth. A private, fixed-search-path security-definer authorization helper may read it for RLS evaluation without policy recursion; it has no mutation capability and no public-schema exposure. User metadata, including `raw_user_meta_data`, is never an authorization source.
 
-Deletion is intentionally conservative. Profiles, Marketing Preferences, Intake Items, Products, Collections, Tags, and Site Testimonials are not generally deleted through the application. Products are archived; Collections and Testimonials change lifecycle or publication state. Only `product_tags` and `collection_products` may be deleted as pure relationship records. Product Image deletion uses an explicit admin-only server workflow that coordinates private Storage and metadata with documented compensation; it does not claim cross-system atomicity.
+Deletion is intentionally conservative. Profiles, Marketing Preferences, Intake Items, Products, Collections, Tags, and Site Testimonials are not generally deleted through the application. Product lifecycle retains `archived` as a persisted domain state, but Product Manager currently has no archive workflow. Any future permanent Product deletion requires a separately approved, coordinated lifecycle across Product, Intake, private Storage, public delivery copies, and ProductImage metadata. Only `product_tags` and `collection_products` may be deleted as pure relationship records. Product Image deletion uses an explicit admin-only server workflow that coordinates private Storage and metadata with documented compensation; it does not claim cross-system atomicity.
 
 The RLS auto-enable event-trigger helper belongs in the private schema, uses a fixed safe search path, and has no direct execute grant for browser roles. It preserves automatic RLS activation for future public tables without exposing a callable public `SECURITY DEFINER` helper.
 
@@ -430,7 +430,7 @@ This boundary prevents an elevated credential from silently becoming the default
 
 `SupabasePublicProductRepository` is bound to the request-scoped publishable context and can read only the published `api` projections defined above. It maps database rows into public Product contracts; it does not query `public.products` and has no write methods.
 
-Product Manager uses separate feature-specific, session-bound Supabase adapters and narrow RPCs for draft, media, and publication lifecycle operations. These preserve the authenticated administrator context and do not turn public Product reads into a generic write repository.
+Product Manager uses separate feature-specific, session-bound Supabase adapters and narrow RPCs for draft persistence, bounded internal Product reads, media, and publication lifecycle operations. These preserve the authenticated administrator context and do not turn public Product reads into a generic write repository. The operational list exposes only Product selection facts: internal navigation ID, SKU, title, truthful domain state, derived current public visibility, exact price, publication timestamp, and update timestamp. In the current MVP, a published Product is immutable: an administrator must withdraw it to `draft` before changing Product facts or private media, then revalidate and republish it.
 
 ### Image delivery boundary
 

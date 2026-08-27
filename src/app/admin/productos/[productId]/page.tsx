@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
 import { ProductDraftForm } from "@/features/product-manager/components/ProductDraftForm";
+import { ProductManagementFacts } from "@/features/product-manager/components/ProductManagementFacts";
 import { ProductMediaManager } from "@/features/product-manager/components/ProductMediaManager";
 import { ProductPublicationPanel } from "@/features/product-manager/components/ProductPublicationPanel";
-import { createProductDraftReadService } from "@/features/product-manager/server/product-draft.composition";
+import { getProductPublicationStatusPresentation } from "@/features/product-manager/product-publication-status";
+import { createProductManagerReadService } from "@/features/product-manager/server/product-draft.composition";
 import { createProductMediaReadService } from "@/features/product-manager/server/product-media.composition";
 import { createProductPublicationReadService } from "@/features/product-manager/server/product-publication.composition";
 
@@ -24,30 +26,42 @@ type ProductDraftPageProps = Readonly<{ params: Promise<{ productId: string }> }
 /** Loads an internal Product through the admin RLS context rather than public projections. */
 export default async function ProductDraftPage({ params }: ProductDraftPageProps) {
   const { productId } = await params;
-  const draft = await (await createProductDraftReadService()).findDraftById(productId);
+  const draft = await (await createProductManagerReadService()).findById(productId);
   if (!draft) notFound();
 
   const isDraft = draft.status === "draft";
-  const [images, readiness] = await Promise.all([
-    (await createProductMediaReadService()).list(draft.id),
-    (await createProductPublicationReadService()).getReadiness(draft.id),
-  ]);
+  const publication = getProductPublicationStatusPresentation(
+    draft.status,
+    draft.status === "published",
+  );
+  const images = await (await createProductMediaReadService()).list(draft.id);
+  const readiness = isDraft
+    ? await (await createProductPublicationReadService()).getReadiness(draft.id)
+    : null;
 
   return (
     <main id="main-content">
       <Section>
-        <div className="mx-auto max-w-3xl space-y-8">
+        <div className="mx-auto max-w-4xl space-y-8">
           <div className="space-y-4">
             <Button href="/admin/productos" variant="outline">Volver a productos</Button>
-            <div className="space-y-2">
-              <Text variant="label">{draft.sku} · {isDraft ? "Borrador" : "Publicado"}</Text>
+            <div className="space-y-3 border-b border-slate-200 pb-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <Text variant="label">{draft.sku}</Text>
+                <span className={publication.tone === "public" ? "inline-flex items-center gap-2 text-sm font-medium text-emerald-700" : "inline-flex items-center gap-2 text-sm font-medium text-slate-700"}>
+                  <span aria-hidden="true" className={publication.tone === "public" ? "size-2 rounded-full bg-emerald-500" : "size-2 rounded-full bg-slate-400"} />
+                  {publication.label}{publication.domainLabel ? ` · ${publication.domainLabel}` : ""}
+                </span>
+              </div>
               <Heading level={1} variant="editorial">{draft.title}</Heading>
-              <Text variant="quiet">{isDraft ? "Completa la información y revisa la preparación antes de publicar." : "Retíralo de publicación antes de modificar sus datos o fotos."}</Text>
+              <Text variant="quiet">{isDraft ? "Puedes actualizar la información y las fotos antes de publicar." : draft.status === "published" ? "Este producto está publicado. Retíralo del catálogo antes de modificar sus datos o fotografías." : "Este estado no tiene una acción operativa aprobada todavía."}</Text>
             </div>
           </div>
-          {isDraft ? <ProductDraftForm draft={draft} today={draft.receivedAt} /> : null}
+
+          {isDraft ? <ProductDraftForm draft={draft} today={draft.receivedAt} /> : <ProductManagementFacts product={draft} />}
           <ProductMediaManager images={images} productId={draft.id} readOnly={!isDraft} />
-          <ProductPublicationPanel productId={draft.id} readiness={readiness} status={isDraft ? "draft" : "published"} />
+          {readiness ? <ProductPublicationPanel productId={draft.id} readiness={readiness} status="draft" /> : null}
+          {draft.status === "published" ? <ProductPublicationPanel productId={draft.id} readiness={{ missing: [] }} status="published" /> : null}
         </div>
       </Section>
     </main>

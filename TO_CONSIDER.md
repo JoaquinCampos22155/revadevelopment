@@ -137,6 +137,14 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Required decision:** The smallest safe lookup by SKU, title, or another approved identifier, plus focused internal navigation for existing Product media operations.
 - **Category:** Product Manager evolution.
 
+### Direct editing of published Products
+
+- **State:** The current MVP intentionally makes published Products immutable. Operators withdraw a Product to `draft`, edit facts or private media, validate readiness, and republish it.
+- **Why deferred:** In-place edits would require a deliberate public-media synchronization, cache, rollback, and audit model.
+- **Reconsider:** Only when repeated operational evidence shows that withdrawal and republication create material friction.
+- **Required decision:** Which published facts or media may change, how public copies remain consistent, and how lifecycle history and customer-visible changes are recorded.
+- **Category:** Product lifecycle evolution.
+
 ### Product Manager and official Product operations
 
 - **State:** Product Manager creates and edits administrator-owned Intake/Product drafts through session-bound, RLS-enforced RPCs. Contributor association remains absent.
@@ -145,6 +153,38 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Trigger:** A safe contributor lookup design is approved.
 - **Required decision:** A safe human-readable Profile lookup that does not expose UUIDs or duplicate Auth identity data.
 - **Category:** Near-term feature.
+
+### Permanent Product deletion and Intake retention
+
+- **State:** Product Manager has no archive workflow and no permanent Product deletion capability. A Product may be removed from public Catalog visibility through the approved withdrawal lifecycle while its Intake and private authoritative media remain.
+- **Why deferred:** Permanent deletion must coordinate public delivery copies, private media, ProductImage metadata, the Product, and a deliberate Intake-retention rule without claiming cross-system atomicity.
+- **Reconsider:** Only after the deletion eligibility matrix and compensating-failure behavior are approved.
+- **Required decision:** Eligibility for never-published drafts, previously published withdrawn Products, published Products, reserved Products, and sold Products; whether Intake is retained; confirmation UX; remediation for partial cleanup; and SKU non-reuse.
+- **Category:** Product lifecycle and data-retention evolution.
+
+### Reserved, sold, and legacy archived Product states
+
+- **State:** The persisted Product lifecycle contains `reserved`, `sold`, and `archived`; current Product Manager presents public visibility separately and exposes no mutation workflow for those states.
+- **Why deferred:** REVA has not approved operational semantics for reservation, sale completion, legacy archive handling, or their effects on public media and retention.
+- **Reconsider:** Before introducing a reservation, sale, or historical-inventory workflow.
+- **Required decision:** Truthful operator labels, valid transitions, public visibility, retention, and eventual commerce/audit consequences.
+- **Category:** Product lifecycle evolution.
+
+### Product publication-history limitation
+
+- **State:** `published_at` describes the current publication interval. Withdrawal returns a Product to `draft` and clears that timestamp.
+- **Why deferred:** Full publication history requires a dedicated event/audit model.
+- **Reconsider:** When reporting, merchandising analysis, or repeated publication history is operationally required.
+- **Required decision:** Event ownership, retention, and whether historical publication durations justify a new model.
+- **Category:** Product operations evolution.
+
+### Product Manager lookup/search
+
+- **State:** Product Manager uses a paginated operational list with SKU, title, status, price, and publication time; no text search exists.
+- **Why deferred:** The list is sufficient at current inventory volume.
+- **Reconsider:** When operators can no longer locate an existing Product efficiently within the paginated list by SKU or title.
+- **Required decision:** The smallest safe internal lookup contract, ranking behavior, and privacy boundary.
+- **Category:** Product Manager evolution.
 
 ### Public Tags and Collections data surfaces
 
