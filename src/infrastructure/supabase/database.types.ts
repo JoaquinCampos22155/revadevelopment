@@ -90,6 +90,25 @@ export type Database = {
         }
         Relationships: []
       }
+      recommended_product_previews: {
+        Row: {
+          audience: string | null
+          brand: string | null
+          color: string | null
+          condition_rating: number | null
+          garment_type: string | null
+          position: number | null
+          price: string | null
+          primary_image_alt_text: string | null
+          primary_image_height: number | null
+          primary_image_id: string | null
+          primary_image_width: number | null
+          size_label: string | null
+          slug: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
@@ -312,6 +331,29 @@ export type Database = {
           },
         ]
       }
+      product_recommendations: {
+        Row: {
+          position: number
+          product_id: string
+        }
+        Insert: {
+          position: number
+          product_id: string
+        }
+        Update: {
+          position?: number
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_tags: {
         Row: {
           product_id: string
@@ -521,6 +563,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_product_recommendation: {
+        Args: { p_product_id: string }
+        Returns: {
+          recommendation_position: number
+        }[]
+      }
       begin_product_unpublish: {
         Args: { p_product_id: string }
         Returns: undefined
@@ -651,6 +699,13 @@ export type Database = {
           missing_requirements: string[]
         }[]
       }
+      get_product_recommendation_status: {
+        Args: { p_product_id: string }
+        Returns: {
+          is_eligible: boolean
+          recommendation_position: number
+        }[]
+      }
       list_product_manager_drafts: {
         Args: never
         Returns: {
@@ -674,6 +729,15 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_product_recommendations: {
+        Args: never
+        Returns: {
+          product_id: string
+          recommendation_position: number
+          sku: string
+          title: string
+        }[]
+      }
       prepare_product_publication: {
         Args: { p_product_id: string }
         Returns: {
@@ -682,8 +746,16 @@ export type Database = {
           slug: string
         }[]
       }
+      remove_product_recommendation: {
+        Args: { p_product_id: string }
+        Returns: undefined
+      }
       reorder_product_images: {
         Args: { p_ordered_image_ids: string[]; p_product_id: string }
+        Returns: undefined
+      }
+      reorder_product_recommendations: {
+        Args: { p_product_ids: string[] }
         Returns: undefined
       }
       save_product_draft: {

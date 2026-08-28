@@ -268,12 +268,25 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ### Selling and donation experiences
 
-- **State:** The Intake data model supports `sell` and `donate`, but no public submission or operational Intake UI exists.
-- **Why deferred:** Customers must not directly create official Products; the real receiving and REVA decision workflow needs product requirements first.
-- **Reconsider:** When either public contribution flow is approved.
-- **Trigger:** An approved sell or donate user journey.
-- **Required decision:** Submission data minimization, unauthenticated contributor handling, Admin processing, destination decisions, and privacy notices.
+- **State:** `/vender` and `/donar` are public explanatory routes with no submission/database write. Internal Intake supports `sell` and `donate`.
+- **Why deferred:** Customers must not directly create official Products, and the business process is not yet defined enough to promise acceptance, logistics, timing, pricing, payment, or donation outcomes.
+- **Reconsider:** Before enabling either official contact CTA.
+- **Required decision:** Accepted/rejected garments, condition threshold, geographic/logistics coverage, evaluation cost/timing, purchase versus consignment, acquisition-price method, payment timing/method, rejection outcome, donation process, response time, contact-data minimization, and privacy notice.
 - **Category:** Future product feature.
+
+### Curated recommendation lifecycle on republish
+
+- **State:** Approved. A retained recommendation disappears whenever its Product is not published and public-media-ready. It automatically reappears at its retained editorial position when the same Product is republished and becomes public-media-ready again.
+- **Operational rule:** Withdrawal does not erase REVA's merchandising decision. An administrator uses the explicit recommendation removal operation when the Product should no longer be recommended.
+- **Category:** Merchandising evolution.
+
+### Production contact configuration
+
+- **State:** `/vender` has no enabled contact destination until `REVA_WHATSAPP_NUMBER` is approved and configured.
+- **Why deferred:** REVA must not hardcode a personal or development phone number into public application source.
+- **Reconsider:** Before public selling conversion is activated.
+- **Required decision:** Official WhatsApp number, ownership, response process, privacy handling, and final prefilled message.
+- **Category:** Public conversion configuration.
 
 ### Rewards and contribution incentives
 

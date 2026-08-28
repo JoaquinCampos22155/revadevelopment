@@ -9,6 +9,8 @@ import { ProductDraftForm } from "@/features/product-manager/components/ProductD
 import { ProductManagementFacts } from "@/features/product-manager/components/ProductManagementFacts";
 import { ProductMediaManager } from "@/features/product-manager/components/ProductMediaManager";
 import { ProductPublicationPanel } from "@/features/product-manager/components/ProductPublicationPanel";
+import { ProductRecommendationPanel } from "@/features/merchandising/components/ProductRecommendationPanel";
+import { createProductRecommendationReadService } from "@/features/merchandising/server/product-recommendation.composition";
 import { getProductPublicationStatusPresentation } from "@/features/product-manager/product-publication-status";
 import { createProductManagerReadService } from "@/features/product-manager/server/product-draft.composition";
 import { createProductMediaReadService } from "@/features/product-manager/server/product-media.composition";
@@ -38,6 +40,7 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
   const readiness = isDraft
     ? await (await createProductPublicationReadService()).getReadiness(draft.id)
     : null;
+  const recommendation = await (await createProductRecommendationReadService()).getStatus(draft.id);
 
   return (
     <main id="main-content">
@@ -62,6 +65,7 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
           <ProductMediaManager images={images} productId={draft.id} readOnly={!isDraft} />
           {readiness ? <ProductPublicationPanel productId={draft.id} readiness={readiness} status="draft" /> : null}
           {draft.status === "published" ? <ProductPublicationPanel productId={draft.id} readiness={{ missing: [] }} status="published" /> : null}
+          {recommendation ? <ProductRecommendationPanel eligible={recommendation.eligible} position={recommendation.position} productId={draft.id} /> : null}
         </div>
       </Section>
     </main>

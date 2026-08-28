@@ -5,10 +5,8 @@ import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
-import { catalogReviews } from "@/content/catalog";
 import { ProductContactCta } from "@/features/catalog/components/ProductContactCta";
 import { ProductGallery } from "@/features/catalog/components/ProductGallery";
-import { ReviewCard } from "@/features/catalog/components/ReviewCard";
 import { audienceLabel, colorLabel, garmentTypeLabel } from "@/features/catalog/public-product.presentation";
 import { conditionLabels } from "@/features/catalog/condition";
 import { createPublicProductService } from "@/features/catalog/server/public-product.service";
@@ -51,6 +49,5 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
     </Section>
-    <Section><div className="space-y-8"><div className="space-y-3"><Text variant="label">Confianza REVA</Text><Heading level={2} variant="editorial">Una experiencia cuidada, de principio a fin.</Heading></div><div className="grid gap-5 md:grid-cols-3">{catalogReviews.map((review)=><ReviewCard key={review.author} review={review}/>)}</div></div></Section>
   </main>;
 }

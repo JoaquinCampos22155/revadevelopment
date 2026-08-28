@@ -128,16 +128,16 @@ The MVP lifecycle is deliberate: drafts are editable; published Products are imm
 
 ## Current Implementation Snapshot
 
-- The public frontend is visually established and uses Spanish public routes: `/`, `/catalogo`, `/productos/[slug]`, `/nosotros`, `/contacto`, and `/iniciar-sesion`.
+- The local public route structure is `/`, `/catalogo`, `/productos/[slug]`, `/como-funciona`, `/vender`, `/donar`, `/contacto`, and `/iniciar-sesion`. `/nosotros` permanently redirects to `/como-funciona` so institutional content has one canonical route.
 - `/colecciones/[slug]` is an approved public URL architecture but is not yet implemented as a route. `/playground` is internal and non-indexed.
 - Auth is real: email/password signup, email confirmation, cookie-backed sessions, logout, one customer test identity, and one admin test identity exist only in the development environment.
-- Migrations 001–011 are the versioned database history. Base business tables are default-deny; only the deliberately allowlisted `api` Product projections are publicly readable.
+- Migrations 001–012 are deployed remote history. Migration 012 provides the narrow curated Home merchandising foundation. Base business tables are default-deny; only deliberately allowlisted `api` Product projections are publicly readable.
 - Catalog and Product Detail use database-backed published Product presentation through the public repository while preserving editorial Catalog structure.
 - Product Manager presents a bounded operational list and a state-aware management surface. Draft facts and private media are editable; published Products are immutable until withdrawn. `RV-000001` is the first published development Product with six private authoritative WebPs and six public delivery copies.
 
-## Next Planning Gate
+## Current Planning Gate
 
-Sprint 25 — Product Manager Operational Foundation — is closed. Permanent Product deletion, direct published editing, reserved/sold workflows, internal Product search, Tags, Collections, recommendations, text search, contextual facets, and the broader visual-system refinement remain separate future work.
+Sprint 26 — Home & Merchandising Foundation — is open. Its local implementation now includes conditional real-product Home merchandising, the public information-architecture cleanup, and non-mutating `/vender` and `/donar` explanation routes. Permanent Product deletion, direct published editing, reserved/sold workflows, internal Product search, Tags, Collections, text search, contextual facets, configured public contact conversion, and broader visual-system migration remain separate future work.
 
 ## Working Method
 

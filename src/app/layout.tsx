@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -17,18 +18,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const requestHeaders = await headers();
+  const isPlayground = (requestHeaders.get("x-reva-pathname") ?? "").startsWith("/playground");
   const currentProfile = await getCurrentUserProfile();
 
   return (
     <html lang="es">
       <body>
-        <Navbar
+        {!isPlayground ? <Navbar
           isAdmin={currentProfile?.role === "admin"}
           isAuthenticated={currentProfile !== null}
           onSignOut={signOut}
-        />
+        /> : null}
         {children}
-        <Footer />
+        {!isPlayground ? <Footer /> : null}
       </body>
     </html>
   );

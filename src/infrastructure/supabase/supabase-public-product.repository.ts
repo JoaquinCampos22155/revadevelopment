@@ -22,8 +22,14 @@ type PublishedProductPreviewRow =
   Database["api"]["Views"]["published_product_previews"]["Row"];
 type PublishedProductDetailRow =
   Database["api"]["Views"]["published_product_details"]["Row"];
+type RecommendedProductPreviewRow =
+  Database["api"]["Views"]["recommended_product_previews"]["Row"];
 type PublishedProductPreviewData = Pick<
   PublishedProductPreviewRow,
+  "audience" | "brand" | "color" | "condition_rating" | "garment_type" | "price" | "primary_image_alt_text" | "primary_image_height" | "primary_image_id" | "primary_image_width" | "size_label" | "slug" | "title"
+>;
+type RecommendedProductPreviewData = Pick<
+  RecommendedProductPreviewRow,
   "audience" | "brand" | "color" | "condition_rating" | "garment_type" | "price" | "primary_image_alt_text" | "primary_image_height" | "primary_image_id" | "primary_image_width" | "size_label" | "slug" | "title"
 >;
 
@@ -170,6 +176,23 @@ export class SupabasePublicProductRepository implements ProductRepository {
     const { data: imageRows, error: imageError } = await this.client.schema("api").from("published_product_images").select("image_id, alt_text, position, width, height").eq("product_slug", slug).order("position");
     if (imageError) throw new Error("The public Product images could not be read.");
     return mapDetail(data, imageRows.map(mapImage), this.imageService);
+  }
+
+  public async listRecommended(): Promise<ReadonlyArray<PublishedProductPreview>> {
+    const { data, error } = await this.client
+      .schema("api")
+      .from("recommended_product_previews")
+      .select(
+        "position, slug, title, price, audience, brand, garment_type, color, size_label, condition_rating, primary_image_id, primary_image_alt_text, primary_image_width, primary_image_height",
+      )
+      .order("position")
+      .limit(6);
+
+    if (error) {
+      throw new Error("The recommended Products could not be read.");
+    }
+
+    return data.map((row) => mapPreview(row as RecommendedProductPreviewData, this.imageService));
   }
 
   public async listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage> {

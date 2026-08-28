@@ -401,6 +401,7 @@ Public catalog reads use the exposed `api` schema. Its only current public Produ
 | `api.published_product_previews` | `slug`, `title`, exact decimal `price`, `audience`, `brand`, `garment_type`, `color`, `size_label`, `condition_rating`, and primary-image delivery metadata |
 | `api.published_product_details` | Preview facts plus `description`, `material_details`, `measurements`, and `condition_notes` |
 | `api.published_product_images` | Product slug, opaque image identity, alternative text, position, width, and height for the ordered public gallery |
+| `api.recommended_product_previews` | Ordered, allowlisted `PublishedProductPreview` facts for explicit Home merchandising, plus the non-sensitive editorial position required for ordering |
 
 Each projection explicitly allowlists its columns and enforces `products.status = 'published' AND products.public_media_ready_at IS NOT NULL`. It never uses `SELECT *` and never exposes Intake data, acquisition cost, contributor or creator identity, SKU, raw Storage keys, draft or operational data, hidden Tags, or unpublished Collections.
 
@@ -411,6 +412,20 @@ Because the underlying business tables retain default-deny RLS for anonymous cal
 The views are intentionally definer-owned in the current development design. This produces a generic Supabase Security Advisor warning and remains subject to the explicit pre-launch review recorded in `TO_CONSIDER.md`; it is not silently considered permanently resolved.
 
 `SupabasePublicProductRepository` maps projection rows into `PublishedProductPreview` and `PublishedProduct`. It preserves prices as canonical decimal strings inside `Money`, derives condition language in the application, and does not return persistence rows. `PublicProductImageService` resolves only opaque public image identities into stable delivery URLs; private `ProductImage.storage_key` stays internal.
+
+### Curated Home merchandising
+
+`product_recommendations` is a narrow internal relation between one Product and one positive, unique editorial position. It stores no duplicated Product facts and is not a Collection, Tag, campaign, algorithm, score, or personalization system. Narrow administrator-only functions add, remove, and reorder the complete recommendation set; ordinary callers receive no table grants.
+
+`api.recommended_product_previews` is the only public merchandising read. It uses the same public Product facts and primary-image delivery metadata as `PublishedProductPreview`, ordered by the explicit editorial position. Its predicate independently requires `products.status = 'published' AND products.public_media_ready_at IS NOT NULL`; a retained recommendation can never force a withdrawn, reserved, sold, or media-incomplete Product into Home.
+
+Recommendation membership intentionally survives withdrawal. The public predicate hides the Product while it is non-public; when the same Product is republished and public-media-ready, it automatically returns at its retained editorial position. Removing the recommendation is an explicit administrator operation.
+
+Home reads this projection through the existing request-scoped public Product service and repository. Home presentation never queries recommendation tables or Product base tables.
+
+### Public selling information
+
+`/vender` and `/donar` are static, public explanatory routes. They create no Intake, Product, contributor, Profile, or database record and never require authentication. The eventual official selling contact destination is centrally configured as `REVA_WHATSAPP_NUMBER`; no personal or development number is hardcoded. Donation has its own truthful explanatory route, but neither public route creates a contribution or promises an operational outcome.
 
 These objects are intentional public data surfaces. A direct Data API request to one must reveal no more than REVA intentionally publishes on its public website. Server Components remain the normal REVA application path so public discovery is rendered as HTML rather than fetched by UI components.
 

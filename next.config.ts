@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : undefined;
+const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl) : undefined;
+const supabaseProtocol = supabaseOrigin?.protocol === "http:" ? "http" : "https";
 
 const nextConfig: NextConfig = {
   // Preserve REVA's constitution as the sole owner of AGENTS.md.
@@ -11,8 +12,8 @@ const nextConfig: NextConfig = {
     // application policy remains the authoritative accepted-file ceiling.
     proxyClientMaxBodySize: "13mb",
   },
-  images: supabaseHostname ? {
-    remotePatterns: [{ hostname: supabaseHostname, pathname: "/storage/v1/object/public/public-product-media/**", port: "", protocol: "https", search: "" }],
+  images: supabaseOrigin ? {
+    remotePatterns: [{ hostname: supabaseOrigin.hostname, pathname: "/storage/v1/object/public/public-product-media/**", port: supabaseOrigin.port, protocol: supabaseProtocol, search: "" }],
   } : undefined,
 };
 
