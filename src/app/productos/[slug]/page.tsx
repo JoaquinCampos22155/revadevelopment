@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Section } from "@/components/layout/Section";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
@@ -28,14 +29,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
   const gallery = product.images.map((image) => ({alt:image.altText,height:image.height,src:image.url,width:image.width}));
 
+  const structuredProduct = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    description: product.description,
+    image: product.images.map((image) => image.url),
+    ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
+    category: garmentTypeLabel(product.garmentType),
+  };
+
   return <main id="main-content">
+    <JsonLd data={structuredProduct} />
     <Section>
       <div className="mb-8"><Button href="/catalogo">Volver al catálogo</Button></div>
-      <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <ProductGallery images={gallery} />
-        <div className="space-y-7 lg:sticky lg:top-24">
-          <div className="space-y-4"><Text variant="label">Selección REVA</Text><Heading level={1} variant="editorial">{product.title}</Heading><Text className="text-lg" variant="body">{product.description}</Text><p className="text-xl font-medium text-slate-950">Q {product.price.amount}</p></div>
-          <dl className="grid grid-cols-2 gap-4 border-y border-sky-100 py-6">
+          <div className="space-y-7 lg:sticky lg:top-24">
+          <div className="space-y-4"><Text className="text-[#1461a4]" variant="label">Selección REVA</Text><Heading className="text-[#10233d]" level={1} variant="editorial">{product.title}</Heading><Text className="text-lg text-[#39556d]" variant="body">{product.description}</Text><p className="text-xl font-medium text-[#10233d]">Q {product.price.amount}</p></div>
+          <dl className="grid grid-cols-2 gap-4 border-y border-[#c7ddeb] py-6">
             <div><dt className="text-sm text-slate-500">Marca</dt><dd className="mt-1 font-medium">{product.brand ?? "No indicada"}</dd></div>
             <div><dt className="text-sm text-slate-500">Tipo</dt><dd className="mt-1 font-medium">{garmentTypeLabel(product.garmentType)}</dd></div>
             <div><dt className="text-sm text-slate-500">Público</dt><dd className="mt-1 font-medium">{audienceLabel(product.audience)}</dd></div>

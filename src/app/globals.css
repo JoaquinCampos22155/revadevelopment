@@ -1,18 +1,31 @@
 @import "tailwindcss";
 
+:root {
+  --reva-background: #f8f7f2;
+  --reva-surface-muted: #dceef6;
+  --reva-text-primary: #10233d;
+  --reva-text-secondary: #39556d;
+  --reva-brand-primary: #1461a4;
+  --reva-brand-primary-hover: #0f4f88;
+  --reva-brand-soft: #eef7fb;
+  --reva-accent-warm: #ede0cc;
+  --reva-border: #c7ddeb;
+  --reva-focus: #1461a4;
+}
+
 html {
-  background: #ffffff;
+  background: var(--reva-background);
 }
 
 body {
   min-height: 100vh;
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--reva-background);
+  color: var(--reva-text-primary);
 }
 
 ::selection {
-  background: #bae6fd;
-  color: #0f172a;
+  background: var(--reva-surface-muted);
+  color: var(--reva-text-primary);
 }
 
 /* Adds depth to supporting content while keeping the hero ready for its future editorial image. */

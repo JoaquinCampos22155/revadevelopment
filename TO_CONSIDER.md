@@ -94,10 +94,10 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ### Public Product image SEO / indexing strategy
 
-- **State:** Public delivery URLs use immutable opaque ProductImage identities rather than mutable Product titles or slugs. Product/image association currently comes from the canonical Product page, semantic image markup, alternative text, surrounding Product content, and stable crawlable delivery URLs.
+- **State:** Public delivery URLs use immutable opaque ProductImage identities rather than mutable Product titles or slugs. Product/image association currently comes from the canonical Product page, semantic image markup, alternative text, surrounding Product content, stable crawlable delivery URLs, and a deliberately minimal Product JSON-LD block containing only supported Product facts.
 - **Why deferred:** Renaming Storage objects for mutable Product facts would create URL churn, cache invalidation, and redirect complexity without evidence of enough SEO benefit.
 - **Reconsider:** Before production launch.
-- **Required decision:** A cohesive Product image SEO strategy covering alt-text quality, canonical Product relationship, Product structured data / schema.org markup, image indexing, image-sitemap need, and whether descriptive image URLs justify their operational cost. Preserve immutable ProductImage identity unless evidence supports a different architecture.
+- **Required decision:** A cohesive Product image SEO strategy covering alt-text quality, canonical Product relationship, whether supported structured data should expand beyond the current minimal Product markup, image indexing, image-sitemap need, and whether descriptive image URLs justify their operational cost. Preserve immutable ProductImage identity unless evidence supports a different architecture.
 - **Category:** Pre-launch SEO requirement.
 
 ### HEIC / HEIF source photography

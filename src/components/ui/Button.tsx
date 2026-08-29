@@ -26,9 +26,9 @@ type ButtonActionProps = Readonly<
 type ButtonProps = ButtonActionProps | ButtonLinkProps;
 
 const variantClasses: Record<ButtonVariant, string> = {
-  solid: "bg-cyan-700 text-white hover:bg-cyan-800",
+  solid: "bg-[#1461a4] text-white hover:bg-[#0f4f88]",
   outline:
-    "border border-cyan-200 bg-white text-slate-950 hover:border-cyan-700 hover:bg-cyan-50",
+    "border border-[#9bc3dc] bg-white text-[#10233d] hover:border-[#1461a4] hover:bg-[#eef7fb]",
 };
 
 function getButtonClasses(variant: ButtonVariant, className?: string) {

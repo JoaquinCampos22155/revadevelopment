@@ -1,4 +1,5 @@
 export const primaryNavigation = [
+  { href: "/", label: "Inicio" },
   { href: "/catalogo", label: "Catálogo" },
   { href: "/como-funciona", label: "Cómo funciona" },
   { href: "/vender", label: "Vender" },
