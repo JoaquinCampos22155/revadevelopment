@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
+import revaIcon from "@/assets/reva-icon.svg";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { signOut } from "@/features/auth/server/auth.actions";
@@ -11,6 +12,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "REVA",
   description: "Moda circular en Guatemala.",
+  icons: { icon: revaIcon.src },
 };
 
 export default async function RootLayout({

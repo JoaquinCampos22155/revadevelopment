@@ -26,14 +26,14 @@ type ButtonActionProps = Readonly<
 type ButtonProps = ButtonActionProps | ButtonLinkProps;
 
 const variantClasses: Record<ButtonVariant, string> = {
-  solid: "bg-[#1461a4] text-white hover:bg-[#0f4f88]",
+  solid: "bg-reva-action text-reva-on-action hover:bg-reva-action-hover",
   outline:
-    "border border-[#9bc3dc] bg-white text-[#10233d] hover:border-[#1461a4] hover:bg-[#eef7fb]",
+    "border border-reva-border bg-reva-surface text-reva-primary hover:border-reva-brand-strong hover:bg-reva-muted",
 };
 
 function getButtonClasses(variant: ButtonVariant, className?: string) {
   return [
-    "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-medium transition-[transform,box-shadow,background-color,border-color,color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
+    "inline-flex min-h-11 items-center justify-center rounded-lg px-5 text-sm font-medium transition-[transform,box-shadow,background-color,border-color,color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2 focus-visible:ring-offset-reva-background disabled:cursor-not-allowed disabled:bg-reva-disabled disabled:text-reva-on-action disabled:hover:translate-y-0 disabled:hover:shadow-none",
     variantClasses[variant],
     className,
   ]

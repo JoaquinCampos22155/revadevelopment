@@ -46,17 +46,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <ProductGallery images={gallery} />
           <div className="space-y-7 lg:sticky lg:top-24">
-          <div className="space-y-4"><Text className="text-[#1461a4]" variant="label">Selección REVA</Text><Heading className="text-[#10233d]" level={1} variant="editorial">{product.title}</Heading><Text className="text-lg text-[#39556d]" variant="body">{product.description}</Text><p className="text-xl font-medium text-[#10233d]">Q {product.price.amount}</p></div>
-          <dl className="grid grid-cols-2 gap-4 border-y border-[#c7ddeb] py-6">
-            <div><dt className="text-sm text-slate-500">Marca</dt><dd className="mt-1 font-medium">{product.brand ?? "No indicada"}</dd></div>
-            <div><dt className="text-sm text-slate-500">Tipo</dt><dd className="mt-1 font-medium">{garmentTypeLabel(product.garmentType)}</dd></div>
-            <div><dt className="text-sm text-slate-500">Público</dt><dd className="mt-1 font-medium">{audienceLabel(product.audience)}</dd></div>
-            <div><dt className="text-sm text-slate-500">Color</dt><dd className="mt-1 font-medium">{product.color ? colorLabel(product.color) : "No indicado"}</dd></div>
-            <div><dt className="text-sm text-slate-500">Talla</dt><dd className="mt-1 font-medium">{product.sizeLabel ?? "Ver medidas"}</dd></div>
-            <div><dt className="text-sm text-slate-500">Condición</dt><dd className="mt-1 font-medium">{conditionLabels[product.conditionRating]}</dd></div>
+          <div className="space-y-4"><Text className="text-reva-brand-strong" variant="label">Selección REVA</Text><Heading className="text-reva-primary" level={1} variant="editorial">{product.title}</Heading><Text className="text-lg text-reva-secondary" variant="body">{product.description}</Text><p className="text-xl font-medium text-reva-primary">Q {product.price.amount}</p></div>
+          <dl className="grid grid-cols-2 gap-4 border-y border-reva-border py-6">
+            <div><dt className="text-sm text-reva-secondary">Marca</dt><dd className="mt-1 font-medium text-reva-primary">{product.brand ?? "No indicada"}</dd></div>
+            <div><dt className="text-sm text-reva-secondary">Tipo</dt><dd className="mt-1 font-medium text-reva-primary">{garmentTypeLabel(product.garmentType)}</dd></div>
+            <div><dt className="text-sm text-reva-secondary">Público</dt><dd className="mt-1 font-medium text-reva-primary">{audienceLabel(product.audience)}</dd></div>
+            <div><dt className="text-sm text-reva-secondary">Color</dt><dd className="mt-1 font-medium text-reva-primary">{product.color ? colorLabel(product.color) : "No indicado"}</dd></div>
+            <div><dt className="text-sm text-reva-secondary">Talla</dt><dd className="mt-1 font-medium text-reva-primary">{product.sizeLabel ?? "Ver medidas"}</dd></div>
+            <div><dt className="text-sm text-reva-secondary">Condición</dt><dd className="mt-1 font-medium text-reva-primary">{conditionLabels[product.conditionRating]}</dd></div>
           </dl>
-          {product.materialDetails || product.measurements ? <div className="space-y-2 text-sm text-slate-700">{product.materialDetails ? <p><span className="font-medium text-slate-950">Material: </span>{product.materialDetails}</p> : null}{product.measurements ? <p><span className="font-medium text-slate-950">Medidas: </span>{Object.entries(product.measurements).map(([name,value])=>`${name}: ${value}`).join(" · ")}</p> : null}</div> : null}
-          {product.conditionNotes ? <p className="text-sm text-slate-700"><span className="font-medium text-slate-950">Notas de condición: </span>{product.conditionNotes}</p> : null}
+          {product.materialDetails || product.measurements ? <div className="space-y-2 text-sm text-reva-secondary">{product.materialDetails ? <p><span className="font-medium text-reva-primary">Material: </span>{product.materialDetails}</p> : null}{product.measurements ? <p><span className="font-medium text-reva-primary">Medidas: </span>{Object.entries(product.measurements).map(([name,value])=>`${name}: ${value}`).join(" · ")}</p> : null}</div> : null}
+          {product.conditionNotes ? <p className="text-sm text-reva-secondary"><span className="font-medium text-reva-primary">Notas de condición: </span>{product.conditionNotes}</p> : null}
           <ProductContactCta />
         </div>
       </div>

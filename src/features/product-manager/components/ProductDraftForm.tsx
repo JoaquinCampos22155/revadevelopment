@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { conditionLabels } from "@/features/catalog/condition";
@@ -44,14 +45,34 @@ function getMeasurementRows(draft: ProductDraft | undefined): MeasurementRow[] {
 export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
   const isEditing = Boolean(draft);
   const hasLegacyColor = Boolean(draft?.color && !isColor(draft.color));
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(
     isEditing ? saveProductDraftAction : createProductDraftAction,
     initialProductDraftFormState,
   );
   const [sourceType, setSourceType] = useState(draft?.sourceType ?? "sell");
+  const [garmentType, setGarmentType] = useState(draft?.garmentType ?? "");
+  const [color, setColor] = useState(draft?.color ?? "");
+  const [sizeLabel, setSizeLabel] = useState(draft?.sizeLabel ?? "");
+  const [conditionRating, setConditionRating] = useState(
+    draft?.conditionRating?.toString() ?? "",
+  );
   const [measurements, setMeasurements] = useState<MeasurementRow[]>(() =>
     getMeasurementRows(draft),
   );
+
+  useEffect(() => {
+    if (state.saved) router.refresh();
+  }, [router, state]);
+
+  useEffect(() => {
+    setSourceType(draft?.sourceType ?? "sell");
+    setGarmentType(draft?.garmentType ?? "");
+    setColor(draft?.color ?? "");
+    setSizeLabel(draft?.sizeLabel ?? "");
+    setConditionRating(draft?.conditionRating?.toString() ?? "");
+    setMeasurements(getMeasurementRows(draft));
+  }, [draft?.updatedAt]);
 
   function addMeasurement(): void {
     setMeasurements((current) => [
@@ -161,7 +182,7 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
           </label>
           <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="garment-type">
             Tipo de prenda
-            <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.garmentType ?? ""} id="garment-type" name="garmentType">
+            <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" id="garment-type" name="garmentType" onChange={(event) => setGarmentType(event.target.value)} value={garmentType}>
               <option value="">Aún sin clasificar</option>
               {garmentTypes.map((garmentType) => (<option key={garmentType.value} value={garmentType.value}>{garmentType.label}</option>))}
             </select>
@@ -194,7 +215,7 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
             <div className="grid gap-5 md:grid-cols-2">
               <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="color">
                 Color
-                <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.color ?? ""} id="color" name="color">
+                <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" id="color" name="color" onChange={(event) => setColor(event.target.value)} value={color}>
                   <option value="">Aún sin clasificar</option>
                   {hasLegacyColor ? (
                     <option disabled value={draft?.color ?? ""}>
@@ -212,7 +233,7 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
               </label>
               <label className="space-y-2 text-sm font-medium text-slate-950" htmlFor="size-label">
                 Talla indicada
-                <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.sizeLabel ?? ""} id="size-label" name="sizeLabel">
+                <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" id="size-label" name="sizeLabel" onChange={(event) => setSizeLabel(event.target.value)} value={sizeLabel}>
                   <option value="">Sin talla indicada</option>
                   {productSizes.map((size) => (
                     <option key={size.value} value={size.value}>{size.label}</option>
@@ -235,7 +256,7 @@ export function ProductDraftForm({ draft, today }: ProductDraftFormProps) {
             <legend className="text-lg font-semibold text-slate-950">Talla y condición</legend>
             <label className="block max-w-md space-y-2 text-sm font-medium text-slate-950" htmlFor="condition-rating">
               Condición
-              <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" defaultValue={draft?.conditionRating?.toString() ?? ""} id="condition-rating" name="conditionRating">
+              <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-normal outline-none transition focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100" id="condition-rating" name="conditionRating" onChange={(event) => setConditionRating(event.target.value)} value={conditionRating}>
                 <option value="">Aún sin evaluar</option>
                 {Object.entries(conditionLabels).reverse().map(([rating, label]) => (
                   <option key={rating} value={rating}>{rating} — {label}</option>

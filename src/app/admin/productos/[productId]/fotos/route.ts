@@ -1,8 +1,23 @@
 import { NextResponse } from "next/server";
 
-import { requireCurrentAdmin } from "@/features/product-manager/server/admin-access";
 import { createProductDraftReadService } from "@/features/product-manager/server/product-draft.composition";
 import { createProductMediaActionService } from "@/features/product-manager/server/product-media.composition";
+import { getCurrentUserProfile } from "@/features/users/server/current-user.service";
+
+/** Uses JSON responses at this HTTP boundary rather than page-navigation redirects. */
+async function getMediaMutationAuthorizationFailure(): Promise<NextResponse | null> {
+  const profile = await getCurrentUserProfile();
+
+  if (!profile) {
+    return NextResponse.json({ error: "Inicia sesión para administrar fotos." }, { status: 401 });
+  }
+
+  if (profile.role !== "admin") {
+    return NextResponse.json({ error: "No tienes permiso para administrar fotos." }, { status: 403 });
+  }
+
+  return null;
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +32,8 @@ async function requireDraft(productId: string) {
 /** Handles Product media binaries at a Node-only authenticated server boundary. */
 export async function POST(request: Request, { params }: RouteContext<"/admin/productos/[productId]/fotos">) {
   try {
-    await requireCurrentAdmin();
+    const authorizationFailure = await getMediaMutationAuthorizationFailure();
+    if (authorizationFailure) return authorizationFailure;
     const { productId } = await params;
     const formData = await request.formData();
     const file = formData.get("file");
@@ -32,7 +48,8 @@ export async function POST(request: Request, { params }: RouteContext<"/admin/pr
 
 export async function PATCH(request: Request, { params }: RouteContext<"/admin/productos/[productId]/fotos">) {
   try {
-    await requireCurrentAdmin();
+    const authorizationFailure = await getMediaMutationAuthorizationFailure();
+    if (authorizationFailure) return authorizationFailure;
     const { productId } = await params;
     await requireDraft(productId);
     const body = await request.json() as { action?: string; altText?: string; imageId?: string; imageIds?: string[] };
@@ -48,7 +65,8 @@ export async function PATCH(request: Request, { params }: RouteContext<"/admin/p
 
 export async function DELETE(request: Request, { params }: RouteContext<"/admin/productos/[productId]/fotos">) {
   try {
-    await requireCurrentAdmin();
+    const authorizationFailure = await getMediaMutationAuthorizationFailure();
+    if (authorizationFailure) return authorizationFailure;
     const { productId } = await params;
     await requireDraft(productId);
     const imageId = new URL(request.url).searchParams.get("imageId");

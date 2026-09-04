@@ -1,16 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --reva-background: #f8f7f2;
-  --reva-surface-muted: #dceef6;
-  --reva-text-primary: #10233d;
-  --reva-text-secondary: #39556d;
-  --reva-brand-primary: #1461a4;
-  --reva-brand-primary-hover: #0f4f88;
-  --reva-brand-soft: #eef7fb;
-  --reva-accent-warm: #ede0cc;
-  --reva-border: #c7ddeb;
-  --reva-focus: #1461a4;
+  /* Developer-approved source colors from the official REVA icon. */
+  --reva-source-storm: #627f8a;
+  --reva-source-canvas: #f3f4f1;
+
+  /* Functional colors derived for semantic UI roles and accessibility. */
+  --reva-background: var(--reva-source-canvas);
+  --reva-surface: #ffffff;
+  --reva-surface-muted: #e5eceb;
+  --reva-surface-strong: #ccd8d8;
+  --reva-text-primary: #20353d;
+  --reva-text-secondary: #49616a;
+  --reva-brand: var(--reva-source-storm);
+  --reva-brand-strong: #3d5a66;
+  --reva-text-on-brand: #001014;
+  --reva-action: #294b58;
+  --reva-action-hover: #203f4b;
+  --reva-text-on-action: var(--reva-source-canvas);
+  --reva-border: #c4d0d1;
+  --reva-focus: var(--reva-action);
+  --reva-disabled: #9caab0;
+  --reva-success: #3d6b5d;
+  --reva-warning: #87653a;
+  --reva-danger: #8b4e4e;
+}
+
+@theme inline {
+  --color-reva-background: var(--reva-background);
+  --color-reva-surface: var(--reva-surface);
+  --color-reva-muted: var(--reva-surface-muted);
+  --color-reva-strong: var(--reva-surface-strong);
+  --color-reva-primary: var(--reva-text-primary);
+  --color-reva-secondary: var(--reva-text-secondary);
+  --color-reva-brand: var(--reva-brand);
+  --color-reva-brand-strong: var(--reva-brand-strong);
+  --color-reva-on-brand: var(--reva-text-on-brand);
+  --color-reva-action: var(--reva-action);
+  --color-reva-action-hover: var(--reva-action-hover);
+  --color-reva-on-action: var(--reva-text-on-action);
+  --color-reva-border: var(--reva-border);
+  --color-reva-focus: var(--reva-focus);
+  --color-reva-disabled: var(--reva-disabled);
+  --color-reva-success: var(--reva-success);
+  --color-reva-warning: var(--reva-warning);
+  --color-reva-danger: var(--reva-danger);
 }
 
 html {
@@ -31,6 +65,22 @@ body {
 /* Adds depth to supporting content while keeping the hero ready for its future editorial image. */
 .surface-atmosphere {
   background:
-    radial-gradient(circle at 8% 10%, rgb(224 242 254 / 0.78), transparent 37%),
-    radial-gradient(circle at 92% 88%, rgb(240 249 255 / 0.9), transparent 42%);
+    radial-gradient(circle at 8% 10%, color-mix(in srgb, var(--reva-brand) 25%, transparent), transparent 37%),
+    radial-gradient(circle at 92% 88%, var(--reva-surface-muted), transparent 42%);
+}
+
+/* A deliberately local editorial effect used only by the Home Hero image. */
+.reva-editorial-offset {
+  box-shadow: 18px 20px 0 var(--reva-brand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

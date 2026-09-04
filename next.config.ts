@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     // A 12 MiB source file plus multipart framing fits below 13 MB, while the
     // application policy remains the authoritative accepted-file ceiling.
     proxyClientMaxBodySize: "13mb",
+    serverActions: {
+      // Proxy and Route Handler requests share this framework body boundary.
+      // Keep it above the approved source-file policy without changing that policy.
+      bodySizeLimit: "13mb",
+    },
   },
   images: supabaseOrigin ? {
     remotePatterns: [{ hostname: supabaseOrigin.hostname, pathname: "/storage/v1/object/public/public-product-media/**", port: supabaseOrigin.port, protocol: supabaseProtocol, search: "" }],

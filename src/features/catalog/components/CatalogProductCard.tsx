@@ -19,17 +19,17 @@ export function CatalogProductCard({ product }: CatalogProductCardProps) {
     <article className="group overflow-hidden transition duration-300 ease-out hover:-translate-y-0.5">
       <Link aria-label={`Ver ${product.name}`} className="block" href={product.href}>
         {"width" in image ? (
-          <Image alt={image.alt} className="aspect-[4/5] w-full bg-[#eef7fb] object-cover transition duration-500 ease-out group-hover:scale-[1.015]" height={image.height} src={image.src} width={image.width} />
+          <Image alt={image.alt} className="aspect-[4/5] w-full bg-reva-muted object-cover transition duration-500 ease-out group-hover:scale-[1.015]" height={image.height} src={image.src} width={image.width} />
         ) : (
-          <Image alt={image.alt} className="aspect-[4/5] w-full bg-[#eef7fb] object-cover transition duration-500 ease-out group-hover:scale-[1.015]" src={image.src} />
+          <Image alt={image.alt} className="aspect-[4/5] w-full bg-reva-muted object-cover transition duration-500 ease-out group-hover:scale-[1.015]" src={image.src} />
         )}
         <div className="space-y-2 pb-1 pt-3">
           <div className="flex items-center justify-between gap-3">
-            <Text className="text-[#1461a4]" variant="label">{product.category}</Text>
-            <span className="text-xs text-[#52677c]">{product.condition}</span>
+            <Text className="text-reva-brand-strong" variant="label">{product.category}</Text>
+            <span className="text-xs text-reva-secondary">{product.condition}</span>
           </div>
-          <h3 className="font-serif text-xl tracking-tight text-[#10233d]">{product.name}</h3>
-          {product.price ? <p className="text-sm font-medium text-[#23415f]">{product.price}</p> : null}
+          <h3 className="font-serif text-xl tracking-tight text-reva-primary">{product.name}</h3>
+          {product.price ? <p className="text-sm font-medium text-reva-brand-strong">{product.price}</p> : null}
         </div>
       </Link>
     </article>

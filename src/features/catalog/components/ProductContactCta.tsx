@@ -6,19 +6,19 @@ import { socialLinks } from "@/content/social";
 /** Keeps the product conversion location stable while the official social channel is configured. */
 export function ProductContactCta() {
   return (
-    <aside className="space-y-4 rounded-3xl bg-slate-950 p-7 text-white">
-      <Text className="text-sky-200" variant="label">
+    <aside className="space-y-4 rounded-xl bg-reva-brand-strong p-7 text-reva-on-action">
+      <Text className="text-reva-on-action" variant="label">
         Contacto REVA
       </Text>
       <Heading level={2} variant="editorial">
         ¿Esta prenda puede ser para ti?
       </Heading>
-      <Text className="text-sky-100" variant="body">
+      <Text className="text-reva-on-action" variant="body">
         Nuestro canal oficial aparecerá aquí para que puedas resolver dudas y
         continuar tu compra con REVA.
       </Text>
       {socialLinks.instagram ? (
-        <Button className="bg-white text-slate-950 hover:bg-sky-100" href={socialLinks.instagram} variant="solid">
+        <Button className="bg-reva-surface text-reva-primary hover:bg-reva-muted" href={socialLinks.instagram} variant="solid">
           Contactar a REVA
         </Button>
       ) : null}
