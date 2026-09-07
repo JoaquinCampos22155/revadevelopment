@@ -21,7 +21,7 @@ type CatalogFiltersProps = Readonly<{
 type CheckboxFilterName = "audiencia" | "tipo" | "talla" | "color" | "condicion" | "marca";
 type Option = Readonly<{ label: string; value: string }>;
 
-const conditionOrder: ReadonlyArray<ConditionRating> = [3, 2, 1, 0];
+const conditionOrder: ReadonlyArray<ConditionRating> = [4, 3, 2, 1];
 const catalogPriceMinimum = 0;
 const catalogPriceMaximum = 1000;
 

@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { signOut } from "@/features/auth/server/auth.actions";
 import { getCurrentUserProfile } from "@/features/users/server/current-user.service";
+import { getRevaSiteUrl } from "@/infrastructure/config/site";
 
 import "./globals.css";
 
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   title: "REVA",
   description: "Moda circular en Guatemala.",
   icons: { icon: revaIcon.src },
+  metadataBase: getRevaSiteUrl(),
 };
 
 export default async function RootLayout({

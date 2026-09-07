@@ -18,8 +18,8 @@ function controlledLabel(
 function Fact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="space-y-1">
-      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</dt>
-      <dd className="text-sm leading-6 text-slate-900">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-reva-secondary">{label}</dt>
+      <dd className="text-sm leading-6 text-reva-primary">{value}</dd>
     </div>
   );
 }
@@ -34,10 +34,10 @@ export function ProductManagementFacts({ product }: Readonly<{ product: ProductD
     : "Sin medidas registradas";
 
   return (
-    <section aria-labelledby="product-facts-heading" className="space-y-5 border-t border-slate-200 pt-8">
+    <section aria-labelledby="product-facts-heading" className="space-y-5 rounded-2xl border border-reva-border bg-reva-surface p-5 sm:p-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-950" id="product-facts-heading">Información</h2>
-        <p className="mt-1 text-sm text-slate-600">Datos actuales de la prenda.</p>
+        <h2 className="text-lg font-semibold text-reva-primary" id="product-facts-heading">Información</h2>
+        <p className="mt-1 text-sm text-reva-secondary">Datos actuales de la prenda.</p>
       </div>
 
       <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -51,20 +51,20 @@ export function ProductManagementFacts({ product }: Readonly<{ product: ProductD
         {product.materialDetails ? <Fact label="Material" value={product.materialDetails} /> : null}
       </dl>
 
-      <div className="space-y-4 border-t border-slate-100 pt-5">
+      <div className="space-y-4 border-t border-reva-border pt-5">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-slate-950">Descripción</h3>
-          <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{product.description ?? "Sin descripción registrada."}</p>
+          <h3 className="text-sm font-semibold text-reva-primary">Descripción</h3>
+          <p className="whitespace-pre-wrap text-sm leading-6 text-reva-secondary">{product.description ?? "Sin descripción registrada."}</p>
         </div>
         {product.conditionNotes ? (
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-slate-950">Notas de condición</h3>
-            <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{product.conditionNotes}</p>
+            <h3 className="text-sm font-semibold text-reva-primary">Notas de condición</h3>
+            <p className="whitespace-pre-wrap text-sm leading-6 text-reva-secondary">{product.conditionNotes}</p>
           </div>
         ) : null}
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-slate-950">Medidas</h3>
-          <p className="text-sm leading-6 text-slate-700">{measurements}</p>
+          <h3 className="text-sm font-semibold text-reva-primary">Medidas</h3>
+          <p className="text-sm leading-6 text-reva-secondary">{measurements}</p>
         </div>
       </div>
     </section>

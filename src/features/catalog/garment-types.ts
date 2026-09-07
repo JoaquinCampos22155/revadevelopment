@@ -4,12 +4,13 @@
  */
 export const garmentTypes = [
   { label: "Chumpas", value: "chumpas" },
-  { label: "Hoodies y Suéteres", value: "hoodies_sueteres" },
+  { label: "Hoodies y suéteres", value: "hoodies_sueteres" },
   { label: "Vestidos", value: "vestidos" },
   { label: "Camisas", value: "camisas" },
-  { label: "T-Shirts", value: "t_shirts" },
-  { label: "Pantalones", value: "pantalones" },
-  { label: "Jeans", value: "jeans" },
+  { label: "Blusas y tops", value: "blusas_tops" },
+  { label: "T-shirts", value: "t_shirts" },
+  { label: "Pantalones y jeans", value: "pantalones" },
+  { label: "Shorts", value: "shorts" },
   { label: "Pijamas", value: "pijamas" },
 ] as const;
 

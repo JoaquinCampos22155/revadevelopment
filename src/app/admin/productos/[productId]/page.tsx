@@ -45,14 +45,14 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
   return (
     <main id="main-content">
       <Section>
-        <div className="mx-auto max-w-4xl space-y-8">
+        <div className="mx-auto max-w-5xl space-y-8">
           <div className="space-y-4">
             <Button href="/admin/productos" variant="outline">Volver a productos</Button>
-            <div className="space-y-3 border-b border-slate-200 pb-6">
+            <div className="space-y-3 border-b border-reva-border pb-6">
               <div className="flex flex-wrap items-center gap-3">
                 <Text variant="label">{draft.sku}</Text>
-                <span className={publication.tone === "public" ? "inline-flex items-center gap-2 text-sm font-medium text-emerald-700" : "inline-flex items-center gap-2 text-sm font-medium text-slate-700"}>
-                  <span aria-hidden="true" className={publication.tone === "public" ? "size-2 rounded-full bg-emerald-500" : "size-2 rounded-full bg-slate-400"} />
+                <span className={publication.tone === "public" ? "inline-flex items-center gap-2 text-sm font-medium text-reva-success" : "inline-flex items-center gap-2 text-sm font-medium text-reva-secondary"}>
+                  <span aria-hidden="true" className={publication.tone === "public" ? "size-2 rounded-full bg-reva-success" : "size-2 rounded-full bg-reva-disabled"} />
                   {publication.label}{publication.domainLabel ? ` · ${publication.domainLabel}` : ""}
                 </span>
               </div>
@@ -61,7 +61,7 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
             </div>
           </div>
 
-          {isDraft ? <ProductDraftForm draft={draft} today={draft.receivedAt} /> : <ProductManagementFacts product={draft} />}
+          {isDraft ? <ProductDraftForm draft={draft} key={`${draft.id}-${draft.updatedAt.toISOString()}`} today={draft.receivedAt} /> : <ProductManagementFacts product={draft} />}
           <ProductMediaManager images={images} productId={draft.id} readOnly={!isDraft} />
           {readiness ? <ProductPublicationPanel productId={draft.id} readiness={readiness} status="draft" /> : null}
           {draft.status === "published" ? <ProductPublicationPanel productId={draft.id} readiness={{ missing: [] }} status="published" /> : null}

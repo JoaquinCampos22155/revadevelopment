@@ -4,7 +4,7 @@
 
 This document records decisions deliberately postponed by approved REVA architecture or implementation work. It is not a generic feature backlog. Each entry identifies the deferred boundary, why it is not being implemented now, and the event that should reopen it.
 
-For durable engineering law, use `AGENTS.md`. For the approved data model and security architecture, use `DATA_ARCH.md`. For completed work and the next milestone, use `SPRINTS.md`.
+For durable engineering law, use `AGENTS.md`. For approved business rules, public-content boundaries, and unresolved business policy, use `REVA_BUSINESS.md`. For the approved data model and security architecture, use `DATA_ARCH.md`. For completed work and the next milestone, use `SPRINTS.md`.
 
 ## Pre-launch Requirements
 
@@ -89,6 +89,7 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Reconsider:** During a dedicated UX/UI refinement milestone, before final public visual polish or production launch.
 - **Required audit:** Home, Navbar, Catalog, filter sidebar, Product cards, Product Detail, Auth, Product Manager, forms, empty/error/loading states, and mobile behavior. Evaluate hierarchy, spacing rhythm, density, composition, excessive card treatment, section differentiation, photography prominence, appropriate asymmetry, brand-color use, interaction states, responsive composition, and accessibility.
 - **Design principle:** More intentional design, not more decoration. Real Product photography should be a primary visual asset rather than surrounded by unnecessary UI chrome.
+- **Public-page composition:** When it materially improves comprehension or hierarchy, prefer semantic web-native visual composition (for example SVG, diagrams, figures, layered typography, image planes, controlled overlaps, and native disclosures) over defaulting every idea to a rectangular container. Keep this lightweight, accessible, responsive, server-rendered where possible, and respectful of reduced motion.
 - **Out of scope now:** Design-system replacement, component-library dependency, PDP carousel implementation, and isolated Catalog redesign.
 - **Category:** Cross-product UX/UI refinement.
 
@@ -206,6 +207,33 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 
 ## Product Evolution
 
+### Product-condition scale evolution
+
+- **State:** M014 implements the technical scale `1`–`4`: `Con detalles`, `Buen estado`, `Como nuevo`, and `Nuevo con etiqueta`.
+- **Completed transition:** Existing Products preserved their numeric level. Remote verification found 2 Products at `1`, 12 at `2`, 7 at `3`, and none at `0`; M014 tightened the constraint without mutating existing Product rows. The label change is intentional: existing `1`, `2`, and `3` now receive the new customer-facing labels.
+- **Important boundary:** Condition is a Product fact, not a review, score, or star-rating. Customer-facing surfaces must present textual condition language only; no stars, `aggregateRating`, review, or rating-value semantics are appropriate.
+- **Facet behavior:** Catalog condition facets remain inventory-derived. `Nuevo con etiqueta` will appear once a published Product uses condition `4`; this is intentional and does not justify a separate facet-architecture change.
+- **Category:** Product data-governance evolution.
+
+### Operational garment-vocabulary evolution
+
+- **State:** M015 establishes `blusas_tops` and `shorts`, retires `jeans` from future entry, and keeps stable `pantalones` with the public label `Pantalones y jeans`. Its controlled data migration normalized the three persisted `jeans` Products to `pantalones` only.
+- **Human review remains:** No heuristic reclassification was performed. Review `RV-000005`–`RV-000008` (`camisas`, possible Blusas y tops) and `RV-000001`, `RV-000003`, `RV-000004`, and `RV-000012` (`pantalones`, possible Shorts) through the normal lifecycle: withdraw, edit, revalidate, republish where applicable.
+- **Boundary:** A future taxonomy change must retain stable-value/label separation and explicitly decide any existing-data transition. It must not infer garment class from title, image, brand, or description.
+- **Category:** Product data-governance evolution.
+
+### Recommendation position compaction (M013)
+
+- **State:** M013 is remotely applied. It fixes recommendation removal/reorder compaction while preserving the existing administrator authorization and SQL safety guard.
+- **Boundary:** It must remain recommendation-only; it does not change Product facts, Product lifecycle, media, RLS, or public projections.
+- **Category:** Near-term deployment gate.
+
+### Current operational and pre-launch gates
+
+- **State:** Approximately 21 real Products have been entered through Product Manager. Real usage also exposed and corrected a local media-transport regression; future Product Manager polish remains evidence-led rather than speculative.
+- **Pending:** Conversion-channel approval, deployment/hosting selection, the deferred dark-mode production migration, final official logo/full brand assets, PDP gallery/carousel review, post-MVP search/Tags/Collections work, and the tracked S-01–S-06 security-hardening items.
+- **Required decision:** Restore the exact S-01–S-06 definitions to the maintained security backlog before their implementation gate; they are not redefined by this document.
+
 ### Garment-type taxonomy management
 
 - **State:** Product Manager uses a centralized application-owned controlled garment-type vocabulary. The Product field stores its stable value; labels are presentation.
@@ -315,6 +343,36 @@ For durable engineering law, use `AGENTS.md`. For the approved data model and se
 - **Required decision:** A focused RFC for the specific capability; raw high-volume analytics must not be placed casually in the transactional database.
 - **Category:** Future product or infrastructure evolution.
 
+## Release-candidate deployment gate — 2026-09-06
+
+- **State:** The release candidate is limited to the approved public routes, secure Auth and Product Manager, real Catalog/PDP presentation, curated merchandising, and the documented public contact boundary. Deployment is not implied by this record.
+- **Pre-deploy decisions:** Select the production HTTPS domain; configure its canonical host, Supabase Auth Site URL and redirect allowlist; establish production email delivery; select a hosting/runtime that supports the approved Node/Sharp media path; establish backups, recovery ownership, monitoring, and incident handling; approve the required privacy, transactional/returns, and contact-data policies; and restore the maintained definitions and remediation status for S-01–S-06 before the final security sign-off. The Product-contact canonical URL must resolve from an explicit allowlisted production base URL rather than an unvalidated `Host` or `X-Forwarded-Host` value.
+- **Deferred experience work:** Final Catalog visual refinement; `/nosotros` founder/team material; `/contacto` and Footer refinement; cart/selection, checkout and payments; PDP gallery/carousel; approved editorial assets; Vender lot/sorting assets; donation delivery evidence; purposeful motion; production dark mode; Product Manager polish based on use; semantic-token/refactor debt; image compression/performance follow-up; real testimonials; FAQ strategy; returns/exchanges; management-fee amount; coupons; recycling-partner policy; and donation-transparency policy.
+- **Business ownership:** The full pending business decisions, including conversion channels and public claims, remain in `REVA_BUSINESS.md`; this list is a deployment/backlog index and does not approve them.
+
 ## Review Rule
 
 An item leaves this document only when it is deliberately implemented, rejected, or superseded by an approved architectural decision. Its resolution must then be recorded in the appropriate architecture, Sprint, or RFC document rather than retained here as historical noise.
+
+## Release-security disposition — 2026-09-07
+
+### Must be fixed before commit/deploy
+
+- No remaining code remediation was identified by the 2026-09-07 release check. Migration 016 was applied to the linked remote database and closes the demonstrated direct administrator REST write path around published Product, associated Intake, and Product Image metadata immutability.
+
+### Unauthorized access/data exposure possible
+
+- No unremediated anonymous or customer data-exposure path was demonstrated in the local release audit. The original S-01–S-06 definitions could not be recovered from the current documentation or available Git history; do not claim them resolved. New release findings use the dated release-security record and Migration 016 instead.
+
+### Must be set when hosting/domain exists
+
+- Set `REVA_SITE_URL` to the final HTTPS origin, Supabase Auth Site URL and allowed redirect URLs, and the hosting environment's Supabase publishable settings. Configure only approved `REVA_WHATSAPP_NUMBER` and `REVA_INSTAGRAM_HANDLE` values. These are deployment-time configuration gates, not values to hardcode in source.
+- Enable Supabase Auth leaked-password protection in the production project before public account onboarding. The linked Security Advisor reports it disabled.
+
+### Requires developer/business decision, not code-security remediation
+
+- Approve the minimum public privacy/contact-data notice, selling/donation operational policies, returns/transactional policy if applicable, official email delivery ownership, backups/recovery ownership, monitoring/incident ownership, and the official public contact response process. REVA currently has Auth and public contact links but no checkout or non-essential analytics tracker.
+
+### Safe to defer
+
+- Existing planned UX, conversion, taxonomy, dark-mode, carousel, search, Tags, Collections, and broader observability improvements remain deferred unless separately approved. The expected Security Advisor notices for fixed allowlisted public views and guarded `SECURITY DEFINER` functions remain under their documented architecture review; they are not a license to broaden public grants or remove authorization guards.

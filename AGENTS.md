@@ -42,6 +42,12 @@ Optimize for a future engineer understanding and safely changing the system, not
 
 Reuse existing behavior when it preserves clarity. Extract shared abstractions only when the shared responsibility is real and stable. Do not create generic components, hooks, services, or utilities merely because future reuse is possible.
 
+### Frontend Composition and Styling
+
+Visual richness is allowed; visual coupling must remain minimal. Parents own layout, positioning, section spacing, and responsive composition. Components own their local appearance, spacing, interaction states, and transforms. Semantic tokens own genuinely shared design decisions such as colors, focus treatment, and shared control behavior.
+
+Long `className` strings are acceptable when a component genuinely owns independent presentation rules. Avoid fragile ancestor/sibling selectors, deep arbitrary-selector chains, `!important`, duplicated magic values, accidental DOM-dependent responsiveness, and page-specific overrides of shared primitives. Preserve unrelated styling when changing an existing class contract. Extract a shared component or token only for a real, stable semantic pattern; do not create universal variant components merely to shorten local classes.
+
 ### Performance, Accessibility, and SEO Are Product Requirements
 
 Performance, accessibility, and search visibility are considered during design and implementation, not deferred as cleanup. No decorative effect, dependency, or architectural shortcut may knowingly compromise them without explicit approval.
@@ -205,6 +211,8 @@ Collaboration should make decisions understandable. Explain material trade-offs,
 ## 16. Documentation Governance
 
 AGENTS.md contains permanent engineering policy only.
+
+Before implementing or modifying public content, customer conversion, selling, donation, FAQs, SEO, policies, public Product/customer journeys, or business-facing copy, read `REVA_BUSINESS.md`. Treat its approved business rules as authoritative and do not invent missing REVA business policy.
 
 The following belong outside this constitution:
 

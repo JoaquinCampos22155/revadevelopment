@@ -7,6 +7,7 @@ This document is the authoritative, evolving description of REVA's approved data
 It has a different responsibility from the project's other governing documents:
 
 - `AGENTS.md` is the permanent Engineering Constitution and Level 3 authority.
+- `REVA_BUSINESS.md` records approved business rules, public-content boundaries, journeys, and unresolved business policy.
 - `DATA_ARCH.md` records the approved data architecture and evolves with approved data-model changes.
 - `SPRINTS.md` records development history and milestones.
 
@@ -149,18 +150,20 @@ Slug is Spanish, lowercase, ASCII, kebab-case, and globally unique. It is initia
 
 ### Condition model
 
-`condition_rating` is the only persisted source of truth. It is limited to the approved range `0` through `3`:
+`condition_rating` is the only persisted source of truth. Migration 014 constrains it to the approved range `1` through `4`:
 
 | Rating | Derived application label |
 |---:|---|
-| `3` | `Nuevo` |
-| `2` | `Como nuevo` |
-| `1` | `Semi nuevo` |
-| `0` | `Con detalles` |
+| `4` | `Nuevo con etiqueta` |
+| `3` | `Como nuevo` |
+| `2` | `Buen estado` |
+| `1` | `Con detalles` |
 
-`condition_label` is never stored or accepted as Product input. A centralized application mapping derives it from `condition_rating`, so a Product cannot persist contradictory condition values. Rating `3` always represents the best condition.
+`condition_label` is never stored or accepted as Product input. A centralized application mapping derives it from `condition_rating`, so a Product cannot persist contradictory condition values. Condition numbers are an internal Product classification, not customer reviews, quality scores, or star ratings. Public surfaces use the derived textual label only and never emit rating/review semantics.
 
 `condition_notes` is optional, product-specific text for wear, repairs, or other details that neither rating nor label can communicate.
+
+Migration 014 verified the existing remote inventory before applying the new CHECK: 2 Products at `1`, 12 at `2`, 7 at `3`, and none at `0`. It changed no Product row, lifecycle field, Intake, recommendation, or media record. The intentional relabeling means an existing `2` remains `2` and displays `Buen estado`; level `4` is available only for future deliberate entry. Catalog facets are inventory-derived, so `Nuevo con etiqueta` appears publicly once a published Product uses condition `4`.
 
 ## Product Images
 
@@ -211,7 +214,9 @@ The catalog's stable Product filters are:
 
 These are simple Product fields. REVA deliberately does not create Brands, Categories, Colors, or Materials reference tables in the current architecture.
 
-`garment_type` is not free-form Product Manager input. The application owns a centralized, controlled vocabulary of stable values and Spanish display labels. A value is not a URL or SEO slug; it is an operational discovery value. This keeps labels independently editable while avoiding inconsistent filtering data.
+`garment_type` is not free-form Product Manager input. The application owns a centralized, controlled vocabulary of stable values and Spanish display labels. A value is not a URL or SEO slug; it is an operational discovery value. This keeps labels independently editable while avoiding inconsistent filtering data. The current vocabulary is `chumpas`, `hoodies_sueteres`, `vestidos`, `camisas`, `blusas_tops`, `t_shirts`, `pantalones`, `shorts`, and `pijamas`. `pantalones` remains the stable identifier and displays as `Pantalones y jeans`.
+
+Migration 015 performed the one approved, narrow taxonomy normalization: every persisted `jeans` value became `pantalones`. `jeans` is retired from future Product Manager entry and normal server-side validation. This exceptional data migration did not authorize ordinary editing of published Products: published Products remain immutable until withdrawn. It did not infer or apply `camisas` → `blusas_tops` or `pantalones` → `shorts`; those classifications require deliberate human review per Product.
 
 When a received garment does not fit the current vocabulary, REVA reviews and deliberately adds an approved value to that centralized configuration. A database-backed or admin-managed taxonomy is deferred until centrally editing that configuration becomes operationally limiting.
 
@@ -421,13 +426,19 @@ The views are intentionally definer-owned in the current development design. Thi
 
 Recommendation membership intentionally survives withdrawal. The public predicate hides the Product while it is non-public; when the same Product is republished and public-media-ready, it automatically returns at its retained editorial position. Removing the recommendation is an explicit administrator operation.
 
+Migration 013 (`product_recommendation_safe_compaction`) is remotely applied. It retains the administrator-only, fixed-search-path recommendation functions and makes removal/reorder position compaction deterministic without changing Product, lifecycle, or media data.
+
 Home reads this projection through the existing request-scoped public Product service and repository. Home presentation never queries recommendation tables or Product base tables.
 
 ### Public selling information
 
-`/vender` and `/donar` are static, public explanatory routes. They create no Intake, Product, contributor, Profile, or database record and never require authentication. The eventual official selling contact destination is centrally configured as `REVA_WHATSAPP_NUMBER`; no personal or development number is hardcoded. Donation has its own truthful explanatory route, but neither public route creates a contribution or promises an operational outcome.
+`/vender` and `/donar` are static, public explanatory routes. They create no Intake, Product, contributor, Profile, or database record and never require authentication. The official public contact configuration is centralized in the server-only `site-contact` boundary: optional `REVA_WHATSAPP_NUMBER` and `REVA_INSTAGRAM_HANDLE` values are normalized before it emits only final public URLs. They are operational configuration rather than technical secrets; no personal or development value is hardcoded. The PDP WhatsApp URL contains only public title, displayed price, and canonical Product URL. Donation has its own truthful explanatory route, but neither public route creates a contribution or promises an operational outcome.
 
 These objects are intentional public data surfaces. A direct Data API request to one must reveal no more than REVA intentionally publishes on its public website. Server Components remain the normal REVA application path so public discovery is rendered as HTML rather than fetched by UI components.
+
+### Trusted public origin
+
+`REVA_SITE_URL` is the single server-only configuration source for absolute public URLs. Its validated normalized origin supplies root `metadataBase` and canonical Product URLs included in the configured official contact-channel message. It never derives a public URL from `Host`, `X-Forwarded-Host`, or any other request header. Production requires an absolute HTTPS origin with no credentials, path, query, or fragment; explicit development uses `http://localhost:3000`. Invalid configuration fails closed during application initialization.
 
 ### Repository context
 
@@ -446,6 +457,8 @@ This boundary prevents an elevated credential from silently becoming the default
 `SupabasePublicProductRepository` is bound to the request-scoped publishable context and can read only the published `api` projections defined above. It maps database rows into public Product contracts; it does not query `public.products` and has no write methods.
 
 Product Manager uses separate feature-specific, session-bound Supabase adapters and narrow RPCs for draft persistence, bounded internal Product reads, media, and publication lifecycle operations. These preserve the authenticated administrator context and do not turn public Product reads into a generic write repository. The operational list exposes only Product selection facts: internal navigation ID, SKU, title, truthful domain state, derived current public visibility, exact price, publication timestamp, and update timestamp. In the current MVP, a published Product is immutable: an administrator must withdraw it to `draft` before changing Product facts or private media, then revalidate and republish it.
+
+Migration 016 (`published_product_direct_mutation_guard`) is the required RLS enforcement for that lifecycle invariant. It limits direct Product, associated Intake, and Product Image metadata writes to administrator-owned drafts; lifecycle RPCs retain their explicit, authorization-checked `SECURITY DEFINER` authority. It was locally validated and applied to the linked remote database on 2026-09-07 without Product, media, Storage, or recommendation data mutation.
 
 ### Image delivery boundary
 

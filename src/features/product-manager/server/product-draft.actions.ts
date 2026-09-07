@@ -39,7 +39,7 @@ function readSourceType(formData: FormData): IntakeSourceType | null {
 function readConditionRating(formData: FormData): ConditionRating | null | undefined {
   const value = readText(formData, "conditionRating");
   if (!value) return null;
-  if (value === "0" || value === "1" || value === "2" || value === "3") {
+  if (value === "1" || value === "2" || value === "3" || value === "4") {
     return Number(value) as ConditionRating;
   }
 

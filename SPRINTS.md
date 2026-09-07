@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document records REVA's completed engineering milestones and the next approved milestone. It is the project-history counterpart to `AGENTS.md` (durable engineering law) and `DATA_ARCH.md` (current approved data architecture). It is not a source of runtime behavior or a substitute for migrations and code.
+This document records REVA's completed engineering milestones and the next approved milestone. It is the project-history counterpart to `AGENTS.md` (durable engineering law), `REVA_BUSINESS.md` (business/content decisions), and `DATA_ARCH.md` (current approved data architecture). It is not a source of runtime behavior or a substitute for migrations and code.
 
 Every completed Sprint was validated within its approved scope. Later work may replace an earlier implementation boundary without invalidating the historical milestone that established it.
 
@@ -134,10 +134,14 @@ The MVP lifecycle is deliberate: drafts are editable; published Products are imm
 - Migrations 001–012 are deployed remote history. Migration 012 provides the narrow curated Home merchandising foundation. Base business tables are default-deny; only deliberately allowlisted `api` Product projections are publicly readable.
 - Catalog and Product Detail use database-backed published Product presentation through the public repository while preserving editorial Catalog structure.
 - Product Manager presents a bounded operational list and a state-aware management surface. Draft facts and private media are editable; published Products are immutable until withdrawn. `RV-000001` is the first published development Product with six private authoritative WebPs and six public delivery copies.
+- Real Product Manager operation has now populated approximately 21 real Products. This operational validation exposed and corrected a media-transport regression in the current local worktree; Product lifecycle and remote inventory remain outside this documentation update.
+- Migration 013 is remotely applied. It provides administrator-only recommendation removal/reorder safe position compaction with no Product, lifecycle, media, or recommendation mutation merely from deployment.
+- Migration 014 is remotely applied. It changes the condition constraint from `0`–`3` to `1`–`4` without updating Product rows. The 21 real Products retain their numeric levels: 2 at `1`, 12 at `2`, and 7 at `3`; `4` is now available for future entry. Customer-facing condition is textual only: `Con detalles`, `Buen estado`, `Como nuevo`, and `Nuevo con etiqueta`; it is never a star/review rating. Garment-vocabulary expansion remains implementation-pending and requires manual review of affected existing Products.
+- Migration 015 is remotely applied. It adds `blusas_tops` and `shorts`, retains `pantalones` with the public label `Pantalones y jeans`, and deliberately normalizes the three persisted `jeans` Products to `pantalones`. No heuristic reclassification occurred: existing `camisas` and `pantalones` candidates remain for human review.
 
 ## Current Planning Gate
 
-Sprint 26 — Home & Merchandising Foundation — is open. Its local implementation now includes conditional real-product Home merchandising, the public information-architecture cleanup, and non-mutating `/vender` and `/donar` explanation routes. Permanent Product deletion, direct published editing, reserved/sold workflows, internal Product search, Tags, Collections, text search, contextual facets, configured public contact conversion, and broader visual-system migration remain separate future work.
+Sprint 26 — Home & Merchandising Foundation — is open. Its local implementation now includes conditional real-product Home merchandising, the public information-architecture cleanup, non-mutating `/vender` and `/donar` explanation routes, and isolated visual-system work. M013 recommendation compaction, M014 condition-scale evolution, and M015 garment-vocabulary normalization are independently deployed. Conversion/security/deployment gates, permanent Product deletion, direct published editing, reserved/sold workflows, internal Product search, Tags, Collections, text search, contextual facets, configured public contact conversion, and broader production visual-system migration remain separate future work.
 
 ## Working Method
 
@@ -148,3 +152,9 @@ Research -> Reason -> Implement -> Validate -> Document
 ```
 
 Each new Sprint should record only its durable outcome here, update `DATA_ARCH.md` when it changes approved data architecture, and move intentionally deferred work to `TO_CONSIDER.md`.
+
+## Release Candidate — Deployment Gate (2026-09-06)
+
+The working tree is under a final pre-deployment audit only; no deployment, commit, push, remote Product mutation, or schema change is implied by this checkpoint. Remote migration history has been read-only verified through M001–M015. The candidate retains the current real inventory and approved Product/media lifecycle invariants. Deployment remains gated by the final security evidence, production configuration, operational ownership, and policy decisions recorded in `TO_CONSIDER.md` and `REVA_BUSINESS.md`.
+
+The subsequent release-security remediation validated the trusted canonical-origin boundary locally: `REVA_SITE_URL` now owns absolute Product and metadata URLs, and an arbitrary `Host`/`X-Forwarded-Host` regression cannot alter a WhatsApp Product link. The audit also demonstrated and corrected a direct administrator REST mutation path for published Product, Intake, and Product Image records with Migration 016. Local anonymous, customer, and administrator sessions were tested with disposable fixtures and cleaned afterward. M016 was applied to the linked remote database on 2026-09-07; normal before/after inventory counts confirmed no remote Product, media, Storage, or recommendation data mutation.

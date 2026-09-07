@@ -3,7 +3,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type DragEvent } from "react";
 
 import type { ProductManagerImage } from "@/features/product-manager/server/product-media.types";
 
@@ -36,6 +36,7 @@ const uploadStatusLabel: Readonly<Record<UploadStatus, string>> = {
 export function ProductMediaManager({ images, productId, readOnly = false }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [isDropTarget, setIsDropTarget] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [uploads, setUploads] = useState<ReadonlyArray<UploadItem>>([]);
 
@@ -56,7 +57,7 @@ export function ProductMediaManager({ images, productId, readOnly = false }: Pro
     setUploads((current) => current.map((item) => (item.id === id ? { ...item, ...update } : item)));
   }
 
-  async function upload(files: FileList | null) {
+  async function upload(files: FileList | ReadonlyArray<File> | null) {
     if (!files) return;
 
     const selectedFiles = Array.from(files);
@@ -116,17 +117,18 @@ export function ProductMediaManager({ images, productId, readOnly = false }: Pro
   }
 
   return (
-    <section aria-labelledby="product-media-heading" className="space-y-4 border-t border-slate-200 pt-8">
+    <section aria-labelledby="product-media-heading" className="space-y-4 rounded-2xl border border-reva-border bg-reva-surface p-5 sm:p-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-950" id="product-media-heading">Fotos</h2>
-        <p className="mt-1 text-sm text-slate-600">{readOnly ? "Las fotos de un producto publicado se editan al retirarlo de publicación." : "La primera foto es principal. Puedes seleccionar varias; se procesan una por una."}</p>
+        <h2 className="text-lg font-semibold text-reva-primary" id="product-media-heading">Fotos</h2>
+        <p className="mt-1 text-sm leading-6 text-reva-secondary">{readOnly ? "Las fotos de un producto publicado se editan al retirarlo de publicación." : "La primera foto es principal. Puedes seleccionar varias; se procesan una por una."}</p>
       </div>
 
-      {!readOnly ? <label className="block rounded-xl border border-dashed border-slate-300 p-4 text-sm font-medium">
-        Seleccionar fotos
+      {!readOnly ? <label className={`block cursor-pointer rounded-xl border border-dashed p-5 text-center text-sm font-medium transition ${isDropTarget ? "border-reva-brand bg-reva-muted text-reva-primary" : "border-reva-border bg-reva-background text-reva-primary hover:border-reva-brand"}`} onDragEnter={(event: DragEvent<HTMLLabelElement>) => { event.preventDefault(); setIsDropTarget(true); }} onDragLeave={(event: DragEvent<HTMLLabelElement>) => { event.preventDefault(); setIsDropTarget(false); }} onDragOver={(event: DragEvent<HTMLLabelElement>) => event.preventDefault()} onDrop={(event: DragEvent<HTMLLabelElement>) => { event.preventDefault(); setIsDropTarget(false); void upload(event.dataTransfer.files); }}>
+        <span className="block">Arrastra fotos aquí o selecciónalas desde tu dispositivo</span>
+        <span className="mt-1 block font-normal text-reva-secondary">JPG o PNG · hasta 12 MiB por archivo · se procesan una por una</span>
         <input
           accept="image/jpeg,image/png"
-          className="mt-2 block w-full"
+          className="sr-only"
           disabled={busy}
           multiple
           onChange={(event) => {
@@ -140,26 +142,26 @@ export function ProductMediaManager({ images, productId, readOnly = false }: Pro
       {uploads.length > 0 ? (
         <ul aria-label="Estado de las fotos seleccionadas" className="space-y-2 text-sm">
           {uploads.map((upload) => (
-            <li className="rounded-lg border border-slate-200 p-3" key={upload.id}>
-              <p className="font-medium text-slate-950">{upload.name}</p>
-              <p aria-live="polite" className="mt-1 text-slate-600">{uploadStatusLabel[upload.status]}</p>
-              {upload.message ? <p className="mt-1 text-rose-700">{upload.message}</p> : null}
+            <li className="rounded-lg border border-reva-border bg-reva-background p-3" key={upload.id}>
+              <p className="font-medium text-reva-primary">{upload.name}</p>
+              <p aria-live="polite" className="mt-1 text-reva-secondary">{uploadStatusLabel[upload.status]}</p>
+              {upload.message ? <p className="mt-1 text-reva-danger">{upload.message}</p> : null}
             </li>
           ))}
         </ul>
       ) : null}
 
-      {message ? <p aria-live="polite" className="text-sm">{message}</p> : null}
+      {message ? <p aria-live="polite" className="text-sm text-reva-secondary">{message}</p> : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {images.map((image, index) => (
-          <figure className="rounded-xl border border-slate-200 p-3" key={image.id}>
-            <img alt={image.altText} className="aspect-square w-full rounded-lg object-cover" height={image.height} src={image.previewUrl} width={image.width} />
-            <figcaption className="mt-2 text-sm">{image.position === 1 ? "Foto principal" : `Foto ${image.position}`}</figcaption>
-            {!readOnly ? <label className="mt-2 block text-sm">
+          <figure className="rounded-xl border border-reva-border bg-reva-background p-3" key={image.id}>
+            <div className="relative"><img alt={image.altText} className="aspect-square w-full rounded-lg object-cover" height={image.height} src={image.previewUrl} width={image.width} />{image.position === 1 ? <span className="absolute left-2 top-2 rounded-full bg-reva-action px-2 py-1 text-xs font-medium text-reva-on-action">Principal</span> : null}</div>
+            <figcaption className="mt-2 text-sm text-reva-secondary">{image.position === 1 ? "Foto 1" : `Foto ${image.position}`}</figcaption>
+            {!readOnly ? <label className="mt-2 block text-sm font-medium text-reva-primary">
               Texto alternativo
               <input
-                className="mt-1 w-full rounded border border-slate-300 p-2"
+                className="mt-1 min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none focus:border-reva-brand focus:ring-2 focus:ring-reva-focus/25"
                 defaultValue={image.altText}
                 disabled={busy}
                 onBlur={(event) => {
@@ -169,10 +171,10 @@ export function ProductMediaManager({ images, productId, readOnly = false }: Pro
                 }}
               />
             </label> : null}
-            {!readOnly ? <div className="mt-2 flex gap-2 text-sm">
-              <button disabled={busy || index === 0} onClick={() => void change("PATCH", { action: "reorder", imageIds: moveImage(images, index, index - 1) })} type="button">Antes</button>
-              <button disabled={busy || index === images.length - 1} onClick={() => void change("PATCH", { action: "reorder", imageIds: moveImage(images, index, index + 1) })} type="button">Después</button>
-              <button disabled={busy} onClick={() => { if (confirm("¿Eliminar esta foto?")) void change("DELETE", undefined, `?imageId=${image.id}`); }} type="button">Eliminar</button>
+            {!readOnly ? <div className="mt-3 flex flex-wrap gap-2 text-sm">
+              <button className="min-h-11 rounded-lg border border-reva-border px-3 text-reva-primary disabled:cursor-not-allowed disabled:opacity-50" disabled={busy || index === 0} onClick={() => void change("PATCH", { action: "reorder", imageIds: moveImage(images, index, index - 1) })} type="button">Antes</button>
+              <button className="min-h-11 rounded-lg border border-reva-border px-3 text-reva-primary disabled:cursor-not-allowed disabled:opacity-50" disabled={busy || index === images.length - 1} onClick={() => void change("PATCH", { action: "reorder", imageIds: moveImage(images, index, index + 1) })} type="button">Después</button>
+              <button className="min-h-11 rounded-lg px-3 text-reva-danger underline decoration-reva-border underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50" disabled={busy} onClick={() => { if (confirm("¿Eliminar esta foto?")) void change("DELETE", undefined, `?imageId=${image.id}`); }} type="button">Eliminar</button>
             </div> : null}
           </figure>
         ))}

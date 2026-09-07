@@ -17,6 +17,11 @@ function valuesFor(params: CatalogSearchParams, name: string): ReadonlyArray<str
   return value ?? [];
 }
 
+/** Preserves the former public jeans filter as the approved pantalones category. */
+function garmentTypeValues(params: CatalogSearchParams): ReadonlyArray<string> {
+  return valuesFor(params, "tipo").map((value) => value === "jeans" ? "pantalones" : value);
+}
+
 function uniqueRepresentedValues<T extends string>(
   values: ReadonlyArray<string>,
   isValid: (value: string) => value is T,
@@ -101,7 +106,7 @@ export function parseCatalogSearchParams(
     brands: uniqueKnownBrands(valuesFor(params, "marca"), facets.brands),
     colors: uniqueRepresentedValues<Color>(valuesFor(params, "color"), isColor, facets.colors),
     conditionRatings: uniqueRepresentedValues<`${ConditionRating}`>(valuesFor(params, "condicion"), isConditionRating, facets.conditionRatings.map(String) as ReadonlyArray<`${ConditionRating}`>).map((value) => Number(value) as ConditionRating),
-    garmentTypes: uniqueRepresentedValues<GarmentType>(valuesFor(params, "tipo"), isGarmentType, facets.garmentTypes),
+    garmentTypes: uniqueRepresentedValues<GarmentType>(garmentTypeValues(params), isGarmentType, facets.garmentTypes),
     maxPriceCents,
     minPriceCents,
     sizes: uniqueRepresentedValues<ProductSize>(valuesFor(params, "talla"), isProductSize, facets.sizes),

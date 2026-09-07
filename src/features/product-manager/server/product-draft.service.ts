@@ -55,7 +55,7 @@ function assertTitle(value: string): void {
 }
 
 function assertConditionRating(value: ConditionRating | null): void {
-  if (value !== null && value !== 0 && value !== 1 && value !== 2 && value !== 3) {
+  if (value !== null && value !== 1 && value !== 2 && value !== 3 && value !== 4) {
     throw new Error("Condition rating is invalid.");
   }
 }

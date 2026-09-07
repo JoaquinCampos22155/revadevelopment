@@ -8,7 +8,7 @@ export const primaryNavigation = [
 
 export const loginNavigation = {
   href: "/iniciar-sesion",
-  label: "Ingresar",
+  label: "Iniciar Sesión",
 } as const;
 
 export const footerNavigation = [

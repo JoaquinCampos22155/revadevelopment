@@ -42,7 +42,7 @@ function requireText(value: string | null, field: string): string {
 }
 
 function mapConditionRating(value: number | null): ConditionRating {
-  if (value === 0 || value === 1 || value === 2 || value === 3) {
+  if (value === 1 || value === 2 || value === 3 || value === 4) {
     return value;
   }
 
@@ -99,7 +99,7 @@ function mapCatalogFacets(rows: ReadonlyArray<Pick<PublishedProductPreviewRow, "
     if (row.audience && isAudience(row.audience)) audiences.add(row.audience);
     if (row.brand && row.brand.trim()) brands.add(row.brand);
     if (row.color && isColor(row.color)) colors.add(row.color);
-    if (row.condition_rating === 0 || row.condition_rating === 1 || row.condition_rating === 2 || row.condition_rating === 3) conditionRatings.add(row.condition_rating);
+    if (row.condition_rating === 1 || row.condition_rating === 2 || row.condition_rating === 3 || row.condition_rating === 4) conditionRatings.add(row.condition_rating);
     if (row.garment_type && isGarmentType(row.garment_type)) garmentTypes.add(row.garment_type);
     if (row.size_label && isProductSize(row.size_label)) sizes.add(row.size_label);
   }
