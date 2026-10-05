@@ -214,6 +214,23 @@ AGENTS.md contains permanent engineering policy only.
 
 Before implementing or modifying public content, customer conversion, selling, donation, FAQs, SEO, policies, public Product/customer journeys, or business-facing copy, read `REVA_BUSINESS.md`. Treat its approved business rules as authoritative and do not invent missing REVA business policy.
 
+### REVA Context Routing
+
+Read the smallest authoritative context set before starting work:
+
+| Task | Required context |
+| --- | --- |
+| Business, content, public claims, customer journeys, or conversion | `REVA_BUSINESS.md` |
+| Database, Auth, RLS, Storage, Product lifecycle, or migrations | `DATA_ARCH.md` |
+| New feature, Sprint, sequencing, or strategic planning | `REVA_ROADMAP.md` |
+| Security, privacy, users, uploads, Cart, chatbot, checkout, or payments | `SECURITY_PRIVACY.md` |
+| Historical implementation state | `SPRINTS.md` |
+| Deferred, non-blocking ideas | `TO_CONSIDER.md` |
+
+Every new feature must consciously evaluate its privacy, security, data-model, authorization/RLS, production/runtime, and approved-future-architecture impacts. This does not by itself require a migration or security redesign; it requires an explicit proportional assessment before implementation.
+
+Privacy and cybersecurity evidence are first-class graduation deliverables. Before final graduation, an independent Systems Engineering faculty reviewer must use/test REVA, assess data privacy and cybersecurity, and provide a signed review letter with their contact information for the final group report. This requirement is not evidence that the review or approval has already occurred.
+
 The following belong outside this constitution:
 
 - Product requirements, backlog, user flows, and roadmap.

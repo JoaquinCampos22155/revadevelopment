@@ -8,6 +8,8 @@ It complements rather than replaces other project documents:
 
 - `AGENTS.md` owns durable engineering rules.
 - `DATA_ARCH.md` owns data, security, storage, and technical architecture.
+- `REVA_ROADMAP.md` owns persistent strategic workstreams and sequencing dependencies.
+- `SECURITY_PRIVACY.md` owns privacy/security posture and evidence expectations.
 - `SPRINTS.md` owns development history and milestone state.
 - `TO_CONSIDER.md` owns deferred work and pending decisions.
 

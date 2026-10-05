@@ -9,6 +9,8 @@ It has a different responsibility from the project's other governing documents:
 - `AGENTS.md` is the permanent Engineering Constitution and Level 3 authority.
 - `REVA_BUSINESS.md` records approved business rules, public-content boundaries, journeys, and unresolved business policy.
 - `DATA_ARCH.md` records the approved data architecture and evolves with approved data-model changes.
+- `REVA_ROADMAP.md` records strategic future workstreams and their dependencies.
+- `SECURITY_PRIVACY.md` records durable privacy/security posture, gaps, and evidence expectations.
 - `SPRINTS.md` records development history and milestones.
 
 Changes to this document must follow the architectural change rules in `AGENTS.md`. A migration that changes the approved model updates this document in the same architectural change.

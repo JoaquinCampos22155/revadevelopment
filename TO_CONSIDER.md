@@ -4,7 +4,7 @@
 
 This document records decisions deliberately postponed by approved REVA architecture or implementation work. It is not a generic feature backlog. Each entry identifies the deferred boundary, why it is not being implemented now, and the event that should reopen it.
 
-For durable engineering law, use `AGENTS.md`. For approved business rules, public-content boundaries, and unresolved business policy, use `REVA_BUSINESS.md`. For the approved data model and security architecture, use `DATA_ARCH.md`. For completed work and the next milestone, use `SPRINTS.md`.
+For durable engineering law, use `AGENTS.md`. For approved business rules, public-content boundaries, and unresolved business policy, use `REVA_BUSINESS.md`. For the approved data model and security architecture, use `DATA_ARCH.md`. For active strategic workstreams and their dependencies, use `REVA_ROADMAP.md`. For privacy/security posture and evidence expectations, use `SECURITY_PRIVACY.md`. For completed work and the next milestone, use `SPRINTS.md`.
 
 ## Pre-launch Requirements
 
@@ -376,3 +376,10 @@ An item leaves this document only when it is deliberately implemented, rejected,
 ### Safe to defer
 
 - Existing planned UX, conversion, taxonomy, dark-mode, carousel, search, Tags, Collections, and broader observability improvements remain deferred unless separately approved. The expected Security Advisor notices for fixed allowlisted public views and guarded `SECURITY DEFINER` functions remain under their documented architecture review; they are not a license to broaden public grants or remove authorization guards.
+
+## Current Strategic Context — 2026-10-04
+
+- **State:** REVA has a deployed public MVP on Render. A custom production domain remains planned; this earlier deployment/history material is not a statement that a final custom domain has been selected.
+- **Direction:** Refer to `REVA_ROADMAP.md` for active persistent workstreams—cybersecurity, privacy, users/account lifecycle, custom domain, Cart/Selection, Checkout, Payments, chatbot, public UX/content, analytics, operations, and faculty review.
+- **Boundary:** Payments, native Checkout, Cart persistence, chatbot, and analytics remain unimplemented and require their own approved scope. The provider/mechanism for payments is not selected.
+- **Graduation:** Privacy/cybersecurity evidence and an independent Systems Engineering faculty review with a signed contactable letter are final requirements; `SECURITY_PRIVACY.md` owns their evidence expectations.
