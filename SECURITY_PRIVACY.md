@@ -101,6 +101,37 @@ Final local validation confirmed the required headers on Home, Catalog, a real P
 | Plan/billing | Some advanced Supabase Auth controls may be plan-gated; record any displayed requirement rather than changing plans. |
 | Priority | **RECOMMENDED** baseline evidence; any later change requires explicit approval. |
 
+## Sprint 29 Privacy and Minimal Account Foundation (2026-10-07)
+
+The public `/privacidad` route now describes only REVA's current data surface: Supabase Auth identity/email, cookie-backed sessions, minimal Profile/role data, a reversible marketing preference without a marketing system, private Intake operational records, published Product facts/public delivery media, and provider/runtime logs. It explicitly records the absence of Orders, payments, shipping addresses, persistent Cart data, chatbot transcripts, analytics profiles, advertising tracking, and non-essential tracking cookies. Essential session storage remains necessary for authenticated access.
+
+The account lifecycle now has email/password signup, email confirmation, sign-in, sign-out, password-recovery request, and password update through the existing request-scoped SSR Auth boundary. A recovery request always displays the same outcome whether or not the email belongs to an account. The callback accepts only the provider's PKCE code or token-hash confirmation mechanism and routes recovery sessions to the reset page based on the verified JWT `amr` recovery method. The reset page and update action both require that verified recovery claim; ordinary password sessions cannot use the recovery endpoint. No browser-supplied Profile, role, or provider administration capability is accepted. Successful password changes clear the active recovery/session cookie and require a new sign-in.
+
+REVA does not implement self-service account deletion. Deletion or anonymization cannot safely be automated while retention, Intake ownership/history, auditability, administrator protections, and future commerce semantics remain unresolved. The public notice therefore makes no deletion promise and records that a privacy-request channel and specific retention periods are pending definition. No extra profile field, database migration, RLS policy, Product mutation, or provider state change was introduced.
+
+### Sprint 29 Developer Manual Actions
+
+#### 3. Confirm the fixed password-recovery callback
+
+| Field | Current action guidance |
+| --- | --- |
+| Action name | Record the developer-confirmed Site URL and fixed recovery callback configuration. |
+| Why REVA needs it | Supabase must be permitted to return a password-recovery session to the application-controlled callback. |
+| Security/privacy/product effect | Confirms the recovery redirect destination; enables the flow without exposing a session token to application JavaScript. It does not change Product, Intake, or role data. |
+| Provider | Supabase Dashboard for the linked REVA project. |
+| Expected UI path | `Authentication → URL Configuration`; current interfaces may group it under `Authentication → Configuration`. |
+| Current UI label | `Redirect URLs` or `Additional Redirect URLs`. |
+| What it does | Limits where Auth email links may send the browser after verification/recovery. |
+| Recommended value | **Manually confirmed:** Site URL `https://reva-gt.onrender.com`; redirect allowlist includes `http://localhost:3000/auth/confirm` and `https://reva-gt.onrender.com/auth/confirm`; no wildcard entries were added. The application sends the exact callback path without query parameters. |
+| Do not change nearby | Do not change Site URL, email provider, SMTP, email templates, signup confirmation, CAPTCHA, JWT settings, or user records as part of this action. |
+| Verify success | Configuration is manually confirmed. The deployed end-to-end test remains pending until the application is deployed; use only a disposable authorized test account then. No production recovery email has been sent. |
+| If UI differs | Search Auth settings for the redirect-destination allowlist and its description. Report visible labels before saving any uncertain setting. |
+| Equivalent labels | `Allowed redirect URLs`, `Redirect allow list`, `Additional Redirect URLs`, or `URL Configuration`. |
+| Plan/billing | No plan upgrade is expected for this normal Auth configuration. |
+| Priority | **COMPLETED.** None required before Sprint 29 commit. An end-to-end production email test remains deferred until application deployment. |
+
+The developer confirmed that no wildcard redirect was added and no unrelated Supabase Auth setting was changed. The application callback uses the exact allowlisted `/auth/confirm` path without query parameters. After exchanging the PKCE code or token hash server-side, it routes according to the verified recovery method in the JWT `amr` claim. The reset route and password-update action both require that recovery claim. Local smoke verified the callback's malformed-input failure path; no real recovery email was requested.
+
 ## Current Data Inventory
 
 | Data category | Current purpose/boundary |

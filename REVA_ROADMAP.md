@@ -113,7 +113,7 @@ The next planned work is intentionally prioritized as follows:
 
 1. **Sprint 27 — dependency security remediation.**
 2. **Sprint 28 — security hardening baseline.**
-3. **Sprint 29 — privacy, account, and retention foundation.**
+3. **Sprint 29 — privacy, account, and retention foundation.** Public privacy/account implementation is complete locally; retention, deletion, and privacy-request policy remain deliberately unresolved. The Supabase Auth redirect allowlist is manually confirmed; end-to-end recovery email validation waits until the application code is deployed.
 
 Later Sprint numbers are planning labels, not immutable commitments. They may evolve as evidence, business decisions, or approved architecture changes.
 

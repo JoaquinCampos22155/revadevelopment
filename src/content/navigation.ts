@@ -17,4 +17,5 @@ export const footerNavigation = [
   { href: "/vender", label: "Vender" },
   { href: "/donar", label: "Donar" },
   { href: "/contacto", label: "Contacto" },
+  { href: "/privacidad", label: "Privacidad" },
 ] as const;

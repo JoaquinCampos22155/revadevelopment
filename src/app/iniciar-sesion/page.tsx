@@ -38,6 +38,14 @@ function getNotice(searchParams: Record<string, string | string[] | undefined>) 
     return "No fue posible crear tu cuenta. Revisa los datos e intenta nuevamente.";
   }
 
+  if (searchParams.error === "restablecimiento") {
+    return "No fue posible actualizar la contraseña. Solicita un nuevo enlace e intenta nuevamente.";
+  }
+
+  if (searchParams.estado === "contrasena-actualizada") {
+    return "Tu contraseña fue actualizada. Inicia sesión con la nueva contraseña.";
+  }
+
   return null;
 }
 
@@ -79,6 +87,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <input autoComplete="current-password" className="min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none transition focus:border-reva-brand-strong focus:ring-2 focus:ring-reva-focus/25" id="password" minLength={8} name="password" required type="password" />
             </div>
             <div className="relative isolate"><span aria-hidden="true" className="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-reva-brand" /><Button className="relative z-10 w-full" type="submit" variant="solid">Iniciar sesión</Button></div>
+            <p className="text-center text-sm"><a className="text-reva-brand-strong underline underline-offset-4 hover:text-reva-action focus:outline-none focus:ring-2 focus:ring-reva-focus" href="/recuperar-contrasena">¿Olvidaste tu contraseña?</a></p>
           </form>
 
           <details className="rounded-xl border border-reva-border bg-reva-surface px-5 py-4">
