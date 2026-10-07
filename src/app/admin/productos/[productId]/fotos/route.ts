@@ -3,6 +3,12 @@ import { NextResponse } from "next/server";
 import { createProductDraftReadService } from "@/features/product-manager/server/product-draft.composition";
 import { createProductMediaActionService } from "@/features/product-manager/server/product-media.composition";
 import { getCurrentUserProfile } from "@/features/users/server/current-user.service";
+import { isTrustedRevaOrigin } from "@/infrastructure/config/site";
+
+function getMediaMutationOriginFailure(request: Request): NextResponse | null {
+  if (isTrustedRevaOrigin(request.headers.get("origin"))) return null;
+  return NextResponse.json({ error: "Origen de solicitud no permitido." }, { status: 403 });
+}
 
 /** Uses JSON responses at this HTTP boundary rather than page-navigation redirects. */
 async function getMediaMutationAuthorizationFailure(): Promise<NextResponse | null> {
@@ -32,6 +38,8 @@ async function requireDraft(productId: string) {
 /** Handles Product media binaries at a Node-only authenticated server boundary. */
 export async function POST(request: Request, { params }: RouteContext<"/admin/productos/[productId]/fotos">) {
   try {
+    const originFailure = getMediaMutationOriginFailure(request);
+    if (originFailure) return originFailure;
     const authorizationFailure = await getMediaMutationAuthorizationFailure();
     if (authorizationFailure) return authorizationFailure;
     const { productId } = await params;
@@ -48,6 +56,8 @@ export async function POST(request: Request, { params }: RouteContext<"/admin/pr
 
 export async function PATCH(request: Request, { params }: RouteContext<"/admin/productos/[productId]/fotos">) {
   try {
+    const originFailure = getMediaMutationOriginFailure(request);
+    if (originFailure) return originFailure;
     const authorizationFailure = await getMediaMutationAuthorizationFailure();
     if (authorizationFailure) return authorizationFailure;
     const { productId } = await params;
@@ -65,6 +75,8 @@ export async function PATCH(request: Request, { params }: RouteContext<"/admin/p
 
 export async function DELETE(request: Request, { params }: RouteContext<"/admin/productos/[productId]/fotos">) {
   try {
+    const originFailure = getMediaMutationOriginFailure(request);
+    if (originFailure) return originFailure;
     const authorizationFailure = await getMediaMutationAuthorizationFailure();
     if (authorizationFailure) return authorizationFailure;
     const { productId } = await params;

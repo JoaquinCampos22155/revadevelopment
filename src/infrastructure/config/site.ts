@@ -43,6 +43,21 @@ export function getRevaSiteUrl(): URL {
   return new URL(siteUrl.origin);
 }
 
+/**
+ * Validates a browser mutation Origin against the configured public REVA
+ * origin. Incoming Host and forwarded-host headers never establish trust.
+ */
+export function isTrustedRevaOrigin(origin: string | null): boolean {
+  if (!origin || origin === "null") return false;
+
+  try {
+    const candidate = new URL(origin);
+    return candidate.origin === origin && candidate.origin === getRevaSiteUrl().origin;
+  } catch {
+    return false;
+  }
+}
+
 /** Builds a Product URL from the trusted public origin and safe route input. */
 export function getPublicProductUrl(slug: string): string {
   return new URL(`/productos/${encodeURIComponent(slug)}`, getRevaSiteUrl()).toString();

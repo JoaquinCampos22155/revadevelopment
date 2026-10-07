@@ -229,6 +229,8 @@ Read the smallest authoritative context set before starting work:
 
 Every new feature must consciously evaluate its privacy, security, data-model, authorization/RLS, production/runtime, and approved-future-architecture impacts. This does not by itself require a migration or security redesign; it requires an explicit proportional assessment before implementation.
 
+When a Sprint requires a developer to use an external control plane, its final report must include actionable manual instructions; `SECURITY_PRIVACY.md` owns the required evidence format for security/privacy work.
+
 Privacy and cybersecurity evidence are first-class graduation deliverables. Before final graduation, an independent Systems Engineering faculty reviewer must use/test REVA, assess data privacy and cybersecurity, and provide a signed review letter with their contact information for the final group report. This requirement is not evidence that the review or approval has already occurred.
 
 The following belong outside this constitution:
