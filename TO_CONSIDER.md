@@ -412,6 +412,16 @@ An item leaves this document only when it is deliberately implemented, rejected,
 
 - Existing planned UX, conversion, taxonomy, dark-mode, carousel, search, Tags, Collections, and broader observability improvements remain deferred unless separately approved. The expected Security Advisor notices for fixed allowlisted public views and guarded `SECURITY DEFINER` functions remain under their documented architecture review; they are not a license to broaden public grants or remove authorization guards.
 
+### Transactional backend — local prototype, production activation deferred (2026-10-15)
+
+Local-only request, Order, reservation, payment-status and admin foundations exist behind explicit development + loopback Supabase gating. M017–M020 are not applied remotely. Approved operational policy: temporary requests expire individually at 24 hours; approved unpaid Orders inherit that same deadline; three-hour reservation expiry releases inventory but does not shorten data retention; delete unpaid Orders at the original deadline unless verified payment or an unresolved financial incident exists. M020 implements and locally tests this rule. Before real customer data or production use, still resolve persistent production key custody/independent backup/rotation/recovery, backup deletion evidence, access-audit ownership, qualified Guatemala legal/fiscal review, hosted migration/cleanup verification, payment/fulfillment operations, and independent security review. No real payment integration, automated payment verification, or FEL invoicing is implemented.
+
+Release-hardening follow-up: the local prototype enforces the approved five-valid-submission-per-hour fixed-window HMAC origin-fingerprint limit; the temporary digest expires within 24 hours. Email-based blocking is explicitly not approved. A global/edge limit, trusted Render proxy client-IP provenance, protection across multiple app instances, and separation/rotation policy for idempotency/rate-limit HMAC material remain unresolved; do not enable transactional production traffic until a proportionate abuse-control design and its privacy/operational owner are approved.
+
+### Current transactional release blockers (2026-10-16)
+
+M017–M024 and the manual Recurrente purchase lifecycle now exist and pass local verification only. Before hosted migration or real customer data: approve independent production AES/HMAC key custody and tested recovery; establish backup retention/deletion and restore ownership; verify trusted proxy identity, Checkout-specific body-size enforcement and cross-instance/global rate limiting; approve delivery, payment/refund alternatives and qualified Guatemala legal/FEL requirements; verify linked migration/`pg_cron` prerequisites; and obtain independent security/privacy review. The existing development-only `braces@3.0.3` advisory remains under dependency review. Do not treat local QA as production readiness.
+
 ## Current Strategic Context — 2026-10-04
 
 - **State:** REVA has a deployed public MVP on Render. A custom production domain remains planned; this earlier deployment/history material is not a statement that a final custom domain has been selected.

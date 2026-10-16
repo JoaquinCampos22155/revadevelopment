@@ -46,3 +46,4 @@ next-env.d.ts
 
 # Private REVA master reference; customer-facing pages and content remain trackable.
 /docs/private/REVA_CONTENT_MASTER.md
+/docs/private/REVA_KEY_MANAGEMENT.md
