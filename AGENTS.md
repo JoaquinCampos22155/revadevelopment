@@ -150,6 +150,8 @@ Every public experience should feel clear, premium, calm, trustworthy, and appro
 
 Design mobile-first. Desktop layouts extend the mobile experience; they do not replace it. Use semantic HTML, predictable navigation, meaningful calls to action, and progressive disclosure.
 
+For substantial public-page redesign, work page by page: inspect the real experience, research and obtain approval of the visual direction before implementation, then validate responsive behavior, accessibility, and performance and obtain visual approval before freezing. When an important asset is missing, request a specific asset brief before choosing a weaker placeholder; never fabricate real Product or operational evidence. Target WCAG 2.2 AA where applicable, without claiming conformance absent an appropriate audit. `REVA_ROADMAP.md` owns the current redesign process and strategic sequence.
+
 Products and useful content take priority over decoration. Motion must improve feedback, orientation, continuity, or interaction; it must respect user preferences and never become visual noise.
 
 Consistency is more valuable than novelty. Reusable components should preserve recognizable behavior while allowing only purposeful variation.

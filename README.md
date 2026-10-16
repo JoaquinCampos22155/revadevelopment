@@ -71,8 +71,10 @@ Run local validation against an empty local database before proposing a remote m
 - UI components do not query Supabase directly.
 - Normal request-scoped repositories use the publishable key and the real visitor/customer/admin session; they do not use privileged credentials as a shortcut.
 - Public Product reads use safe published-only `api` projections and map them into public domain contracts.
-- The customer-visible Catalog and Product Detail use real published Product data through the server-rendered public repository while preserving approved editorial presentation structure.
-- Product Storage, uploads, the Product Manager, and publication are implemented. Orders, Checkout, and production email infrastructure remain intentionally deferred. See `TO_CONSIDER.md`.
+- The customer-visible Catalog and Product Detail use real published Product data through the server-rendered public repository while preserving approved editorial presentation structure. PDP gallery navigation and mobile zoom are available; the desktop hover magnifier is a known deferred defect and is not verified as working.
+- A browser-local Cart and official Checkout UX are implemented. Checkout can review direct-PDP or Cart selections, let the customer enter contact/delivery/billing review fields held only in browser memory, revalidate current public Products, and open a WhatsApp inquiry. Those personal fields are not submitted to or stored by REVA.
+- Checkout remains non-transactional: there are no persistent Orders, atomic inventory reservations, payment processing or verification, integrated payment links, or FEL invoicing. The secure transactional backend is planned separately. The Guatemala department map is deferred pending verified geometry licensing; text-based municipality/zone fields remain.
+- Product Storage, uploads, the Product Manager, and publication are implemented. See `TO_CONSIDER.md` for deferred work.
 
 ## Contribution Rules
 
