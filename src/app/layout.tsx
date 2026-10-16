@@ -7,6 +7,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { signOut } from "@/features/auth/server/auth.actions";
 import { getCurrentUserProfile } from "@/features/users/server/current-user.service";
 import { getRevaSiteUrl } from "@/infrastructure/config/site";
+import { isWhatsAppConfigured } from "@/infrastructure/config/site-contact";
+import { CartDrawer } from "@/features/cart/components/CartDrawer";
+import { CartProvider } from "@/features/cart/cart-context";
 
 import "./globals.css";
 
@@ -27,15 +30,18 @@ export default async function RootLayout({
   const currentProfile = await getCurrentUserProfile();
 
   return (
-    <html lang="es">
+    <html data-scroll-behavior="smooth" lang="es">
       <body>
-        {!isPlayground ? <Navbar
+        {isPlayground ? children : <CartProvider>
+        <Navbar
           isAdmin={currentProfile?.role === "admin"}
           isAuthenticated={currentProfile !== null}
           onSignOut={signOut}
-        /> : null}
+        />
         {children}
-        {!isPlayground ? <Footer /> : null}
+        <Footer />
+        <CartDrawer canContactOnWhatsApp={isWhatsAppConfigured()} />
+        </CartProvider>}
       </body>
     </html>
   );
