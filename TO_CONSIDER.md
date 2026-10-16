@@ -73,14 +73,14 @@ For durable engineering law, use `AGENTS.md`. For approved business rules, publi
 - **Required decision:** A safe synchronization, rollback, cache, and public-delivery consistency model.
 - **Category:** Product-media lifecycle evolution.
 
-### Product Detail media gallery / carousel UX
+### PDP desktop hover magnifier
 
-- **State:** The current Product Detail gallery renders all approved Product images as a static responsive composition. It is functional with real six-image media, but can create excessive vertical length and uneven visual weight.
-- **Why deferred:** This is a non-blocking presentation refinement. REVA is prioritizing Product lifecycle and operational capability before broad UX polish.
-- **Reconsider:** Before final UX/UI polish or production launch.
-- **Trigger:** Real Products commonly contain approximately five to six images.
-- **Required decision:** An accessible, responsive gallery interaction that considers primary-image prominence, previous/next controls, thumbnails or position indicators, keyboard and touch interaction, image inspection, PDP length, and Next Image performance. Evaluate dependencies only after the interaction is approved.
-- **Category:** Product Detail UX refinement.
+- **State:** **DEFERRED / NOT WORKING.** The developer reports that the desktop hover magnifier remains nonfunctional after multiple implementation attempts. It is not verified or approved. The PDP is approved to proceed to Checkout discovery, not certified defect-free.
+- **Preserve:** The interactive gallery, thumbnails, previous/next arrows, keyboard navigation, and mobile zoom remain in place. Do not remove unrelated gallery behavior.
+- **Why deferred:** Repeated changes did not yield a reliable developer-browser result; Checkout must not reopen or work around this issue.
+- **Reconsider:** In a later, separately scoped PDP task with reliable browser-level debugging and a reproducible pointer/DOM/computed-style inspection.
+- **Required evidence:** Reproduce hover on the actual Product image, inspect pointer targeting/capabilities, lens visibility/geometry/clipping and image source, then verify tracking, bounds, exit, image switching, existing controls, mobile zoom, and reduced motion in the real browser. Do not call it fixed based on source review or unit tests alone.
+- **Category:** Deferred PDP interaction defect.
 
 ### REVA visual-system / UX/UI refinement
 
@@ -92,6 +92,14 @@ For durable engineering law, use `AGENTS.md`. For approved business rules, publi
 - **Public-page composition:** When it materially improves comprehension or hierarchy, prefer semantic web-native visual composition (for example SVG, diagrams, figures, layered typography, image planes, controlled overlaps, and native disclosures) over defaulting every idea to a rectangular container. Keep this lightweight, accessible, responsive, server-rendered where possible, and respectful of reduced motion.
 - **Out of scope now:** Design-system replacement, component-library dependency, PDP carousel implementation, and isolated Catalog redesign.
 - **Category:** Cross-product UX/UI refinement.
+
+### Disclosure of illustrative/editorial imagery
+
+- **State:** `/donar` and other public pages may use editorial or illustrative imagery; image alt text identifies editorial compositions where relevant. This is a future consideration only; this entry creates no policy or website disclosure.
+- **Why deferred:** REVA has not decided the appropriate policy scope, wording, or customer-facing location, and this page refinement does not authorize adding a new legal disclaimer.
+- **Reconsider:** During the next Terms, image-use, or public-content/compliance review.
+- **Required decision:** Whether and where to explain illustrative/editorial imagery (for example, Terms, an image-use policy, or another suitable customer-facing context), including appropriate boundaries for generated imagery. Do not imply that such a policy already exists.
+- **Category:** Future content/compliance decision.
 
 ### Public Product image SEO / indexing strategy
 
@@ -310,11 +318,11 @@ For durable engineering law, use `AGENTS.md`. For approved business rules, publi
 
 ### Production contact configuration
 
-- **State:** `/vender` has no enabled contact destination until `REVA_WHATSAPP_NUMBER` is approved and configured.
-- **Why deferred:** REVA must not hardcode a personal or development phone number into public application source.
-- **Reconsider:** Before public selling conversion is activated.
-- **Required decision:** Official WhatsApp number, ownership, response process, privacy handling, and final prefilled message.
-- **Category:** Public conversion configuration.
+- **State:** Public `/contacto` channels are approved: WhatsApp uses the existing `REVA_WHATSAPP_NUMBER` server-side URL builder, `cam22155@uvg.edu.gt` is the approved public email, and `@shopwithrevagt` is the secondary Instagram account. The public email currently uses an academic domain.
+- **Why deferred:** A dedicated business-domain email depends on REVA establishing its custom domain; contact ownership and response expectations must also be defined before any response-time promise is made.
+- **Reconsider:** When the REVA custom domain is established, and before publishing support expectations.
+- **Required decision:** Migrate public contact email to a dedicated REVA business-domain address and update the centralized configuration; separately approve contact-response ownership and any service expectations.
+- **Category:** Public contact operations / domain follow-up.
 
 ### Rewards and contribution incentives
 
@@ -325,14 +333,41 @@ For durable engineering law, use `AGENTS.md`. For approved business rules, publi
 - **Required decision:** Eligibility, attribution, fraud controls, expiry, and accounting implications.
 - **Category:** Future product evolution.
 
-### Native commerce
+### Transactional commerce, Orders, and payment
 
-- **State:** Cart, orders, checkout, payments, and inventory quantity are intentionally absent. Conversion remains the configured official contact channel.
-- **Why deferred:** REVA has not chosen to operate native web commerce.
-- **Reconsider:** Only after an explicit business-model decision.
-- **Trigger:** Approval to accept payment or orders inside REVA.
-- **Required decision:** Order lifecycle, payment provider, inventory reservation, customer support, tax, refunds, and security scope.
+- **State:** The approved official `/checkout` reviews real public Products from direct PDP or Cart entry and revalidates availability/current price before building a public-facts-only WhatsApp inquiry. Form data remain in browser memory and are not submitted or persisted. No Orders, reservation, payment collection, payment-link issuance/verification, or FEL exists; the inquiry is not an Order and the Cart/Checkout does not hold a unique garment.
+- **2026-10-15 approved business direction (not implementation authorization):** `Temporary Purchase Request → Admin Approval → Confirmed Order → Payment Coordination → Verified Payment → Fulfillment`. A request is non-reserving and expires exactly 24 hours after its server-recorded creation time; no global cutoff or automatic extension. Approval after expiry is forbidden even if cleanup is delayed. Admin approval revalidates availability/current authoritative prices and creates/promotes an Order pending payment; it is not payment confirmation. The later Order/reservation operation must be atomic, but the exact three-hour hold trigger and payment-link timing remain unresolved. Planned admin location: **Gestión → Solicitudes y órdenes**. See the dated Sprint addendum and current Roadmap.
+- **Management fee (commercial amount approved 2026-10-15):** Q5 per received garment lot, charged together with inbound shipping to REVA, for reception, review, photography, and publication. It is distinct from return shipping, the 65/35 proceeds split, and payment-processing charges. Non-refund treatment for work already performed remains subject to applicable rights and qualified legal review; confirm final operational disclosure before intake.
+- **Payment provider/fee:** Recurrente is intended but unselected and not onboarded. The reported 5.25% + Q2 per transaction must be verified directly against current merchant terms. Any buyer-facing proportional surcharge must be grossed up if the provider percentage applies to the full amount including surcharge; provider permission, tax, rounding, refunds, fee tax inclusion, shipping in the fee base, and final-total disclosure require resolution. No surcharge or payment integration is active.
+- **Why deferred:** REVA has approved inquiry-led WhatsApp coordination, not transaction processing or secure submission/storage of customer address/billing data. The intended external payment-link coordination is not yet implemented or provider-approved.
+- **Reconsider:** Checkout only after separate business, legal/operational, security, and provider review.
+- **Trigger:** An explicit approval to accept orders/payment within REVA.
+- **Required before implementation/collection:** Approve the schema/security ADR, guest submission boundary, encryption/key custody/rotation/recovery, exact three-hour reservation trigger and payment-link timing, operational serviceability/shipping total, cancellation/refunds and late-payment handling, payment verification, and provider terms. Define retention/deletion before collection: delete or anonymize expired/rejected request data under the approved procedure, minimize address/billing retention, and retain Order/fiscal records only for legally required periods confirmed by qualified Guatemala counsel/adviser. Get qualified tax advice on issuer/tax treatment and FEL/NIT/CF before collecting billing data; current SAT findings are not REVA policy or a complete legal opinion. Current Cart/Checkout must not collect or persist customer data.
 - **Category:** Future product/business evolution.
+
+### Shipping, delivery, and post-payment policy
+
+- **State:** Future policy decision; no shipping terms or transactional delivery guarantees are approved by this entry. Current Checkout says delivery coverage and cost must be confirmed with REVA before acceptance.
+- **Proposed wording to review, not publish:** “La prenda se reserva al completar el pago, una vez pagado la dirección de envío no se puede cambiar”. This asserts an unimplemented reservation and a fixed address-change rule. Temporary requests do not reserve inventory. The separate proposed three-hour hold trigger and its relationship to payment timing remain unresolved; neither the wording nor a hold is active policy.
+- **Required decisions:** Define serviceable coverage, shipping fees, when/how the final delivery amount is confirmed, address edits and their cutoff after payment, failed delivery, incorrect addresses, delivery attempts and timelines, shipping cancellation, applicable refunds/credits, and customer/provider responsibilities. Decide the exact three-hour hold trigger and reconcile it with admin approval, order creation, and payment-link timing. Address changes after payment require an approved shipping/cancellation policy.
+- **Reconsider:** Before publishing final purchase/shipping Terms or enabling transactional Checkout, payment, or reservations. Obtain operational and qualified legal review as appropriate.
+- **Category:** Future commercial policy / fulfillment.
+
+### Checkout geographic catalog and delivery map
+
+- **State:** The official non-transactional Checkout preserves text municipality/zone controls but collects no address data beyond transient browser memory. The interactive 2.5D map is **DEFERRED, NOT CANCELLED**: INE 2025 provides a current 17-municipality code/name catalog, but the candidate CONRED municipality polygon service has no visible source/update/license metadata sufficient to approve redistribution. The reviewed municipal POT page shows zone maps but no verified licensed vector zone-boundary source. No further map development is approved in the current Checkout work.
+- **Why deferred:** Geographic presence does not establish courier serviceability, and publishing unverified or unlicensed geometry could mislead customers and create data/reuse obligations. Current approved delivery coverage remains Guatemala City; precise operational boundary, zones, costs, and timing are unresolved.
+- **Reconsider:** Before resuming map work; obtain rights and accuracy evidence first. Transactional Checkout has separate Order/security approval gates.
+- **Required decisions/evidence:** Obtain source, attribution, reuse permission, complete polygon/code match, accuracy, date/version, CRS, simplified asset size, and update owner for municipal polygons; obtain equivalent evidence for any zone geometry. Separately define courier serviceability, minimum address/contact fields, guest-vs-account posture, address retention/deletion, order snapshots, and aggregate-only sales analytics. Use text-only zone display where verified geometry is unavailable; never approximate/fabricate boundaries. No paid map API, automatic geolocation, or nationwide coverage assumption.
+- **Category:** Checkout geography, privacy, and delivery operations.
+
+### 3D / digital garment visualization
+
+- **State:** Deferred, not cancelled; no generated or interactive 3D garment visualization is implemented, and no 2.5D substitute or prototype is authorized now.
+- **Future direction:** If explicitly resumed, explore free/low-cost AI-assisted reconstruction from real front/back garment photographs; pre-generate and optimize floating garment models with horizontal Y-axis mouse/touch rotation; require human quality approval before publication.
+- **Principles:** Real Product photography remains the authoritative evidence of the actual garment and condition. Models must not invent, erase, conceal, or contradict garment details.
+- **Reconsider:** Only after the current approved public-experience work and a separate proposal evaluates reconstruction accuracy, performance/mobile fallback, accessibility, privacy/source-image handling, pipeline/storage ownership, and per-garment cost.
+- **Category:** Future product/visualization evolution.
 
 ### Search, AI, analytics, and multiple languages
 
@@ -347,7 +382,7 @@ For durable engineering law, use `AGENTS.md`. For approved business rules, publi
 
 - **State:** The release candidate is limited to the approved public routes, secure Auth and Product Manager, real Catalog/PDP presentation, curated merchandising, and the documented public contact boundary. Deployment is not implied by this record.
 - **Pre-deploy decisions:** Select the production HTTPS domain; configure its canonical host, Supabase Auth Site URL and redirect allowlist; establish production email delivery; select a hosting/runtime that supports the approved Node/Sharp media path; establish backups, recovery ownership, monitoring, and incident handling; approve the required privacy, transactional/returns, and contact-data policies; and restore the maintained definitions and remediation status for S-01–S-06 before the final security sign-off. The Product-contact canonical URL must resolve from an explicit allowlisted production base URL rather than an unvalidated `Host` or `X-Forwarded-Host` value.
-- **Deferred experience work:** Final Catalog visual refinement; `/nosotros` founder/team material; `/contacto` and Footer refinement; cart/selection, checkout and payments; PDP gallery/carousel; approved editorial assets; Vender lot/sorting assets; donation delivery evidence; purposeful motion; production dark mode; Product Manager polish based on use; semantic-token/refactor debt; image compression/performance follow-up; real testimonials; FAQ strategy; returns/exchanges; management-fee amount; coupons; recycling-partner policy; and donation-transparency policy.
+- **Deferred experience work:** Final Catalog visual refinement; `/nosotros` founder/team material; `/contacto` and Footer refinement; cart/selection, checkout and payments; PDP gallery/carousel; approved editorial assets; Vender lot/sorting assets; donation delivery evidence; purposeful motion; production dark mode; Product Manager polish based on use; semantic-token/refactor debt; image compression/performance follow-up; real testimonials; FAQ strategy; buyer returns/exchanges; seller-fee legal/operational disclosure; coupons; recycling-partner policy; and donation-transparency policy.
 - **Business ownership:** The full pending business decisions, including conversion channels and public claims, remain in `REVA_BUSINESS.md`; this list is a deployment/backlog index and does not approve them.
 
 ## Review Rule
@@ -371,7 +406,7 @@ An item leaves this document only when it is deliberately implemented, rejected,
 
 ### Requires developer/business decision, not code-security remediation
 
-- Approve the minimum public privacy/contact-data notice, selling/donation operational policies, returns/transactional policy if applicable, official email delivery ownership, backups/recovery ownership, monitoring/incident ownership, and the official public contact response process. REVA currently has Auth and public contact links but no checkout or non-essential analytics tracker.
+- Approve the minimum public privacy/contact-data notice, selling/donation operational policies, returns/transactional policy if applicable, official email delivery ownership, backups/recovery ownership, monitoring/incident ownership, and the official public contact response process. REVA has Auth, public contact links, and a non-transactional Checkout inquiry; it has no Orders, payment processing, or non-essential analytics tracker.
 
 ### Safe to defer
 
@@ -380,6 +415,14 @@ An item leaves this document only when it is deliberately implemented, rejected,
 ## Current Strategic Context — 2026-10-04
 
 - **State:** REVA has a deployed public MVP on Render. A custom production domain remains planned; this earlier deployment/history material is not a statement that a final custom domain has been selected.
-- **Direction:** Refer to `REVA_ROADMAP.md` for active persistent workstreams—cybersecurity, privacy, users/account lifecycle, custom domain, Cart/Selection, Checkout, Payments, chatbot, public UX/content, analytics, operations, and faculty review.
-- **Boundary:** Payments, native Checkout, Cart persistence, chatbot, and analytics remain unimplemented and require their own approved scope. The provider/mechanism for payments is not selected.
+- **Direction:** Refer to `REVA_ROADMAP.md` for the approved sequence and active persistent workstreams, including REVA Experience & Visual Redesign (priority #1), Website Compliance & Customer Trust, Checkout UX, Motion, 3D exploration, Catalog discovery, chatbot, Orders/reservations, payments/FEL, cybersecurity, privacy, operations, and faculty review.
+- **Boundary (2026-10-14 update):** Anonymous local Cart plus official non-transactional `/checkout` inquiry are implemented: only public slugs persist in Cart; form data stay transient in memory; current public Products/prices are revalidated before WhatsApp. Orders, reservations, payment collection/link issuance or verification, FEL, saved addresses, chatbot, and analytics remain unimplemented and require separate approval. Map work is deferred until geometry reuse rights are confirmed.
 - **Graduation:** Privacy/cybersecurity evidence and an independent Systems Engineering faculty review with a signed contactable letter are final requirements; `SECURITY_PRIVACY.md` owns their evidence expectations.
+
+## Master content policy confirmations — 2026-10-09
+
+- **Status:** A private master has been reconciled with the current business/security context. Do not treat all of its planned answers as live policy.
+- **Historical reconciliation at 2026-10-09; superseded by later decisions where noted:** The 2026-10-15 developer-approved policy confirms Q5 per received lot, physical receipt as the start of the up-to-90-day period, the owner's share after each sale, Q10 per garment for early withdrawal plus return shipping, and prior express authorization before disposition of unclaimed garments. These do not resolve all contract details or replace qualified legal review.
+- **Still required before final Terms/public policy approval:** Confirm seller payment method/operational processing details and final intake/notification procedure; donation consent/routing and Drop capacity/schedule; buyer shipping/free-shipping conditions, cancellation/claims/returns remedies; REVA credit rules/expiry/implementation; privacy retention and request-handling procedure; and FEL/payment commitments. The Terms/Privacy drafts are not legal or fiscal approval.
+- **Boundary:** Local informational drafts expose only current, bounded facts and make unresolved items explicit. Obtain business approval and appropriate Guatemala legal/fiscal review before treating these pages as final enforceable terms or adding transactions.
+- **Category:** Public content and commercial-policy graduation gate.

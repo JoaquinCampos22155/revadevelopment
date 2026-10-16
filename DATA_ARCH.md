@@ -21,7 +21,7 @@ The schema, authorization foundation, Profile provisioning, and first public Pro
 
 The implemented database surface contains the ten approved business tables in `public`, private helpers in `private`, and the deliberately small published-Product read surface in `api`. Database access is default-deny: base business tables are not anonymously readable. Authentication and normal request-scoped repositories use the publishable provider context together with the real session where one exists; no privileged provider credential is part of ordinary application data access.
 
-The visible Catalog and Product Detail use the public Product repository and `api` projections to render real published Product rows and public image delivery. Editorial presentation remains intentionally compositional, while published Product facts and media use the safe public read path. The next planned implementation milestone is recorded in `SPRINTS.md`; deferred decisions are recorded in `TO_CONSIDER.md`.
+The visible Catalog, Product Detail, and official non-transactional Checkout use the public Product repository and `api` projections to render real published Product rows and public image delivery. Editorial presentation remains intentionally compositional, while published Product facts and media use the safe public read path. Checkout passes only public slugs to request-scoped server reads and revalidates current facts immediately before building its WhatsApp inquiry; no new persistence model is introduced. The next planned implementation milestone is recorded in `SPRINTS.md`; deferred decisions are recorded in `TO_CONSIDER.md`.
 
 ## Business Model
 
@@ -29,13 +29,15 @@ REVA currently supports three connected services.
 
 ### Buy
 
-Visitors discover REVA through the public catalog and editorial collections:
+Visitors discover REVA through the public catalog and editorial collections, then may review a Product/Cart selection in non-transactional Checkout before contacting REVA:
 
 ```text
-/catalogo -> /colecciones/[slug] -> /productos/[slug] -> Configured Official Contact Channel
+/catalogo -> /productos/[slug] -> Comprar -> /checkout
+/catalogo -> browser-local Cart -> /carrito -> /checkout
+/checkout -> current public Product revalidation -> WhatsApp inquiry
 ```
 
-REVA does not currently implement carts, orders, payment, or checkout.
+REVA has an anonymous browser-local Cart and a non-transactional Checkout inquiry experience. It does not currently implement Orders, reservations, payment processing, payment-link issuance/verification, or invoices.
 
 ### Sell
 
@@ -468,9 +470,9 @@ Migration 016 (`published_product_direct_mutation_guard`) is the required RLS en
 
 ## Intentionally Postponed
 
-The current architecture does not include:
+The current persistent data model does not include:
 
-- Orders, payments, checkout, carts, or inventory quantity
+- Orders, payment records, saved addresses, persistent billing/contact details, or inventory quantity
 - Rewards, promotional codes, or participation incentives
 - Marketplace sellers or seller dashboards
 - Donation or recycling partner management
@@ -480,7 +482,15 @@ The current architecture does not include:
 - Brand, Category, Color, or Material reference tables
 - Public review submission
 
-These capabilities are intentionally absent, not forgotten.
+These capabilities are intentionally absent, not forgotten. An official non-transactional Checkout UI exists, but does not add persistence or a new database concept. Temporary browser-memory form fields do not approve secure customer-data submission, storage, or a new schema.
+
+### Approved commercial direction — temporary requests and Orders (2026-10-15; conceptual only)
+
+The approved future business lifecycle is `Temporary Purchase Request → Admin Approval → Confirmed Order → Payment Coordination → Verified Payment → Fulfillment`; no part of this flow is implemented by the current schema. A submitted temporary request is not a purchase, does not reserve a Product, and expires individually at exactly 24 hours after server-recorded creation (`expires_at = created_at + 24 hours`). No global expiration cutoff or automatic extension is approved. Multiple pending requests may reference the same unique Product. The server must reject approval after expiration even if cleanup is delayed. Admin approval revalidates availability and current authoritative price, then creates/promotes an Order pending payment; approval is not proof of payment. The meaning and exact trigger of a separate three-hour Product hold remain unresolved. Once decided, Order plus all applicable unique-Product reservations must be atomic to prevent double sale.
+
+Future data categories are expected to include separate `first_name` and `last_name`, telephone, delivery address and municipality/zone, conditional billing details, immutable server-verified Product/SKU/title/price snapshots, payment references, lifecycle timestamps/events, and a random public reference that grants no access. This is not an approved table/column design: keys, constraints, RLS/RPC, encryption, guest write boundary, and retention are subject to a separate schema/security ADR. Admin capability is planned under **Gestión → Solicitudes y órdenes**, with least-privilege request review, approval/discard, pending/verified payment and fulfillment states, expiry handling, and auditable administrative actions. Expired/rejected request PII should be deleted or anonymized under a defined retention schedule; retain Order/fiscal records only for confirmed legally required periods. Define that schedule before collecting real personal data. See `REVA_BUSINESS.md`, `SECURITY_PRIVACY.md`, `REVA_ROADMAP.md`, and the 2026-10-15 `SPRINTS.md` addendum.
+
+The 2026-10-15 seller-fee and lot policy alignment changes no persistence model or data inventory. The Q5 lot-management charge and the 65/35 proceeds allocation are commercial rules owned by `REVA_BUSINESS.md`; neither creates a database field or authorizes transactional collection. The Checkout remains non-transactional and its form values remain in browser memory only.
 
 ## Evolution Rules
 

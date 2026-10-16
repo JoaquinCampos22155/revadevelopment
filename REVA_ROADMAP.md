@@ -15,7 +15,24 @@ This document is REVA's durable high-level direction from the current MVP toward
 
 REVA has a public MVP deployed on Render with a Supabase backend, public Catalog and PDPs, Product Manager, curated recommendations, and real inventory. Migrations M001–M016 are part of the implemented architecture. The current production deployment does not replace the planned custom-domain workstream.
 
-The following capabilities do **not** currently exist: Cart, Orders, native Checkout, payment integration, chatbot, or analytics. Their absence is intentional; no statement in this roadmap approves implementation by itself.
+Sprint 30 adds an anonymous, browser-local Cart/selection with no reservation. The approved official `/checkout` now resolves current public Products and opens a WhatsApp purchase inquiry, without transmitting form fields or creating a transaction. Orders, reservations, payment integration/link issuance or verification, FEL, chatbot, and analytics do **not** currently exist. Their absence is intentional; the Cart and inquiry do not imply any of them.
+
+## Approved Preferred Workstream Order (2026-10-08)
+
+This is the developer-approved preferred sequence for future REVA work. It records priority, not permission to activate a transactional flow, begin a specific Sprint, change providers, or bypass the approval gates described below.
+
+1. **REVA Experience & Visual Redesign — Priority #1.** The current site is functional but reads as repetitive and informational. Evolve it toward a modern, elegant, editorial, immersive, interactive, ecommerce-oriented identity. Make pages shorter and stronger rather than adding sections: reduce repeated copy and repeated heading/paragraph/card patterns; strengthen hierarchy and first-viewport impact; use meaningful photography, composition, depth, layering, and purposeful interaction. Depth should come from composition and interaction, not merely more borders or shadows. Redesign one page at a time after review and approval of its visual direction. Preserve its approved functionality, REVA business rules, security boundaries, accessibility, and real Product data; this does not authorize a simultaneous site-wide rewrite.
+2. **Checkout UX and non-transactional architecture — inquiry implementation complete.** The official `/checkout` is implemented as an editable in-memory review and WhatsApp purchase inquiry using current public Products. No personal fields are submitted or stored; it creates no Orders, paid transactions, reservations, or invoices. Continue visual/security review. Transactional Checkout remains gated by Orders, atomic inventory reservations, authoritative prices, payment verification, and approved policies/providers.
+3. **REVA Motion & Interaction System.** After the initial public visual redesign and Checkout UX/architecture, establish purposeful, accessible interaction patterns across approved experiences. Explore motion as part of the experience—not only decoration—including product/button feedback, drawer and page transitions, image/section reveals, justified scroll-linked storytelling, and loading/success states where they improve understanding or continuity. Use native browser capabilities or a maintained library when it materially improves quality; do not animate everything. Respect reduced motion, keyboard/screen-reader behavior, and performance. This remains a separately scoped workstream rather than permission for a blanket component rewrite.
+4. **Interactive 3D garment visualization per Product — DEFERRED, NOT CANCELLED.** This is postponed behind the current public-experience work and is not authorized for a prototype or substitute now. When explicitly resumed, explore AI-assisted reconstruction from real front/back garment photographs, pre-generated and optimized floating models, and horizontal Y-axis rotation by mouse or touch. Keep real Product photographs authoritative and require human quality approval before publication.
+5. **Catalog discovery improvements.** Improve how visitors find and compare garments while preserving public discovery and current Product/data/security boundaries.
+6. **REVA-specific chatbot.** Integrate an existing model or service; do not train a foundation model from scratch. Keep the assistant within REVA, fashion, garments, Catalog, buying, selling, donation, and circular-fashion topics. It must have no unrestricted database, admin, private-data, or write access. Design cost limits, rate limits, prompt-injection defenses, topic boundaries, and human handoff before implementation.
+7. **Temporary purchase requests, Orders and atomic inventory reservations.** Implement the approved non-reserving, 24-hour request stage first, followed by an approved Order lifecycle and atomic unique-Product reservation design. Resolve the three-hour hold trigger before building the reservation transition; prevent one garment from being sold twice.
+8. **Payment coordination, verification and Guatemala FEL.** Recurrente is an intended candidate, not yet selected/onboarded; validate current merchant terms and technical capabilities. Confirm Guatemala-specific FEL, billing, payment-verification, refund, delivery, and sequencing requirements before provider integration or invoice issuance. Do not assume unverified legal requirements or fees.
+
+### 3D Direction — Deferred, Not Cancelled
+
+No 2.5D substitute or 3D prototype is in scope while this milestone is deferred. If the work is explicitly resumed later, prefer free or low-cost AI-assisted reconstruction from real front/back garment photographs, with pre-generated optimized models presented as floating garments and horizontal Y-axis rotation using mouse or touch. A human must approve each model before publication. Real photographs remain the authoritative evidence of the actual garment and condition; a model must not invent, erase, conceal, or contradict garment details. Before an approved pilot, research reconstruction accuracy and limits, performance/mobile fallback, accessibility, privacy and source-image handling, pipeline/storage ownership, and per-garment cost. Any pilot and its acceptance criteria require a separate proposal and approval.
 
 ## Persistent Workstreams
 
@@ -42,24 +59,101 @@ The following capabilities do **not** currently exist: Cart, Orders, native Chec
 
 ### Cart / Selection
 
-The likely first architecture is an anonymous local selection using only public Product identity/slugs. Quantity is one, there is no reservation initially, and availability must be revalidated from the public Product projection. It must remain compatible with future checkout; Cart does not itself approve Checkout.
+**Implemented locally in Sprint 30:** anonymous browser-local selection using only public Product slugs; one of each unique garment; public-projection revalidation on Drawer/page/conversion; current prices; unavailable items remain visible for removal and are excluded from subtotal/conversion; a Drawer and noindex `/carrito`; and WhatsApp selection inquiry. Cart does not reserve inventory or approve Checkout. See `SECURITY_PRIVACY.md` for the local-storage data boundary and `SPRINTS.md` for validation evidence.
 
 ### Checkout
 
-Checkout is separate from Cart and is not approved as native functionality. It eventually requires an Order model, unique-inventory reservation/concurrency rules, customer/contact requirements, delivery, refund/cancellation policy, and a payment integration decision.
+**Current:** Official `/checkout` supports direct PDP and Cart entry and revalidates current public Product facts before a user-initiated WhatsApp inquiry. Its contact/delivery/billing values are transient in-memory UI review only; no Order, reservation, personal-data submission, payment processing, or invoice occurs. The map is deferred and text municipality/zone controls are not a delivery-coverage promise.
+
+**Future transactional gate:** Checkout must remain non-transactional until Orders and atomic unique-Product reservations, authoritative price snapshots, payment verification, and approved operational policies/providers exist. Research whether and how FEL, NIT, Consumidor Final (CF), invoice identity, issuance, and payment/invoice sequencing apply; do not present candidate questions as established legal requirements.
+
+**Approved commercial lifecycle (2026-10-15; direction only, not implemented):** `Temporary Purchase Request → Admin Approval → Confirmed Order → Payment Coordination → Verified Payment → Fulfillment`. A temporary request does not reserve inventory and expires per-request exactly 24 hours after its server-recorded `created_at`; the backend must reject approval after `expires_at`, even if cleanup is delayed. Admin approval revalidates current availability and authoritative prices, then creates/promotes an Order in pending-payment state; approval is not payment confirmation. A later Order/reservation operation must prevent double-selling atomically. The proposed three-hour inventory-hold trigger/timing and payment-link timing remain unresolved; neither request creation nor approval is assumed to start a hold. Future requests are expected to include separate first/last name, telephone, delivery address and municipality/zone, conditional billing data, immutable verified Product/price/SKU snapshots, and a non-authorizing customer reference. This is business direction, not approval of tables, RLS/RPC, encryption/key custody, guest submission, personal-data collection, provider configuration, payments, or release. Retention/deletion must be approved before collection. See the 2026-10-15 addendum in `SPRINTS.md`.
+
+**PDP handoff:** The desktop hover magnifier is **DEFERRED / NOT WORKING**, based on the developer's browser report after multiple attempts. It is not verified or approved; the PDP may proceed to the next workstream without being declared defect-free. Preserve the existing gallery, thumbnails, arrows, keyboard navigation, and mobile zoom. Do not attempt another magnifier fix during Checkout. Revisit only with reliable browser-level debugging; see `TO_CONSIDER.md`.
+
+**Checkout discovery recommendation (2026-10-14; superseded by the approved implementation below):** The proposal for direct PDP and multi-item Cart entry, public server-side Product resolution, no Order/reservation on entry, and a mobile-first editable flow has been adopted as a non-transactional inquiry implementation; transactional submission, address persistence, payments, and invoice issuance remain unapproved.
+
+Initial delivery remains courier/shipping in Guatemala City only; provider, exact coverage, address-field requirements, delivery timing, and shipping-cost policy remain unresolved. Do not offer unsupported department/municipality coverage, fees, thresholds, or estimates. Determine the smallest location/address fields required by the selected real delivery operation and disclose a confirmed delivery charge before commitment.
+
+**Future shipping-policy decision (not current Terms):** Define delivery coverage and fees, address changes and the cutoff after payment, failed delivery/incorrect address/delivery attempts, timelines, shipping cancellation, applicable refunds or credits, and customer/provider responsibilities before transactional Checkout. The current non-transactional Checkout only says coverage and delivery cost require confirmation; it makes no service, reservation, or shipping guarantee. Track the proposed reservation/address wording and its conflict with the proposed three-hour hold in `TO_CONSIDER.md`.
+
+SAT's current public FAQ says “Consumidor Final” may be used in the recipient identification field only for invoices below Q2,500; for Q2,500 or more it lists NIT, or CUI for an individual without NIT, and passport/tax code for a foreign recipient. SAT's minimum-DTE guide lists recipient name and says address is optional and shown only if supplied. These are source findings, not a complete legal opinion or approved REVA invoice policy. Before forms or FEL integration, a qualified Guatemalan tax adviser must confirm the current rule, REVA's issuer/tax regime, who issues the buyer invoice under REVA's 65/35 selling arrangement, tax treatment, the invoice provider, and when to issue relative to payment/refund. Avoid collecting NIT/CUI/address until required for the selected approved process.
+
+Payment discovery remains open: Recurrente is the intended candidate, subject to merchant onboarding, contract and technical verification; it is not selected, configured, or integrated. The developer-reported 5.25% + Q2 per-transaction fee is unverified and must be checked against current merchant terms. If the reported rate `r` applies to the full amount including a customer surcharge `F`, and `B` is the rest of the provider fee base (including shipping only if the provider charges on it), covering a fee `r(B + F) + Q2` would require solving `F = r(B + F) + Q2`, i.e. `F = (rB + Q2)/(1-r)` before any confirmed tax/rounding adjustments. This is a planning equation only—not a validated provider tariff, approved buyer surcharge, or production calculation. Confirm provider permission, tax treatment, rounding, refunds, whether taxes are included, whether shipping is in the fee base, and full-total disclosure before implementation. No fee is currently charged by REVA through Checkout. Keep card data on the provider-hosted surface; REVA must never collect or store PAN/CVV and must treat payment as complete only after trusted server/provider verification.
+
+Temporary requests and Orders/reservations are distinct. Implement the approved request stage first: server-created `created_at` and per-request `expires_at = created_at + 24 hours`; no inventory hold; no approval after expiry regardless of cleanup. On approval, revalidate current availability and price. Define and approve the separate Order/hold transition before implementing it: the three-hour hold trigger and payment-link timing are still unresolved. Once approved, Order and all unique-Product reservations must be created atomically, with a database-enforced one-active-hold-per-Product constraint, idempotency, payment-event verification, and deterministic release/recovery. Define late-payment-after-expiry, cancellation, and refund behavior. No request/Order table, reservation, migration, or payment integration currently exists.
+
+**PDP → Checkout entry (implemented):** a visible `Comprar ahora` link starts `/checkout` with only that Product's public slug; it does not touch the browser Cart. `Agregar al carrito` remains separate. Checkout re-resolves current published availability/price and does not create an Order or reservation on entry. Do not add customer-data transmission or payment claims until the transactional prerequisites and separate security/privacy review are approved.
+
+**Guatemala map/address discovery (2026-10-14; map deferred):** Checkout geography is limited to the 17 municipalities of Departamento de Guatemala, with fixed department and stable INE municipality codes. This is not a delivery-coverage promise: current approved delivery remains Guatemala City, and municipality/zone serviceability must be defined against actual operations. The interactive map is deferred, not cancelled; do not bundle or redistribute municipal/zone polygons until source, completeness, accuracy, version, and reuse license are verified. Text controls remain usable without map geometry. Checkout form data are transient browser-memory review only; no address persistence, guest Order, analytics, or migration is approved.
+
+Future data design should keep geographic reference catalogs, serviceability/rates, optional owner-protected saved addresses, and immutable Order delivery-address snapshots as distinct concepts. Any zone/municipality sales reporting must derive from actual Orders and be aggregated, not from saved-address counts or exposed address-level data. This proposal does not amend `DATA_ARCH.md`'s implemented schema or current no-address data inventory; see the dated discovery record in `SPRINTS.md`.
 
 ### Payments
 
-The final payment provider/mechanism remains deliberately unresolved and externally dependent. Future options may include a payment gateway, CyberSource, Paggo, a local acquiring solution, payment links, bank transfer, or another approved Guatemala-appropriate mechanism. Do not design as though Stripe or any provider has been selected.
+Recurrente is the developer's intended future candidate, but provider selection remains conditional on onboarding, direct fee/contract confirmation, technical verification, settlement/refund behavior, trusted payment status, GTQ support, and FEL interoperability. The reported 5.25% + Q2 fee and any proportional buyer charge are not approved public pricing. Do not design as if Recurrente (or another provider) is already selected; payment verification must be server/provider-authoritative before an Order is treated as paid.
+
+### Transactional implementation and release sequence — 2026-10-15
+
+This is the approved delivery order for the transactional workstream, not authorization to begin any phase. Privacy/security controls apply throughout, not only at the final test phase. Cloudflare domain setup and Recurrente onboarding may proceed in parallel when separately authorized.
+
+1. Reconcile commercial policies, fee amount/collection, shipping, retention, and legal/fiscal questions.
+2. Validate the accumulated Git changes, prepare approved commits, and push to `development` only under separate Git authorization.
+3. Approve the transactional schema, authorization/RLS/RPC, encryption/key-management and recovery ADR.
+4. Implement per-request 24-hour temporary purchase requests with no inventory reservation and secure guest submission.
+5. Implement Orders and atomic reservations after the three-hour hold trigger is decided.
+6. Implement the authorized admin “Gestión → Solicitudes y órdenes” workflow and auditable actions.
+7. Set up the custom domain with Cloudflare and verify canonical URLs, hosting, Auth and privacy disclosures.
+8. Complete Recurrente merchant onboarding and implement payment-link coordination/verification only after approval; this may proceed in parallel with step 7.
+9. Complete security/privacy, concurrency, idempotency, accessibility, E2E, controlled load and recovery testing in non-production first.
+10. Execute a separately approved, controlled transactional release after all business, legal/fiscal, privacy, security and operations gates pass.
+
+The Q5 per-received-lot management fee and inbound-shipping collection arrangement are commercially approved, subject to applicable legal review; no fee collection is implemented by the current site. Current Checkout remains a non-transactional in-memory review and WhatsApp inquiry; do not claim purchase Requests, Orders, holds, payment links, payment verification, or FEL are active.
 
 ### Chatbot
 
-The recommended initial scope is a FAQ/business assistant. It may later use approved public Product data, but it must not receive raw database access, Intake, Profiles, roles, private media, secrets, or admin tools.
+The preferred future chatbot uses an existing model/service, not a foundation model trained from scratch. Limit its approved domain to REVA, fashion, garments, Catalog, buying, selling, donation, and circular fashion. It may access only explicitly allowlisted public information; it must not receive unrestricted database access, Intake, Profiles, roles, private media, secrets, admin tools, or write capabilities. Plan cost and rate controls, prompt-injection and untrusted-content defenses, topic boundaries, safe failure behavior, and handoff to REVA's configured official contact channel.
 
 ### Public UX and Content
 
-- Remove demonstrated redundancy, refine Catalog, improve PDP gallery, Contact/Footer, policy links, and accessibility.
-- Preserve frozen pages unless evidence and explicit scope justify a change.
+- **Priority #1: REVA Experience & Visual Redesign.** Treat UX/UI, responsive behavior, accessibility, security, privacy, and compliance as continuous quality requirements, not a final cleanup phase. Keep pages shorter and more decisive rather than adding sections; remove redundant copy and repeated card patterns; use clear hierarchy, meaningful photography, depth through composition, and purposeful interactions. Do not fabricate Product photos, delivery evidence, partnerships, or operational proof.
+- **Brand foundation:** REVA's blue-gray core palette remains the dominant visual foundation across pages. Route cues are subordinate accents, not independent palettes: Comprar uses the existing deep REVA blue (`#3d5a66`, derived from source storm blue), Vender uses muted mauve/plum (`#705b78`), and Donar uses muted corinto (`#78434b`). Apply these selectively to route labels, lines, frames, and small details while preserving shared REVA typography and primary controls.
+- **Page-by-page approval process:** audit the real current page and browser composition; identify redundancy and define a stronger customer journey; research relevant patterns; present the proposed direction and material asset needs; obtain approval before significant implementation; implement only that page; validate UX, responsive layouts, accessibility, and performance; obtain visual approval before treating it as frozen. Do not redesign all routes at once.
+- When a meaningful asset is important to the result and none is approved, request the specific asset before using a weaker placeholder. Describe the page/section and intended use, subject/composition, style, aspect ratio/resolution, background/transparency, expected interaction/animation, whether it depicts real inventory or editorial fiction, and an optional generation prompt. Keep real Product imagery authoritative and distinguish editorial imagery from real operational evidence.
+- Public-page quality checks include mobile-first behavior plus tablet/laptop review, first-viewport hierarchy, overflow, touch targets, keyboard/focus behavior, screen-reader semantics, accessible dialogs/forms, contrast, reduced motion, and honest loading/error states. Target WCAG 2.2 AA where applicable; do not claim conformance or certification without an appropriate audit. See `AGENTS.md` for durable engineering requirements and `SECURITY_PRIVACY.md` for security/privacy evidence expectations.
+
+### Website Compliance & Customer Trust — Permanent Cross-cutting Workstream
+
+This workstream applies across public redesign and future commerce; it is not an additional item that changes the approved eight-step sequence. Maintain a route-aware inventory and resolve content with the business owner and qualified Guatemala-specific legal/fiscal review where appropriate. Do not invent policy or legal claims. `REVA_BUSINESS.md` remains authoritative for approved and unresolved business policy; `SECURITY_PRIVACY.md` owns privacy/security posture and evidence.
+
+- Review public privacy notice, terms, buying/selling/donation policies, returns/cancellations, delivery/shipping, contact details, support expectations, and cookie/tracking disclosures. Mark each as approved/current, partially defined, or blocked for a decision; a page or draft is not evidence that the policy is approved.
+- Clarify data purposes, retention/deletion, account/privacy requests, provider disclosures, and any tracking before adding collection or analytics. Keep data collection and disclosures proportionate to actual product behavior.
+- Obtain Guatemala-specific legal/fiscal review before making jurisdictional legal claims or enabling relevant transactions. FEL and billing requirements remain matters to verify when applicable, not assumptions or promises.
+- Maintain FAQ coverage for general REVA questions, buying, selling, donation, Cart, future Checkout, and account/privacy. Keep authoritative answers in one maintained source; surface contextual questions only where useful and link to fuller help when appropriate. Do not repeat the same FAQ block across every route or imply an unapproved policy.
+- Independent Systems Engineering faculty cybersecurity/privacy review, evidence, remediation, and a signed review letter remain mandatory graduation requirements. Treat them as ongoing preparation and a final independent review—not a substitute for security/privacy work throughout development.
+
+#### Contextual commercial terms — local copy aligned, legal/fiscal review remains
+
+The local `/terminos`, `/privacidad`, and `/preguntas-frecuentes` copy and contextual links from relevant journeys have been aligned to the latest approved commercial facts and current application behavior. They remain informational drafts, not legal/fiscal certification or an approval to activate transactional data collection. Obtain qualified Guatemala-specific legal/fiscal review before treating the terms as enforceable or enabling Requests, Orders, payment or FEL. Do not silently turn unresolved decisions into policy.
+
+- `/donar`: garment acceptance, donation process, limitations, responsibilities, and uncertainty about destination.
+- `/vender`: intake conditions, valuation, management fee, selling period, seller proceeds, and unsold-garment options.
+- Catalog, PDP, and Cart: unique inventory, garment condition, availability, cancellation, and purchase conditions.
+- Future Checkout: delivery, billing, payment, refunds, and applicable Guatemala FEL requirements, after the relevant legal/fiscal review.
+
+Contextual links in this local implementation point to the available draft hub pages and make their limited/current scope clear. Before deployment, review and approve each linked condition; preserve authoritative approved/unresolved decisions in `REVA_BUSINESS.md`.
+
+### REVA Motion & Interaction System — Future
+
+REVA should evolve toward a modern, elegant, interactive fashion-ecommerce experience: original compositions with depth and purposeful interaction, while protecting usability, accessibility, performance, and trust. Future frontend work should begin by defining interaction goals and visual hierarchy, inspecting real browser composition at target breakpoints, identifying compact layouts where quick review matters, and selecting meaningful microanimations. Major UI work should be informed by relevant design references or a prototype before implementation. “Premium” does not mean adding borders, shadows, or colored containers by default. Motion must improve feedback, orientation, continuity, or interaction; respect reduced-motion preferences; and remain maintainable. The page-by-page visual redesign and Motion System are distinct workstreams; a site-wide pass requires its own explicit scope. Sprint 30B/30C refined Cart interactions. The 2026-10-13 Night Side motion side sprint repaired `/como-funciona`'s continuous story line and made selected shared/product-discovery feedback keyboard-equivalent and reduced-motion aware. Its explicitly approved Motion System 2.0 continuation implements route-specific CSS-native movement; see `SPRINTS.md` for scope and evidence.
+
+#### Motion language — initial local vocabulary
+
+Use motion sparingly and consistently: small control/state feedback typically settles within 150–220 ms; spatial UI such as a Drawer uses about 220 ms with a restrained ease-out; editorial image emphasis may use 400–600 ms, with only a slight scale (about 1.015–1.03) or short displacement (about 2–4 px). Route entrances may use one modest 500–600 ms hierarchy with a short stagger; never stagger every paragraph. Prefer transform/opacity for motion, keep color/focus feedback immediate and understandable, and never make content or navigation wait for an animation. Scroll-linked motion is a progressive enhancement over fully visible static content. Reduced-motion preference removes nonessential movement and leaves the full state visible. These are design ranges, not a requirement to animate every control or a new global animation framework.
+
+The approved 2026-10-13 Motion System 2.1 navigation treatment uses a CSS-only 180ms opacity arrival on customer-facing route `<main>` elements and `aria-current="page"` feedback in the shared Navbar. It deliberately does not enable Next.js's experimental React View Transition integration or intercept links: standard App Router navigation remains responsible for history, prefetch, scroll, and streaming. Browsers without CSS animations, and users preferring reduced motion, receive the unchanged fully visible page. This is a restrained incoming cue, not a captured outgoing-page crossfade; revisit native transitions only when the framework integration is stable and compatible without route interception or state resets.
+
+The PDP experience redesign is implemented locally for visual review: it adds an accessible interactive gallery, a subtle deterministic atmosphere from the existing public Product color, and a clarified identity/price/size/condition/Add-to-Cart hierarchy. It preserves published-only data, original photo order, existing Cart and contact behavior, and the deferred 3D milestone. The desktop hover magnifier is explicitly **DEFERRED / NOT WORKING** per developer browser report and must not be reopened during Checkout; other gallery controls and mobile zoom remain preserved. See `SPRINTS.md` and `TO_CONSIDER.md` for status and evidence requirements; this does not alter business policy or authorize transactional Checkout/payments.
 
 ### Analytics and Metrics
 
@@ -73,49 +167,25 @@ Analytics follows an approved privacy/domain decision. Candidate future events i
 
 - Architecture evidence, data-flow diagram, authorization matrix, RLS/RPC evidence, upload tests, dependency evidence, privacy evidence, safe accounts/fixtures, reviewer checklist, remediation log, final independent review, and signed letter.
 
-## Dependency Relationships
+## Dependency and Governance Caveats
 
-```text
-SECURITY/PRIVACY FOUNDATION
-         ↓
-USER/ACCOUNT FOUNDATION
-         ↓
-PRODUCT FEATURES
-     ↙          ↘
-  CART        CHATBOT
-     ↓
-CHECKOUT ARCHITECTURE
-     ↓
-PAYMENT MECHANISM
+The preferred order is not permission to activate transactional checkout before Orders, atomic unique-inventory reservation, authoritative prices, and payment verification exist. The approved current `/checkout` is a non-transactional Product review and WhatsApp inquiry only: public Products/prices are revalidated, no customer fields leave browser memory, and no Order, reservation, payment, or invoice is created. Any externally issued payment link remains a later REVA-coordinated step, not an implemented integration. The Orders/reservation phase must precede payment integration and invoice issuance. Provider choice, shipping/return policy, billing rules, FEL requirements, and other unresolved business decisions remain open under `REVA_BUSINESS.md`.
 
-SECURITY REMEDIATION
-     ↓
-CUSTOM DOMAIN
-     ↓
-ANALYTICS
+### Official non-transactional Checkout
 
-ALL FINAL FEATURES
-     ↓
-FINAL SECURITY/PRIVACY AUDIT
-     ↓
-FACULTY REVIEW
-     ↓
-REMEDIATION
-     ↓
-SIGNED REVIEW
-```
+The official customer journey supports direct single-Product entry from PDP and multi-Product entry from Cart through one `/checkout` route. It uses only public Product slugs as selection references, the current public projection as the authority for availability and price, and an explicit user-initiated WhatsApp inquiry containing public Product facts only. Checkout delivery/contact/billing inputs are temporary browser-memory review fields and are neither submitted nor stored. This is not a confirmed purchase or payment flow. Orders, temporary inventory reservations, secure customer-data submission, payment-link issuance/verification, and FEL remain future architecture requiring separate approval.
 
-These relationships guide sequencing, not a claim that every workstream must wait for all earlier work. Independent evidence-led work may progress when its own prerequisites are met.
+### Checkout geography map
 
-## Current Planned Sequence
+The interactive Guatemala-department 2.5D map is **DEFERRED, NOT CANCELLED** due to unresolved reuse rights for candidate municipal geometry. The official Checkout works without a map and keeps its text municipality/zone controls. Zone-level zoom must wait for verified licensed polygons. No further map implementation is in scope until an attributable, redistribution-authorized source and accuracy/version evidence are approved.
 
-The next planned work is intentionally prioritized as follows:
+Security, privacy, and graduation evidence are cross-cutting throughout every workstream. Continue proportionate privacy/security review and address critical security findings when discovered; visual priority never justifies deferring critical remediation. Independent Systems Engineering faculty review, evidence, remediation, and a signed review letter remain graduation requirements, not a final-stage substitute for ongoing secure development.
 
-1. **Sprint 27 — dependency security remediation.**
-2. **Sprint 28 — security hardening baseline.**
-3. **Sprint 29 — privacy, account, and retention foundation.** Public privacy/account implementation is complete locally; retention, deletion, and privacy-request policy remain deliberately unresolved. The Supabase Auth redirect allowlist is manually confirmed; end-to-end recovery email validation waits until the application code is deployed.
+Sprint numbers record implementation history in `SPRINTS.md`; this workstream order supersedes the former planned-sequence snapshot but does not rewrite prior Sprint outcomes or itself start the next Sprint.
 
-Later Sprint numbers are planning labels, not immutable commitments. They may evolve as evidence, business decisions, or approved architecture changes.
+## Earlier Implementation Milestones
+
+Sprints 27–30C recorded the completed dependency, security, privacy/account, Cart, and Cart usability work in `SPRINTS.md`. These are historical implementation milestones; the approved future preferred order above now governs upcoming strategic sequencing.
 
 ## Final Graduation Direction
 
