@@ -12,10 +12,8 @@ export const loginNavigation = {
 } as const;
 
 export const footerNavigation = [
-  { href: "/catalogo", label: "Catálogo" },
-  { href: "/como-funciona", label: "Cómo funciona" },
-  { href: "/vender", label: "Vender" },
-  { href: "/donar", label: "Donar" },
   { href: "/contacto", label: "Contacto" },
-  { href: "/privacidad", label: "Privacidad" },
+  { href: "/terminos", label: "Términos y condiciones" },
+  { href: "/privacidad", label: "Política de privacidad" },
+  { href: "/preguntas-frecuentes", label: "Preguntas frecuentes" },
 ] as const;

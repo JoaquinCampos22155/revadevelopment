@@ -33,7 +33,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 function getButtonClasses(variant: ButtonVariant, className?: string) {
   return [
-    "inline-flex min-h-11 items-center justify-center rounded-lg px-5 text-sm font-medium transition-[transform,box-shadow,background-color,border-color,color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2 focus-visible:ring-offset-reva-background disabled:cursor-not-allowed disabled:bg-reva-disabled disabled:text-reva-on-action disabled:hover:translate-y-0 disabled:hover:shadow-none",
+    "inline-flex min-h-11 items-center justify-center rounded-lg px-5 text-sm font-medium transition-[transform,box-shadow,background-color,border-color,color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2 focus-visible:ring-offset-reva-background disabled:cursor-not-allowed disabled:bg-reva-disabled disabled:text-reva-on-action disabled:hover:translate-y-0 disabled:hover:shadow-none motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-none",
     variantClasses[variant],
     className,
   ]

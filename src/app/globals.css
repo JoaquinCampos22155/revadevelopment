@@ -24,6 +24,10 @@
   --reva-success: #3d6b5d;
   --reva-warning: #87653a;
   --reva-danger: #8b4e4e;
+  --reva-motion-quick: 180ms;
+  --reva-motion-control: 240ms;
+  --reva-motion-editorial: 560ms;
+  --reva-motion-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @theme inline {
@@ -49,12 +53,17 @@
 
 html {
   background: var(--reva-background);
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
   background: var(--reva-background);
   color: var(--reva-text-primary);
+}
+
+.reva-route-transition {
+  animation: reva-route-arrive var(--reva-motion-quick) ease-out both;
 }
 
 ::selection {
@@ -74,6 +83,404 @@ body {
   box-shadow: 18px 20px 0 var(--reva-brand);
 }
 
+/* Progressive-enhancement entrances begin visible and never gate route content. */
+.reva-motion-enter,
+.reva-motion-enter--second,
+.reva-motion-enter--third {
+  animation: reva-content-arrive var(--reva-motion-editorial) var(--reva-motion-ease) both;
+}
+
+.reva-motion-enter--second {
+  animation-delay: 80ms;
+}
+
+.reva-motion-enter--third {
+  animation-delay: 150ms;
+}
+
+.reva-scroll-image {
+  transform-origin: center;
+}
+
+.reva-product-tile {
+  animation: reva-content-arrive 440ms var(--reva-motion-ease) both;
+}
+
+.reva-product-tile:nth-child(2) { animation-delay: 55ms; }
+.reva-product-tile:nth-child(3) { animation-delay: 110ms; }
+.reva-product-tile:nth-child(4) { animation-delay: 165ms; }
+.reva-product-tile:nth-child(5) { animation-delay: 220ms; }
+.reva-product-tile:nth-child(n + 6) { animation-delay: 275ms; }
+
+.reva-contact-panel-content {
+  animation: reva-panel-arrive var(--reva-motion-control) var(--reva-motion-ease) both;
+}
+
+.reva-auth-field {
+  transition: border-color var(--reva-motion-quick) ease, background-color var(--reva-motion-quick) ease;
+}
+
+.reva-disclosure-icon {
+  transition: transform var(--reva-motion-quick) var(--reva-motion-ease), color var(--reva-motion-quick) ease;
+}
+
+details[open] > summary .reva-disclosure-icon {
+  transform: rotate(45deg);
+}
+
+.terms-section > h2,
+.privacy-section h2 {
+  transition: color var(--reva-motion-control) ease;
+}
+
+.reva-cart-dialog {
+  opacity: 0;
+  transition: opacity 220ms ease, display 220ms allow-discrete, overlay 220ms allow-discrete;
+}
+
+.reva-cart-dialog[open] {
+  opacity: 1;
+}
+
+.reva-cart-dialog::backdrop {
+  background: rgb(20 34 39 / 0%);
+  transition: background-color 220ms ease;
+}
+
+.reva-cart-dialog[open]::backdrop {
+  background: rgb(20 34 39 / 48%);
+}
+
+.reva-cart-drawer-panel {
+  transform: translateX(1.5rem);
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reva-cart-line {
+  animation: reva-cart-line-enter 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.reva-cart-count {
+  animation: reva-cart-count-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.reva-cart-value {
+  animation: reva-cart-value-enter 180ms ease-out both;
+}
+
+.reva-cart-added {
+  animation: reva-cart-added-enter 200ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.ecosystem-thread,
+.ecosystem-thread-active {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.ecosystem-thread {
+  stroke: var(--reva-border);
+}
+
+.ecosystem-thread-active {
+  transition: stroke-dashoffset 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+}
+
+.ecosystem-route {
+  background: color-mix(in srgb, var(--reva-surface) 88%, var(--route-accent));
+  border-color: color-mix(in srgb, var(--reva-border) 72%, var(--route-accent));
+  box-shadow: 0 18px 50px -42px rgb(32 53 61 / 55%);
+  transition: border-color 260ms ease, background-color 260ms ease, transform 260ms ease;
+}
+
+.ecosystem-route[data-active="true"] {
+  border-color: color-mix(in srgb, var(--route-accent) 62%, var(--reva-surface));
+  background: color-mix(in srgb, var(--reva-surface) 95%, var(--route-accent));
+  transform: translateY(-3px);
+}
+
+.ecosystem-route:hover,
+.ecosystem-route:focus-visible {
+  border-color: var(--route-accent);
+}
+
+.story-journey {
+  view-timeline-name: --reva-story-journey;
+  view-timeline-axis: block;
+}
+
+.story-journey::before {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  bottom: 0;
+  left: 10px;
+  width: 2px;
+  background: linear-gradient(180deg, #3d5a66 0%, #705b78 55%, #78434b 100%);
+  content: "";
+  pointer-events: none;
+}
+
+.story-journey-overlay {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.story-journey-fallback {
+  display: none;
+}
+
+.story-journey-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.story-journey-path-reveal {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.story-journey[data-ready="true"]::before {
+  display: none;
+}
+
+.story-journey[data-ready="true"] .story-journey-fallback {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .story-journey::before {
+    display: none;
+  }
+
+  .story-journey-fallback {
+    display: block;
+  }
+}
+
+.story-chapter {
+  opacity: 1;
+}
+
+.story-band {
+  background: linear-gradient(
+    180deg,
+    var(--story-start) 0%,
+    color-mix(in srgb, var(--story-start) 45%, var(--story-center)) 22%,
+    var(--story-center) 46%,
+    var(--story-center) 58%,
+    color-mix(in srgb, var(--story-center) 45%, var(--story-end)) 82%,
+    var(--story-end) 100%
+  );
+  padding-block: clamp(1.5rem, 4vw, 3rem);
+}
+
+.story-band--comprar {
+  --story-start: var(--reva-background);
+  --story-center: #d2d4e8;
+  --story-end: #f1ebf2;
+}
+
+.story-band--vender {
+  --story-start: #e5edf0;
+  --story-center: #e5d5e9;
+  --story-end: #f4f2f2;
+}
+
+.story-band--donar {
+  --story-start: #f8f8f8;
+  --story-center: #efd8d3;
+  --story-end: var(--reva-background);
+}
+
+.terms-section:target > h2,
+.privacy-section:target h2 {
+  color: var(--reva-brand-strong);
+}
+
+@keyframes story-chapter-arrive {
+  from { opacity: 0.55; translate: 0 1rem; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes reva-content-arrive {
+  from { opacity: 0.78; translate: 0 0.75rem; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes reva-panel-arrive {
+  from { opacity: 0.72; translate: 0 0.5rem; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes reva-route-arrive {
+  from { opacity: 0.94; }
+  to { opacity: 1; }
+}
+
+@keyframes reva-image-arrive {
+  from { scale: 1.025; translate: 0 0.65rem; }
+  to { scale: 1; translate: 0 0; }
+}
+
+@supports (animation-timeline: view()) {
+  .reva-scroll-image {
+    animation: reva-image-arrive 640ms var(--reva-motion-ease) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+
+  .reva-donation-step {
+    animation: story-chapter-arrive 560ms var(--reva-motion-ease) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+
+  .reva-selling-step {
+    animation: story-chapter-arrive 560ms var(--reva-motion-ease) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+
+  .story-chapter {
+    animation: story-chapter-arrive 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+
+  .story-journey-path-reveal {
+    animation: story-thread-draw linear both;
+    animation-timeline: --reva-story-journey;
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+@keyframes story-thread-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reva-motion-enter,
+  .reva-motion-enter--second,
+  .reva-motion-enter--third,
+  .reva-route-transition,
+  .reva-product-tile,
+  .reva-contact-panel-content,
+  .reva-auth-field,
+  .reva-disclosure-icon,
+  .reva-scroll-image,
+  .reva-donation-step,
+  .reva-selling-step {
+    animation: none;
+    transition: none;
+    translate: none;
+    scale: none;
+    opacity: 1;
+  }
+
+  details[open] > summary .reva-disclosure-icon {
+    transform: none;
+  }
+
+  .ecosystem-thread-active,
+  .ecosystem-route,
+  .story-chapter,
+  .story-journey-path {
+    transition: none;
+    animation: none;
+    translate: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .story-journey-path-reveal {
+    display: none;
+  }
+
+  .ecosystem-route[data-active="true"] {
+    transform: none;
+  }
+}
+
+.checkout-atmosphere::before {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 8% 24%, rgb(61 90 102 / 7%), transparent 39%),
+    radial-gradient(ellipse at 88% 72%, rgb(61 90 102 / 5%), transparent 43%);
+  background-size: 145% 145%;
+  animation: reva-checkout-atmosphere 36s ease-in-out infinite alternate;
+}
+
+@keyframes reva-checkout-atmosphere {
+  from { background-position: 0% 0%, 100% 100%; }
+  to { background-position: 55% 28%, 30% 70%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-atmosphere::before {
+    animation: none;
+  }
+}
+
+@keyframes reva-cart-line-enter {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reva-cart-count-enter {
+  from { opacity: 0.4; transform: scale(0.78); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes reva-cart-value-enter {
+  from { opacity: 0.55; transform: translateY(0.25rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reva-cart-added-enter {
+  from { opacity: 0.55; transform: translateY(0.2rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reva-cart-dialog[open] .reva-cart-drawer-panel {
+  transform: translateX(0);
+}
+
+@starting-style {
+  .reva-cart-dialog[open] {
+    opacity: 0;
+  }
+
+  .reva-cart-dialog[open] .reva-cart-drawer-panel {
+    transform: translateX(1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reva-cart-dialog,
+  .reva-cart-dialog::backdrop,
+  .reva-cart-drawer-panel,
+  .reva-cart-line,
+  .reva-cart-count,
+  .reva-cart-value,
+  .reva-cart-added {
+    transition: none;
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -82,5 +489,343 @@ body {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* PDP-only product atmosphere and gallery controls; the REVA base palette remains dominant. */
+.reva-pdp {
+  --pdp-atmosphere-color: #64747a;
+  background-color: var(--reva-background);
+  background-image: radial-gradient(
+    ellipse 90rem 70rem at 48% 18%,
+    color-mix(in srgb, var(--pdp-atmosphere-color) 22%, transparent),
+    transparent 78%
+  );
+}
+
+.reva-pdp-price {
+  color: var(--reva-action);
+}
+
+.reva-pdp-fact dt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.reva-pdp-fact {
+  display: flex;
+  min-width: 0;
+  min-height: 4.5rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--pdp-atmosphere-color) 30%, var(--reva-border));
+  background: color-mix(in srgb, var(--pdp-atmosphere-color) 30%, var(--reva-surface));
+}
+
+.reva-pdp-fact dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.reva-pdp-inquiry {
+  border-left: 3px solid color-mix(in srgb, var(--pdp-atmosphere-color) 72%, var(--reva-border));
+  border-top: 1px solid color-mix(in srgb, var(--pdp-atmosphere-color) 28%, var(--reva-border));
+  padding: 1.25rem clamp(1rem, 3vw, 1.75rem);
+}
+
+.reva-pdp-inquiry > p,
+.reva-pdp-inquiry > h2 {
+  max-width: 36rem;
+}
+
+.reva-pdp-gallery {
+  outline: none;
+  touch-action: pan-y;
+}
+
+.reva-pdp-gallery:focus-visible {
+  outline: 2px solid var(--reva-focus);
+  outline-offset: 3px;
+}
+
+.reva-pdp-image {
+  animation: reva-pdp-image-arrive 220ms ease-out both;
+}
+
+.reva-pdp-gallery-control {
+  display: inline-grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 82%);
+  border-radius: 9999px;
+  background: rgb(32 53 61 / 72%);
+  color: white;
+  backdrop-filter: blur(8px);
+  transition: background-color var(--reva-motion-quick) ease, color var(--reva-motion-quick) ease, opacity var(--reva-motion-quick) ease;
+}
+
+.reva-pdp-gallery-control:hover:not(:disabled) {
+  background: var(--reva-brand-strong);
+  color: var(--reva-on-brand);
+}
+
+.reva-pdp-gallery-control:focus-visible,
+.reva-pdp-thumbnail:focus-visible {
+  outline: 2px solid var(--reva-focus);
+  outline-offset: 3px;
+}
+
+.reva-pdp-gallery-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.reva-pdp-magnifier {
+  position: absolute;
+  z-index: 2;
+  width: 10rem;
+  height: 10rem;
+  pointer-events: none;
+  border: 2px solid white;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 20px rgb(29 42 47 / 28%);
+  transform: translate3d(-9999px, -9999px, 0);
+  visibility: hidden;
+  will-change: transform;
+}
+
+.reva-pdp-gallery-navigation,
+.reva-pdp-image-count,
+.reva-pdp-zoom-trigger {
+  z-index: 3;
+}
+
+.reva-pdp-gallery-navigation,
+.reva-pdp-image-count {
+  pointer-events: none;
+}
+
+.reva-pdp-zoom-dialog {
+  position: fixed;
+  inset: 0;
+  display: none;
+  width: auto;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  overflow: hidden;
+  border: 0;
+  background: rgb(20 28 31 / 96%);
+}
+
+.reva-pdp-zoom-dialog[open] {
+  display: flex;
+}
+
+.reva-pdp-zoom-dialog::backdrop {
+  background: rgb(20 28 31 / 88%);
+}
+
+.reva-pdp-zoom-stage {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.reva-pdp-zoom-stage.is-zoomed {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.reva-pdp-zoom-image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.reva-pdp-zoom-stage.is-zoomed .reva-pdp-zoom-image {
+  width: 200%;
+  max-width: none;
+  max-height: none;
+}
+
+.reva-pdp-zoom-controls {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-inline: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 10%);
+}
+
+.reva-pdp-zoom-control {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 9999px;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.reva-pdp-zoom-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.reva-pdp-zoom-control:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+
+.reva-pdp-zoom-close {
+  position: absolute;
+  z-index: 1;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 12%);
+  color: white;
+}
+
+.reva-pdp-zoom-close:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+
+.reva-pdp-thumbnails {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 0.625rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.125rem 0.5rem;
+  scrollbar-width: thin;
+}
+
+.reva-pdp-thumbnail {
+  width: 3.5rem;
+  height: 4.5rem;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: var(--reva-surface-muted);
+  transition: border-color var(--reva-motion-quick) ease, opacity var(--reva-motion-quick) ease;
+}
+
+.reva-pdp-thumbnail[aria-pressed="true"] {
+  border-color: var(--reva-brand-strong);
+}
+
+.reva-pdp-thumbnail:not([aria-pressed="true"]):hover {
+  opacity: 0.78;
+}
+
+.reva-pdp-gallery-navigation > .reva-pdp-gallery-control {
+  flex: 0 0 auto;
+  pointer-events: auto;
+}
+
+.reva-pdp-sticky-purchase {
+  position: fixed;
+  z-index: 30;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem max(1rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  border-top: 1px solid var(--reva-border);
+  background: color-mix(in srgb, var(--reva-background) 96%, transparent);
+  box-shadow: 0 -8px 24px rgb(29 42 47 / 12%);
+  backdrop-filter: blur(12px);
+  animation: reva-pdp-sticky-arrive 180ms ease-out both;
+}
+
+.reva-pdp-sticky-purchase > p {
+  white-space: nowrap;
+}
+
+.reva-pdp-sticky-purchase > :last-child {
+  flex: 1;
+}
+
+@keyframes reva-pdp-sticky-arrive {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 767px) {
+  .reva-pdp-sticky-visible,
+  .reva-pdp-footer-sticky-visible {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes reva-pdp-image-arrive {
+  from { opacity: 0.78; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 640px) {
+  .reva-pdp-thumbnail {
+    width: 4.5rem;
+    height: 5.75rem;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .reva-pdp-zoom-trigger {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reva-pdp-gallery-control,
+  .reva-pdp-thumbnail {
+    transition: none;
+  }
+
+  .reva-pdp-image {
+    animation: none;
+  }
+
+  .reva-pdp-sticky-purchase {
+    animation: none;
+  }
+
+  .reva-pdp-magnifier {
+    transition: none;
   }
 }

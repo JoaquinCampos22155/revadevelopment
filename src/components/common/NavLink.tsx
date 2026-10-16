@@ -17,10 +17,19 @@ export function NavLink({ children, className, href, ...linkProps }: NavLinkProp
 
   return (
     <Link
+      aria-current={pathname === href ? "page" : undefined}
       className={className}
       href={href}
       onClick={(event) => {
-        if (pathname !== href) return;
+        if (
+          pathname !== href
+          || event.defaultPrevented
+          || event.button !== 0
+          || event.metaKey
+          || event.ctrlKey
+          || event.shiftKey
+          || event.altKey
+        ) return;
 
         event.preventDefault();
         const behavior = window.matchMedia("(prefers-reduced-motion: reduce)")
