@@ -31,7 +31,7 @@ function getNotice(searchParams: Record<string, string | string[] | undefined>) 
   }
 
   if (searchParams.error === "credenciales") {
-    return "Revisa tu correo y contraseña e intenta nuevamente.";
+    return "Revisa que el correo y contraseña sean los correctos e intenta nuevamente.";
   }
 
   if (searchParams.error === "registro") {
@@ -86,7 +86,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <label className="text-sm font-medium text-reva-primary" htmlFor="password">Contraseña</label>
               <input autoComplete="current-password" className="reva-auth-field min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none focus-visible:border-reva-brand-strong focus-visible:ring-2 focus-visible:ring-reva-focus/25" id="password" minLength={8} name="password" required type="password" />
             </div>
-            <div className="relative isolate"><span aria-hidden="true" className="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-reva-brand" /><Button className="relative z-10 w-full" type="submit" variant="solid">Iniciar sesión</Button></div>
+            <div className="relative isolate"><span aria-hidden="true" style={{ borderRadius: '8px' }} className="absolute inset-0 translate-x-1.5 translate-y-1.5 bg-reva-brand" /><Button className="relative z-10 w-full" type="submit" variant="solid">Iniciar sesión</Button></div>
             <p className="text-center text-sm"><a className="text-reva-brand-strong underline underline-offset-4 hover:text-reva-action focus:outline-none focus:ring-2 focus:ring-reva-focus" href="/recuperar-contrasena">¿Olvidaste tu contraseña?</a></p>
           </form>
 
