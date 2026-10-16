@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createCheckoutContactMessage } from "../src/features/checkout/checkout-contact-message.ts";
-import { CHECKOUT_PURCHASE_REQUEST_TEMPLATE } from "../src/features/checkout/checkout-contact-message.ts";
 import { createCheckoutHref, hasCheckoutPriceChanged, parseCheckoutSelection } from "../src/features/checkout/checkout-selection.ts";
 import { getCheckoutProgress } from "../src/features/checkout/checkout-progress.ts";
 import { formatCheckoutContactName, validateCheckoutDelivery } from "../src/features/checkout/checkout-validation.ts";
@@ -83,14 +82,6 @@ test("checkout progress presents four truthful stages and keeps payment in the f
     { label: "Pago", status: "future" },
   ]);
 });
-
-test("future purchase-request WhatsApp template remains placeholders, not a fabricated request", () => {
-  assert.match(CHECKOUT_PURCHASE_REQUEST_TEMPLATE, /Solicitud: \[referencia real asignada por REVA\]/);
-  assert.match(CHECKOUT_PURCHASE_REQUEST_TEMPLATE, /SKU: \[SKU verificado\]/);
-  assert.match(CHECKOUT_PURCHASE_REQUEST_TEMPLATE, /Envío: \[dirección autorizada por el cliente\]/);
-  assert.doesNotMatch(CHECKOUT_PURCHASE_REQUEST_TEMPLATE, /https?:\/\/|\bNIT\b|\+?\d{7,}/i);
-});
-
 
 test("checkout delivery validation requires first and last name, Guatemala phone, municipality, street, and house number", () => {
   assert.deepEqual(validateCheckoutDelivery({

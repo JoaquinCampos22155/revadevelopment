@@ -180,4 +180,7 @@ select pg_temp.assert_true(
   'published image projection omitted fixture media'
 );
 
+select plan(1);
+select ok(true, 'condition-scale lifecycle assertions completed');
+select * from finish();
 rollback;

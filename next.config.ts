@@ -4,6 +4,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl) : undefined;
 const supabaseProtocol = supabaseOrigin?.protocol === "http:" ? "http" : "https";
 const supabaseSource = supabaseOrigin?.origin;
+const loopbackSupabase = supabaseOrigin && ["localhost", "127.0.0.1", "::1"].includes(supabaseOrigin.hostname);
+const localDevelopmentImageDelivery = process.env.NODE_ENV === "development" && loopbackSupabase;
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -44,6 +46,8 @@ const nextConfig: NextConfig = {
   },
   images: supabaseOrigin ? {
     remotePatterns: [{ hostname: supabaseOrigin.hostname, pathname: "/storage/v1/object/public/public-product-media/**", port: supabaseOrigin.port, protocol: supabaseProtocol, search: "" }],
+    // Next's optimizer correctly rejects private IPs; local QA fixtures are already optimized WebP.
+    ...(localDevelopmentImageDelivery ? { unoptimized: true } : {}),
   } : undefined,
   poweredByHeader: false,
   async headers() {

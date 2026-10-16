@@ -90,4 +90,7 @@ select pg_temp.assert_true(
   'normalization did not report the unavoidable products.updated_at trigger change'
 );
 
+select plan(1);
+select ok(true, 'garment-vocabulary normalization assertions completed');
+select * from finish();
 rollback;

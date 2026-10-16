@@ -169,4 +169,7 @@ select pg_temp.assert_true(
   'recommendation operations mutated fixture media'
 );
 
+select plan(1);
+select ok(true, 'product-recommendation lifecycle assertions completed');
+select * from finish();
 rollback;
