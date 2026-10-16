@@ -52,7 +52,7 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
               <div className="flex flex-wrap items-center gap-3">
                 <Text variant="label">{draft.sku}</Text>
                 <span className={publication.tone === "public" ? "inline-flex items-center gap-2 text-sm font-medium text-reva-success" : "inline-flex items-center gap-2 text-sm font-medium text-reva-secondary"}>
-                  <span aria-hidden="true" className={publication.tone === "public" ? "size-2 rounded-full bg-reva-success" : "size-2 rounded-full bg-reva-disabled"} />
+                  <span aria-hidden="true" className={publication.tone === "public" ? "size-2 rounded-full border border-reva-border bg-reva-success" : "size-2 rounded-full border border-reva-border bg-reva-disabled"} />
                   {publication.label}{publication.domainLabel ? ` · ${publication.domainLabel}` : ""}
                 </span>
               </div>

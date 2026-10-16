@@ -6,6 +6,7 @@ import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
 import { getProductPublicationStatusPresentation } from "@/features/product-manager/product-publication-status";
 import { createProductManagerReadService } from "@/features/product-manager/server/product-draft.composition";
+import { isLocalTransactionalRequestsEnabled } from "@/features/transactions/server/local-purchase-requests";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export default async function ProductManagerPage({ searchParams }: ProductManage
               <Heading level={1} variant="editorial">Gestión de Productos</Heading>
               <Text className="max-w-2xl" variant="body">Registra, revisa y administra las prendas de REVA.</Text>
             </div>
-            <div className="flex flex-wrap gap-3"><Button href="/admin/productos/recomendados" variant="outline">Ordenar recomendados</Button><Button href="/admin/productos/nuevo" variant="solid">Agregar producto</Button></div>
+            <div className="flex flex-wrap gap-3">{isLocalTransactionalRequestsEnabled() ? <Button href="/admin/solicitudes" variant="outline">Gestión · Solicitudes y órdenes</Button> : null}<Button href="/admin/productos/recomendados" variant="outline">Ordenar recomendados</Button><Button href="/admin/productos/nuevo" variant="solid">Agregar producto</Button></div>
           </div>
 
           <section aria-labelledby="products-heading" className="space-y-4">
