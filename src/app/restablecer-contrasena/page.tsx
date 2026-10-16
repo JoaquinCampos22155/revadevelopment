@@ -36,10 +36,10 @@ export default async function PasswordResetPage({ searchParams }: PasswordResetP
   const hasInvalidPassword = params.error === "contrasena";
 
   return (
-    <main id="main-content">
+    <main className="reva-route-transition" id="main-content">
       <Section>
         <div className="mx-auto max-w-md space-y-8">
-          <div className="space-y-4 text-center">
+          <div className="reva-motion-enter space-y-4 text-center">
             <Text variant="label">Tu cuenta REVA</Text>
             <Heading level={1} variant="editorial">Crea una nueva contraseña.</Heading>
             <Text className="text-lg" variant="body">Usa al menos ocho caracteres. Al terminar, te pediremos iniciar sesión nuevamente.</Text>
@@ -47,14 +47,14 @@ export default async function PasswordResetPage({ searchParams }: PasswordResetP
 
           {hasInvalidPassword ? <p aria-live="polite" className="rounded-xl border border-reva-border bg-reva-muted px-4 py-3 text-sm leading-6 text-reva-primary">Revisa que ambas contraseñas coincidan y tengan al menos ocho caracteres.</p> : null}
 
-          <form action={updatePassword} className="space-y-5 rounded-xl border border-reva-border bg-reva-surface p-6 shadow-sm sm:p-8">
+          <form action={updatePassword} className="reva-motion-enter--second space-y-5 rounded-xl border border-reva-border bg-reva-surface p-6 shadow-sm sm:p-8">
             <div className="space-y-2">
               <label className="text-sm font-medium text-reva-primary" htmlFor="password">Nueva contraseña</label>
-              <input autoComplete="new-password" className="min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none transition focus:border-reva-brand-strong focus:ring-2 focus:ring-reva-focus/25" id="password" minLength={8} name="password" required type="password" />
+              <input autoComplete="new-password" className="reva-auth-field min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none focus-visible:border-reva-brand-strong focus-visible:ring-2 focus-visible:ring-reva-focus/25" id="password" minLength={8} name="password" required type="password" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-reva-primary" htmlFor="passwordConfirmation">Confirma la nueva contraseña</label>
-              <input autoComplete="new-password" className="min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none transition focus:border-reva-brand-strong focus:ring-2 focus:ring-reva-focus/25" id="passwordConfirmation" minLength={8} name="passwordConfirmation" required type="password" />
+              <input autoComplete="new-password" className="reva-auth-field min-h-11 w-full rounded-lg border border-reva-border bg-reva-surface px-3 text-reva-primary outline-none focus-visible:border-reva-brand-strong focus-visible:ring-2 focus-visible:ring-reva-focus/25" id="passwordConfirmation" minLength={8} name="passwordConfirmation" required type="password" />
             </div>
             <Button className="w-full" type="submit" variant="solid">Actualizar contraseña</Button>
           </form>
