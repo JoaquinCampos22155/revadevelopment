@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/Button";
-import { Heading } from "@/components/ui/Heading";
-import { Text } from "@/components/ui/Text";
 import {
   getInstagramProfileUrl,
   getWhatsAppProductInterestUrl,
@@ -16,27 +14,27 @@ export function ProductContactCta({ product }: ProductContactCtaProps) {
   const primaryChannel = whatsappUrl ? "whatsapp" : instagramUrl ? "instagram" : null;
 
   return (
-    <aside className="space-y-3 rounded-xl bg-reva-brand-strong p-5 text-reva-on-action sm:p-6">
-      <Text className="text-reva-on-action" variant="label">
-        Compra con REVA
-      </Text>
-      <Heading className="text-2xl text-reva-on-action sm:text-3xl" level={2} variant="editorial">
-        ¿Quieres comprar esta prenda?
-      </Heading>
-      <Text className="text-reva-on-action" variant="body">
+    <aside className="reva-pdp-inquiry space-y-3">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-reva-secondary">
+        ¿Tienes alguna duda?
+      </p>
+      <h2 className="font-serif text-xl font-medium leading-tight tracking-tight text-reva-primary sm:text-2xl">
+        Consulta sobre esta prenda
+      </h2>
+      <p className="text-sm leading-6 text-reva-secondary">
         {primaryChannel === "whatsapp"
-          ? "Escríbenos por WhatsApp para continuar con tu compra."
+          ? "Agregar al carrito no reserva la prenda."
           : primaryChannel === "instagram"
-            ? "Encuéntranos en Instagram para continuar con tu compra."
+            ? "Encuéntranos en Instagram para consultar sobre esta prenda."
             : "Los canales de consulta estarán disponibles próximamente."}
-      </Text>
+      </p>
       {whatsappUrl || instagramUrl ? <div className="flex flex-wrap gap-3">
-        {whatsappUrl ? <Button className="bg-reva-surface text-reva-primary hover:bg-reva-muted" href={whatsappUrl} rel="noreferrer" target="_blank" variant="solid">
-          Comprar por WhatsApp
+        {whatsappUrl ? <Button href={whatsappUrl} rel="noreferrer" target="_blank" variant="outline">
+          Consultar por WhatsApp
         </Button> : null}
-        {instagramUrl ? <Button className={whatsappUrl ? "border-reva-on-action/60 bg-transparent text-reva-on-action hover:border-reva-on-action hover:bg-reva-on-action/10" : "bg-reva-surface text-reva-primary hover:bg-reva-muted"} href={instagramUrl} rel="noreferrer" target="_blank" variant={whatsappUrl ? "outline" : "solid"}>
-          <span className={whatsappUrl ? "text-reva-on-action" : undefined}>Consultar por Instagram</span>
-        </Button> : null}
+        {instagramUrl ? <a className="inline-flex min-h-11 items-center px-2 text-xs text-reva-secondary underline underline-offset-4 transition-colors hover:text-reva-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2" href={instagramUrl} rel="noreferrer" target="_blank">
+          Consultar por Instagram
+        </a> : null}
       </div> : null}
     </aside>
   );

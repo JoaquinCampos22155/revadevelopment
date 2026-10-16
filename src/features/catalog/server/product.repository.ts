@@ -12,6 +12,7 @@ import type { PublishedCatalogFacets, PublishedCatalogPage, PublishedCatalogQuer
  */
 export interface ProductRepository {
   findPublishedBySlug(slug: ProductSlug): Promise<PublishedProduct | null>;
+  findPublishedPreviewsBySlugs(slugs: ReadonlyArray<ProductSlug>): Promise<ReadonlyArray<PublishedProductPreview>>;
   listRecommended(): Promise<ReadonlyArray<PublishedProductPreview>>;
   listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage>;
   listPublishedFacets(): Promise<PublishedCatalogFacets>;

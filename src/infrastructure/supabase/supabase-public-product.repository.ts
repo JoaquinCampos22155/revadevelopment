@@ -178,6 +178,19 @@ export class SupabasePublicProductRepository implements ProductRepository {
     return mapDetail(data, imageRows.map(mapImage), this.imageService);
   }
 
+  public async findPublishedPreviewsBySlugs(slugs: ReadonlyArray<string>): Promise<ReadonlyArray<PublishedProductPreview>> {
+    if (slugs.length === 0) return [];
+
+    const { data, error } = await this.client
+      .schema("api")
+      .from("published_product_previews")
+      .select("slug, title, price, audience, brand, garment_type, color, size_label, condition_rating, primary_image_id, primary_image_alt_text, primary_image_width, primary_image_height")
+      .in("slug", [...slugs]);
+
+    if (error) throw new Error("The selected public Products could not be read.");
+    return data.map((row) => mapPreview(row, this.imageService));
+  }
+
   public async listRecommended(): Promise<ReadonlyArray<PublishedProductPreview>> {
     const { data, error } = await this.client
       .schema("api")

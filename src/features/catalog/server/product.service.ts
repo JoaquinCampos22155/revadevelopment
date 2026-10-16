@@ -18,6 +18,10 @@ export class ProductService {
     return this.productRepository.findPublishedBySlug(slug);
   }
 
+  public getPublishedPreviewsBySlugs(slugs: ReadonlyArray<ProductSlug>): Promise<ReadonlyArray<PublishedProductPreview>> {
+    return this.productRepository.findPublishedPreviewsBySlugs(slugs);
+  }
+
   public listRecommended(): Promise<ReadonlyArray<PublishedProductPreview>> {
     return this.productRepository.listRecommended();
   }
