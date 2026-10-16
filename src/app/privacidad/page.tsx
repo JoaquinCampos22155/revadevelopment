@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
+import { getWhatsAppGeneralContactUrl } from "@/infrastructure/config/site-contact";
 
 export const metadata: Metadata = {
   title: "Privacidad | REVA",
@@ -40,7 +41,7 @@ const sections = [
     id: "proveedores",
     title: "Proveedores e infraestructura",
     navLabel: "Proveedores",
-    content: "REVA utiliza Supabase para autenticación, sesiones y datos operativos, y Render para alojar el sitio. Estos proveedores pueden procesar la información técnica necesaria para prestar sus servicios, incluidos registros operativos o de ejecución conforme a su propia configuración y políticas.",
+    content: "REVA no vende información personal ni la comparte con terceros para que la utilicen en su propio mercadeo. Proveedores necesarios para operar el sitio o atender una gestión —por ejemplo, alojamiento, autenticación, infraestructura de datos o mensajería cuando la persona elige ese canal— pueden tratar la información mínima necesaria para el servicio, con salvaguardas apropiadas y según se informe para cada uso. Supabase presta autenticación, sesiones y servicios de datos; Render aloja el sitio. Si contactas a REVA por WhatsApp o Instagram, también aplican las prácticas de privacidad de esa plataforma.",
   },
   {
     id: "pagos",
@@ -58,7 +59,7 @@ const sections = [
     id: "solicitudes",
     title: "Solicitudes de privacidad",
     navLabel: "Solicitudes",
-    content: "Puedes iniciar una consulta sobre tu información escribiendo al correo público de REVA. El procedimiento, verificación de identidad, alcance y plazo de atención aún no están definidos; no prometemos una eliminación automática ni un tiempo de respuesta.",
+    content: "Puedes enviar consultas de privacidad o solicitudes de acceso, corrección o eliminación al correo público de REVA o por su canal oficial de WhatsApp. Antes de revelar información o modificarla, REVA verificará razonablemente la identidad y autoridad de quien lo solicita. La eliminación puede estar sujeta a obligaciones comerciales o fiscales aplicables; enviar una solicitud no implica eliminación automática. No se promete un plazo de respuesta.",
   },
   {
     id: "seguridad",
@@ -70,13 +71,13 @@ const sections = [
     id: "conservacion",
     title: "Conservación, eliminación y solicitudes",
     navLabel: "Conservación",
-    content: "REVA aún no ofrece eliminación automática de cuentas ni ha publicado plazos específicos de conservación. No eliminamos de forma indiscriminada los registros operativos vinculados a prendas, porque ello puede afectar la trazabilidad, las responsabilidades internas y futuras decisiones de comercio. El proceso y canal específico para solicitudes de privacidad, eliminación o anonimización siguen pendientes de definición; esta página se actualizará antes de ampliar la funcionalidad de cuenta o el uso de datos.",
+    content: "REVA conserva información solo durante el tiempo justificado por los fines descritos y las obligaciones aplicables; no promete retención indefinida ni establece un plazo único para todos los datos. Los registros comerciales o fiscales que deban conservarse por ley se preservarán durante el período que corresponda. Actualmente no existe eliminación automática de cuentas desde el sitio. Las solicitudes de privacidad se reciben por los canales indicados arriba; cualquier divulgación o cambio requiere una verificación razonable de identidad y la revisión de obligaciones aplicables.",
   },
   {
     id: "cambios",
     title: "Tratamientos futuros, aún no activos",
     navLabel: "Tratamientos futuros",
-    content: "El Checkout actual no envía ni guarda los datos personales que escribas en sus campos. Si REVA habilita solicitudes de compra y órdenes, podría necesitar tratar por separado nombre y apellido, teléfono, municipio/zona y dirección de entrega; datos de facturación solo si se confirma que son necesarios; referencias de pago y datos mínimos para atender y auditar la operación. Una dirección guardada opcionalmente sería una función futura aparte y requeriría aprobación. Ninguna de estas funciones transaccionales está activa. Antes de comenzar a recopilar esos datos, REVA deberá actualizar este aviso para especificar su finalidad, destinatarios, uso limitado de proveedores y conservación. El diseño previsto contempla validación en servidor, acceso restringido bajo mínimo privilegio, controles de base de datos, cifrado apropiado de los datos sensibles con llaves fuera de la base de datos y acceso administrativo limitado y auditable; estas protecciones futuras no se presentan como ya implementadas. REVA no almacenará datos de tarjetas. Las solicitudes temporales futuras no reservarían prendas y vencerían individualmente 24 horas después de su registro en el servidor; los datos asociados se eliminarían conforme al procedimiento que se apruebe. Los registros de operaciones confirmadas se conservarían solo por el tiempo justificado para fines operativos o legales. Cualquier análisis geográfico futuro debería usar resultados agregados y no divulgar direcciones individuales. El consentimiento opcional de mercadeo se mantendrá separado del procesamiento necesario para una operación.",
+    content: "El Checkout actual no envía ni guarda los datos personales que escribas en sus campos. En una etapa futura, una solicitud temporal de compra expirará individualmente 24 horas después de su creación en el servidor, no reservará prendas y no se extenderá automáticamente. Las solicitudes expiradas o descartadas y sus datos asociados se eliminarán de los sistemas operativos; no se conservarán métricas de mercadeo derivadas de ellas. Los ciclos técnicos de recuperación y eliminación de copias de respaldo se documentarán antes de activar este tratamiento. Si REVA habilita órdenes, podría tratar por separado nombre y apellido, teléfono, municipio/zona y dirección de entrega, datos de facturación que se confirmen necesarios, y referencias operativas de pago. Estos usos futuros podrán apoyar la gestión de compra, entrega, facturación, atención al cliente y operaciones legítimas posteriores; no están activos hoy. Antes de habilitarlos, REVA actualizará este aviso con los fines, destinatarios, proveedores necesarios y conservación aplicables. El diseño previsto contempla validación en servidor, acceso restringido bajo mínimo privilegio, controles de base de datos, cifrado apropiado con llaves separadas de la base de datos y acceso administrativo limitado y auditable; estas protecciones futuras no se presentan como ya implementadas. REVA no almacenará datos de tarjetas. Los registros de órdenes se conservarán solo durante el tiempo justificado; los documentos comerciales o fiscales exigidos por ley podrán mantenerse durante el período aplicable. Cualquier análisis geográfico futuro usará resultados agregados, no direcciones individuales. La autorización para mercadeo será opcional y separada de la compra.",
   },
 ] as const;
 
@@ -84,6 +85,8 @@ const sectionColumns = [sections.slice(0, 6), sections.slice(6)] as const;
 
 /** Documents only REVA's current data surface and deliberately unresolved boundaries. */
 export default function PrivacyPage() {
+  const whatsappPrivacyUrl = getWhatsAppGeneralContactUrl();
+
   return (
     <main className="reva-route-transition" id="main-content">
       <Section className="border-b border-reva-border bg-reva-muted">
@@ -127,9 +130,12 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-between gap-5 border-t border-reva-border pt-5 sm:mt-16">
-          <p className="max-w-[75ch] text-sm leading-6 text-reva-secondary">
-            Correo público para iniciar una consulta de privacidad: <a className="font-medium text-reva-primary underline decoration-reva-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="mailto:cam22155@uvg.edu.gt">cam22155@uvg.edu.gt</a>. El flujo y los tiempos de gestión todavía requieren definición.
-          </p>
+          <div className="max-w-[75ch] text-sm leading-6 text-reva-secondary">
+            <p>Canales para consultas o solicitudes de privacidad:</p>
+            <a className="mr-5 inline-flex min-h-11 items-center font-medium text-reva-primary underline decoration-reva-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="mailto:cam22155@uvg.edu.gt">cam22155@uvg.edu.gt</a>
+            {whatsappPrivacyUrl ? <a className="inline-flex min-h-11 items-center font-medium text-reva-primary underline decoration-reva-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={whatsappPrivacyUrl} rel="noreferrer" target="_blank">WhatsApp de REVA<span className="sr-only"> (abre en una pestaña nueva)</span></a> : null}
+            <p className="mt-1">Este correo es provisional y cambiará cuando REVA establezca un dominio propio.</p>
+          </div>
           <Link className="inline-flex min-h-11 items-center text-sm font-medium text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/contacto">Ver canales de contacto</Link>
         </div>
         <nav aria-label="Información relacionada" className="mt-4 flex flex-wrap gap-x-7 gap-y-2 text-sm">
