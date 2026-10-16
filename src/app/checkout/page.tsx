@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { CheckoutPageClient } from "@/features/checkout/components/CheckoutPageClient";
 import { parseCheckoutSelection } from "@/features/checkout/checkout-selection";
 import { readCheckoutProducts } from "@/features/checkout/server/checkout-products";
+import { isLocalTransactionalRequestsEnabled } from "@/features/transactions/server/local-purchase-requests";
 import { isWhatsAppConfigured } from "@/infrastructure/config/site-contact";
 
 export const metadata: Metadata = {
@@ -17,9 +18,10 @@ type CheckoutPageProps = Readonly<{
 
 /** Noindex, non-transactional Checkout inquiry; only public slugs enter via the URL. */
 export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
+  const localTransactionalRequestsEnabled = isLocalTransactionalRequestsEnabled();
   const selection = parseCheckoutSelection(await searchParams);
   if (selection.entry === "invalid" || selection.entry === "empty") {
-    return <CheckoutPageClient canContactOnWhatsApp={isWhatsAppConfigured()} entry="cart" initialItems={[]} initialReadError={false} requestedSlugs={[]} selectionIssue={selection.entry} />;
+    return <CheckoutPageClient canContactOnWhatsApp={isWhatsAppConfigured()} entry="cart" initialItems={[]} initialReadError={false} localTransactionalRequestsEnabled={localTransactionalRequestsEnabled} requestedSlugs={[]} selectionIssue={selection.entry} />;
   }
 
   const read = await readCheckoutProducts(selection.slugs);
@@ -28,6 +30,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
     entry={selection.entry}
     initialItems={read.items}
     initialReadError={!read.ok}
+    localTransactionalRequestsEnabled={localTransactionalRequestsEnabled}
     requestedSlugs={selection.slugs}
     selectionIssue={null}
   />;

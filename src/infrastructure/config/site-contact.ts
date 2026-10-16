@@ -2,6 +2,7 @@ import "server-only";
 
 import { createCartWhatsAppMessage } from "@/features/cart/cart-whatsapp-message";
 import { createCheckoutContactMessage } from "@/features/checkout/checkout-contact-message";
+import { createPurchaseRequestMessage, type PurchaseRequestMessageInput } from "@/features/transactions/purchase-request-message";
 
 export type PublicProductContact = Readonly<{
   canonicalUrl: string | null;
@@ -73,6 +74,12 @@ export function getWhatsAppCartSelectionUrl(products: ReadonlyArray<Readonly<{ c
 /** Builds a Checkout inquiry using only current public Product information. */
 export function getWhatsAppCheckoutSelectionUrl(products: ReadonlyArray<Readonly<{ canonicalUrl: string; price: string; title: string }>>): string | null {
   const message = createCheckoutContactMessage(products);
+  return message ? createWhatsAppUrl(message) : null;
+}
+
+/** Builds the privacy-minimized handoff only after a purchase request is committed. */
+export function getWhatsAppPurchaseRequestUrl(request: PurchaseRequestMessageInput): string | null {
+  const message = createPurchaseRequestMessage(request);
   return message ? createWhatsAppUrl(message) : null;
 }
 

@@ -4,9 +4,6 @@ export type CheckoutContactProduct = Readonly<{
   title: string;
 }>;
 
-/** Inert future-format reference only; never sent by the current non-transactional Checkout. */
-export const CHECKOUT_PURCHASE_REQUEST_TEMPLATE = `Hola, quiero continuar con mi solicitud de compra en REVA.\n\nSolicitud: [referencia real asignada por REVA]\n\nPrendas:\n• [Nombre público de la prenda]\n  SKU: [SKU verificado]\n  Precio: Q[precio]\n\nSubtotal: Q[total]\nEnvío: [dirección autorizada por el cliente]\n\nYa completé mis datos de entrega y facturación en Checkout.\n\n¿Podrían confirmarme disponibilidad, costo de envío y enviarme el link de pago?`;
-
 function cleanLine(value: string): string {
   return value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
 }

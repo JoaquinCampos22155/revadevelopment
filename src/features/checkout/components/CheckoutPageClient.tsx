@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { cartSubtotal } from "@/features/cart/cart-total";
-import { createCheckoutWhatsAppUrl } from "@/features/checkout/server/checkout.actions";
+import { createCheckoutWhatsAppUrl, createLocalCheckoutPurchaseRequest } from "@/features/checkout/server/checkout.actions";
 import { getCheckoutProgress } from "@/features/checkout/checkout-progress";
 import { formatCheckoutContactName, validateCheckoutDelivery, type CheckoutDeliveryErrors, type CheckoutDeliveryField } from "@/features/checkout/checkout-validation";
 import { GUATEMALA_MUNICIPALITIES, findGuatemalaMunicipality, getVerifiedZoneCatalog, type GuatemalaMunicipalityCode } from "@/features/checkout-prototype/municipalities";
@@ -48,11 +48,12 @@ function updateContactValue(current: ContactDetails, field: keyof ContactDetails
   return { ...current, [field]: value };
 }
 
-export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, initialReadError, requestedSlugs, selectionIssue }: Readonly<{
+export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, initialReadError, localTransactionalRequestsEnabled, requestedSlugs, selectionIssue }: Readonly<{
   canContactOnWhatsApp: boolean;
   entry: CheckoutEntry;
   initialItems: readonly CheckoutResolvedItem[];
   initialReadError: boolean;
+  localTransactionalRequestsEnabled: boolean;
   requestedSlugs: readonly string[];
   selectionIssue: "empty" | "invalid" | null;
 }>) {
@@ -66,6 +67,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState(initialReadError ? "No pudimos verificar tu selección. Intenta actualizarla antes de continuar." : "");
   const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const idempotencyKey = useRef<string | null>(null);
   const deliveryFieldRefs = useRef<Partial<Record<CheckoutDeliveryField, HTMLInputElement | HTMLSelectElement | null>>>({});
   const municipality = findGuatemalaMunicipality(municipalityCode);
   const zoneCatalog = getVerifiedZoneCatalog(municipalityCode);
@@ -80,6 +82,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
   }, [reviewReady]);
 
   function updateContact(field: keyof ContactDetails, value: string) {
+    idempotencyKey.current = null;
     const next = updateContactValue(contact, field, value);
     setContact(next);
     if (Object.keys(validationErrors).length > 0) {
@@ -89,6 +92,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
   }
 
   function updateMunicipality(code: GuatemalaMunicipalityCode) {
+    idempotencyKey.current = null;
     setMunicipalityCode(code);
     setZone("");
     setReviewReady(false);
@@ -98,6 +102,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
   }
 
   function updateBillingType(type: BillingDemoType) {
+    idempotencyKey.current = null;
     setBilling((current) => selectBillingDemoType(current, type));
     setReviewReady(false);
   }
@@ -115,7 +120,52 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
       deliveryFieldRefs.current[firstInvalidField]?.focus();
       return;
     }
-    void continueToWhatsApp();
+    if (localTransactionalRequestsEnabled) void continueToLocalPurchaseRequest();
+    else void continueToWhatsApp();
+  }
+
+  async function continueToLocalPurchaseRequest() {
+    if (pending || unavailable || currentSlugs.length === 0 || !canContactOnWhatsApp) return;
+    idempotencyKey.current ??= globalThis.crypto.randomUUID();
+    setPending(true);
+    setNotice("");
+    try {
+      const expected = products.map(({ slug, price }) => ({ slug, price }));
+      const result = await createLocalCheckoutPurchaseRequest(currentSlugs, expected, {
+        billing: { nit: billing.nit, recipientName: billing.recipientName, type: billing.type },
+        contact,
+        delivery: {
+          apartment: contact.apartment,
+          houseNumber: contact.houseNumber,
+          neighborhood: contact.neighborhood,
+          reference: contact.reference,
+          street: contact.street,
+          zone,
+        },
+        municipalityCode,
+      }, idempotencyKey.current);
+      if (result.status === "changed") {
+        const refreshed = await createCheckoutWhatsAppUrl(currentSlugs, expected);
+        if (refreshed.items.length) setItems(refreshed.items);
+        setReviewReady(false);
+        idempotencyKey.current = null;
+        setNotice("El precio cambió mientras verificábamos. Revisa el resumen actualizado antes de continuar.");
+        return;
+      }
+      if (result.status === "rate-limited") {
+        setNotice("Por seguridad, espera un momento antes de volver a enviar esta solicitud.");
+        return;
+      }
+      if (result.status === "unavailable" || result.status === "invalid" || !result.url) {
+        setNotice("No pudimos guardar la solicitud. Revisa la selección e inténtalo de nuevo.");
+        return;
+      }
+      window.location.assign(result.url);
+    } catch {
+      setNotice("No pudimos guardar la solicitud ahora. Tus datos siguen en esta pantalla; inténtalo de nuevo.");
+    } finally {
+      setPending(false);
+    }
   }
 
   async function continueToWhatsApp() {
@@ -189,7 +239,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
       <div className="min-w-0">
         <div className="mb-8 rounded-2xl border border-reva-warning/25 bg-[#faf6ed] px-4 py-3.5 sm:flex sm:items-center sm:gap-3 sm:px-5">
           <span aria-hidden="true" className="mb-1 inline-grid size-6 shrink-0 place-items-center rounded-full border border-reva-warning/40 text-xs text-reva-warning sm:mb-0">i</span>
-          <p className="text-xs leading-5 text-reva-secondary"><strong className="font-semibold text-reva-primary">Privacidad:</strong> los datos de contacto, entrega y facturación permanecen en este navegador; no se guardan ni se envían a REVA. La consulta de WhatsApp incluye datos públicos de las prendas, subtotal y una pregunta sobre disponibilidad y entrega; no agregues datos personales. Consulta <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/terminos">Términos</Link> y <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/privacidad">Privacidad</Link>.</p>
+          <p className="text-xs leading-5 text-reva-secondary"><strong className="font-semibold text-reva-primary">Privacidad:</strong> {localTransactionalRequestsEnabled ? "esta instancia local de desarrollo guardará tu solicitud de prueba en Supabase local con los campos personales cifrados; no uses datos reales. El mensaje de WhatsApp solo incluye referencia, prendas verificadas y subtotal." : "los datos de contacto, entrega y facturación permanecen en este navegador; no se guardan ni se envían a REVA. La consulta de WhatsApp incluye datos públicos de las prendas, subtotal y una pregunta sobre disponibilidad y entrega; no agregues datos personales."} Consulta <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/terminos">Términos</Link> y <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/privacidad">Privacidad</Link>.</p>
         </div>
 
         {notice ? <p aria-live="polite" className="mb-6 rounded-xl border-l-2 border-reva-warning bg-[#faf6ed] px-4 py-3 text-sm leading-6 text-reva-secondary">{notice}</p> : null}
@@ -208,7 +258,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
               <label className={labelClass}>Correo electrónico <span className="font-normal text-reva-secondary">(opcional)</span><input autoComplete="off" className={fieldClass} onChange={(event) => updateContact("email", event.target.value)} placeholder="Correo" type="email" value={contact.email} /></label>
               <div className="flex min-h-[4.8rem] flex-col justify-center rounded-xl border border-reva-border/70 bg-white/75 px-4 py-3"><span className="text-xs uppercase tracking-[0.12em] text-reva-secondary">Departamento</span><span className="mt-1 font-medium">Guatemala <span className="ml-1 text-xs font-normal text-reva-secondary">· alcance actual de REVA</span></span></div>
               <label className={labelClass} htmlFor="checkout-municipality">Municipio {requiredLabel}<select aria-describedby={validationErrors.municipalityCode ? "checkout-municipality-error" : undefined} aria-invalid={Boolean(validationErrors.municipalityCode)} aria-required="true" className={`${geographicFieldClass} ${validationErrors.municipalityCode ? invalidFieldClass : ""}`} id="checkout-municipality" onChange={(event) => updateMunicipality(event.target.value as GuatemalaMunicipalityCode)} ref={(element) => { deliveryFieldRefs.current.municipalityCode = element; }} required value={municipalityCode}><option value="">Selecciona un municipio</option>{GUATEMALA_MUNICIPALITIES.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}</select>{validationErrors.municipalityCode ? <span className="mt-1.5 block text-xs font-medium text-reva-danger" id="checkout-municipality-error">{validationErrors.municipalityCode}</span> : null}</label>
-              <label className={labelClass}>Zona o sector <span className="font-normal text-reva-secondary">(opcional)</span>{zoneCatalog ? <select className={geographicFieldClass} onChange={(event) => { setZone(event.target.value); setReviewReady(false); }} value={zone}><option value="">Selecciona una zona, si aplica</option>{zoneCatalog.zones.map((number) => <option key={number} value={`Zona ${number}`}>Zona {number}</option>)}</select> : <input className={fieldClass} onChange={(event) => { setZone(event.target.value); setReviewReady(false); }} placeholder="Zona o sector, si aplica" value={zone} />}<span className="mt-1.5 block text-xs font-normal leading-5 text-reva-secondary">Puedes dejarlo vacío si no lo conoces.</span></label>
+              <label className={labelClass}>Zona o sector <span className="font-normal text-reva-secondary">(opcional)</span>{zoneCatalog ? <select className={geographicFieldClass} onChange={(event) => { idempotencyKey.current = null; setZone(event.target.value); setReviewReady(false); }} value={zone}><option value="">Selecciona una zona, si aplica</option>{zoneCatalog.zones.map((number) => <option key={number} value={`Zona ${number}`}>Zona {number}</option>)}</select> : <input className={fieldClass} onChange={(event) => { idempotencyKey.current = null; setZone(event.target.value); setReviewReady(false); }} placeholder="Zona o sector, si aplica" value={zone} />}<span className="mt-1.5 block text-xs font-normal leading-5 text-reva-secondary">Puedes dejarlo vacío si no lo conoces.</span></label>
               <label className={labelClass}>Colonia o residencial <span className="font-normal text-reva-secondary">(opcional)</span><input className={fieldClass} onChange={(event) => updateContact("neighborhood", event.target.value)} placeholder="Colonia o residencial" value={contact.neighborhood} /></label>
               <label className={labelClass} htmlFor="checkout-street">Calle o avenida {requiredLabel}<input aria-describedby={validationErrors.street ? "checkout-street-error" : undefined} aria-invalid={Boolean(validationErrors.street)} autoComplete="off" className={`${fieldClass} ${validationErrors.street ? invalidFieldClass : ""}`} id="checkout-street" ref={(element) => { deliveryFieldRefs.current.street = element; }} onChange={(event) => updateContact("street", event.target.value)} placeholder="Calle o avenida" required value={contact.street} />{validationErrors.street ? <span className="mt-1.5 block text-xs font-medium text-reva-danger" id="checkout-street-error">{validationErrors.street}</span> : null}</label>
               <label className={labelClass} htmlFor="checkout-house-number">Casa o lote {requiredLabel}<input aria-describedby={validationErrors.houseNumber ? "checkout-house-error" : undefined} aria-invalid={Boolean(validationErrors.houseNumber)} autoComplete="off" className={`${fieldClass} ${validationErrors.houseNumber ? invalidFieldClass : ""}`} id="checkout-house-number" ref={(element) => { deliveryFieldRefs.current.houseNumber = element; }} onChange={(event) => updateContact("houseNumber", event.target.value)} placeholder="Número de casa o lote" required value={contact.houseNumber} />{validationErrors.houseNumber ? <span className="mt-1.5 block text-xs font-medium text-reva-danger" id="checkout-house-error">{validationErrors.houseNumber}</span> : null}</label>
@@ -227,7 +277,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
                   {(["cf", "nit"] as const).map((type) => <label className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm transition-colors motion-reduce:transition-none ${billing.type === type ? "border-reva-brand-strong/50 bg-white font-medium text-reva-primary shadow-sm" : "border-reva-border bg-white/65 text-reva-secondary hover:border-reva-brand-strong/30"}`} key={type}><input checked={billing.type === type} className="size-4 accent-[#294b58] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-reva-focus" name="billing-type" onChange={() => updateBillingType(type)} type="radio" /><span>{type === "cf" ? "Consumidor Final (CF)" : "Factura con NIT"}</span></label>)}
                 </div>
               </fieldset>
-              {billing.type === "cf" ? <p className="mt-4 rounded-xl border-l-2 border-reva-brand-strong/45 bg-white/80 px-4 py-3 text-xs leading-5 text-reva-secondary" role="status">CF seleccionado para esta vista. No se pide NIT. Esto no determina si CF aplica a una transacción futura.</p> : <div className="mt-4 border-t border-reva-border/70 pt-4"><div className="grid gap-x-4 gap-y-4 sm:grid-cols-2"><label className={labelClass} htmlFor="checkout-billing-name">Nombre a facturar <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-name" onChange={(event) => { setBilling((current) => updateBillingDemoRecipientName(current, event.target.value)); setReviewReady(false); }} value={billing.recipientName} /></label><label className={labelClass} htmlFor="checkout-billing-nit">NIT <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-nit" onChange={(event) => { setBilling((current) => updateBillingDemoNit(current, event.target.value)); setReviewReady(false); }} value={billing.nit} /></label></div></div>}
+              {billing.type === "cf" ? <p className="mt-4 rounded-xl border-l-2 border-reva-brand-strong/45 bg-white/80 px-4 py-3 text-xs leading-5 text-reva-secondary" role="status">CF seleccionado para esta vista. No se pide NIT. Esto no determina si CF aplica a una transacción futura.</p> : <div className="mt-4 border-t border-reva-border/70 pt-4"><div className="grid gap-x-4 gap-y-4 sm:grid-cols-2"><label className={labelClass} htmlFor="checkout-billing-name">Nombre a facturar <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-name" onChange={(event) => { idempotencyKey.current = null; setBilling((current) => updateBillingDemoRecipientName(current, event.target.value)); setReviewReady(false); }} value={billing.recipientName} /></label><label className={labelClass} htmlFor="checkout-billing-nit">NIT <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-nit" onChange={(event) => { idempotencyKey.current = null; setBilling((current) => updateBillingDemoNit(current, event.target.value)); setReviewReady(false); }} value={billing.nit} /></label></div></div>}
               <p className="mt-3 border-l-2 border-reva-brand-strong/35 pl-3 text-xs leading-5 text-reva-secondary">No hay validación fiscal ni envío de estos datos. Los criterios de facturación requieren confirmación calificada antes de implementar FEL.</p>
             </div>
           </section>
@@ -255,7 +305,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
               </div> : null}
               <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
                 <button className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-reva-brand-strong/30 bg-white px-6 text-sm font-semibold text-reva-primary transition hover:bg-[#eef3f3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2 motion-reduce:transition-none sm:w-auto" type="submit">{reviewReady ? "Actualizar revisión" : "Revisar antes de continuar"}</button>
-                {canContactOnWhatsApp ? <Button className="w-full sm:w-auto" disabled={pending || unavailable} onClick={proceedToPurchase} variant="solid">{pending ? "Verificando prendas…" : "Proceder a compra"}</Button> : <div><p className="text-sm text-reva-secondary">La consulta por WhatsApp no está disponible ahora.</p><Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/contacto">Ver canales de contacto</Link></div>}
+              {canContactOnWhatsApp ? <Button className="w-full sm:w-auto" disabled={pending || unavailable} onClick={proceedToPurchase} variant="solid">{pending ? localTransactionalRequestsEnabled ? "Guardando solicitud…" : "Verificando prendas…" : "Proceder a compra"}</Button> : <div><p className="text-sm text-reva-secondary">La consulta por WhatsApp no está disponible ahora.</p><Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/contacto">Ver canales de contacto</Link></div>}
               </div>
               <p className="mt-5 text-center text-[0.68rem] font-medium text-reva-secondary">Esta consulta no crea orden, reserva, cotización de envío, factura ni pago.</p>
             </div>
@@ -267,7 +317,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
         <div className="overflow-hidden rounded-[1.5rem] border border-reva-border bg-white shadow-[0_24px_70px_-48px_rgba(32,53,61,0.55)] lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-contain">
           <div className="relative isolate flex items-start justify-between gap-4 overflow-hidden bg-[#e5edf1] px-5 py-5 sm:px-6 lg:sticky lg:top-0 lg:z-10"><div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-14 size-40 rounded-full border border-reva-brand-strong/10" /><div><p className="text-[0.64rem] font-semibold uppercase tracking-[0.17em] text-reva-brand-strong">Resumen actual</p><h2 className="mt-1 font-serif text-2xl text-reva-primary" id="summary-heading">Tus prendas</h2></div><span className="grid size-10 place-items-center rounded-full border border-white/80 bg-white/75 font-serif text-sm text-reva-brand-strong">{String(products.length).padStart(2, "0")}</span></div>
           <ul aria-label="Productos de tu selección" className="divide-y divide-reva-border/70 px-5 sm:px-6">{items.map(({ product, slug }) => <li className="flex gap-3 py-4" key={slug}>{product ? <div className="relative aspect-[4/5] w-[4.25rem] shrink-0 overflow-hidden rounded-lg bg-reva-muted"><Image alt={product.image.alt} className="object-cover" fill sizes="68px" src={product.image.src} /></div> : <div aria-hidden="true" className="grid aspect-[4/5] w-[4.25rem] shrink-0 place-items-center rounded-lg bg-[#f5e9e7] text-xs font-semibold text-reva-danger">No disponible</div>}<div className="min-w-0 flex-1 self-center">{product ? <><p className="text-[0.6rem] font-semibold uppercase tracking-[0.13em] text-reva-secondary">Pieza única · {product.condition}</p><h3 className="mt-1 font-serif text-base leading-snug text-reva-primary">{product.title}</h3><p className="mt-1 text-xs text-reva-secondary">{product.sizeLabel ? `Talla ${product.sizeLabel}` : "Talla no indicada"}</p><p className="mt-2 text-sm font-semibold tabular-nums">Q {product.price}</p></> : <><p className="text-[0.6rem] font-semibold uppercase tracking-[0.13em] text-reva-danger">No disponible</p><h3 className="mt-1 break-all text-sm text-reva-primary">No se pudo verificar esta prenda</h3></>}</div></li>)}</ul>
-          <div className="border-t border-reva-border bg-[#fbfbf9] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-4"><span className="text-sm text-reva-secondary">Subtotal de prendas</span><span className="font-serif text-xl tabular-nums text-reva-primary">{subtotal}</span></div><div className="mt-4 flex items-center justify-between gap-4 border-t border-reva-border/70 pt-4"><span className="text-sm text-reva-secondary">Entrega</span><span className="text-right text-xs text-reva-secondary">Por confirmar con REVA</span></div><p className="mt-4 rounded-xl bg-[#f5f2ee] px-3.5 py-3 text-xs leading-5 text-reva-secondary">El precio es actual según la ficha pública, pero disponibilidad y cualquier costo de entrega se confirman antes de aceptar la compra.</p><p className="mt-4 text-center text-[0.66rem] uppercase tracking-[0.12em] text-reva-secondary">No es un total de pago</p><Button className="mt-5 w-full" disabled={pending || unavailable || !canContactOnWhatsApp} onClick={proceedToPurchase} variant="solid">{pending ? "Verificando prendas…" : "Proceder a compra"}</Button></div>
+          <div className="border-t border-reva-border bg-[#fbfbf9] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-4"><span className="text-sm text-reva-secondary">Subtotal de prendas</span><span className="font-serif text-xl tabular-nums text-reva-primary">{subtotal}</span></div><div className="mt-4 flex items-center justify-between gap-4 border-t border-reva-border/70 pt-4"><span className="text-sm text-reva-secondary">Entrega</span><span className="text-right text-xs text-reva-secondary">Por confirmar con REVA</span></div><p className="mt-4 rounded-xl bg-[#f5f2ee] px-3.5 py-3 text-xs leading-5 text-reva-secondary">El precio es actual según la ficha pública, pero disponibilidad y cualquier costo de entrega se confirman antes de aceptar la compra.</p><p className="mt-4 text-center text-[0.66rem] uppercase tracking-[0.12em] text-reva-secondary">No es un total de pago</p><Button className="mt-5 w-full" disabled={pending || unavailable || !canContactOnWhatsApp} onClick={proceedToPurchase} variant="solid">{pending ? localTransactionalRequestsEnabled ? "Guardando solicitud…" : "Verificando prendas…" : "Proceder a compra"}</Button></div>
         </div>
         <p className="mt-4 px-1 text-xs leading-5 text-reva-secondary">La disponibilidad se confirmará antes de continuar.</p>
       </aside>
