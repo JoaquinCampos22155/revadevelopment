@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabaseEnvironment } from "@/infrastructure/config/environment";
 import { hasPasswordRecoveryClaim } from "@/features/auth/server/recovery-session";
+import { getAuthCallbackRedirectLocation } from "@/features/auth/auth-callback-redirect";
 
 /**
  * Exchanges the email-confirmation token for a cookie-backed session before
@@ -18,7 +19,10 @@ export async function GET(request: NextRequest) {
   redirectUrl.pathname = type === "recovery" ? "/restablecer-contrasena" : "/catalogo";
   redirectUrl.search = "";
 
-  const response = NextResponse.redirect(redirectUrl);
+  const response = new NextResponse(null, {
+    status: 307,
+    headers: { location: getAuthCallbackRedirectLocation(redirectUrl) },
+  });
   const { publishableKey, url } = getSupabaseEnvironment();
   const supabase = createServerClient(url, publishableKey, {
     cookies: {
@@ -37,7 +41,10 @@ export async function GET(request: NextRequest) {
   if (!code && (!tokenHash || !type)) {
     redirectUrl.pathname = "/iniciar-sesion";
     redirectUrl.searchParams.set("error", "confirmacion");
-    return NextResponse.redirect(redirectUrl);
+    return new NextResponse(null, {
+      status: 307,
+      headers: { location: getAuthCallbackRedirectLocation(redirectUrl) },
+    });
   }
 
   const { error } = code
@@ -47,13 +54,16 @@ export async function GET(request: NextRequest) {
   if (error) {
     redirectUrl.pathname = "/iniciar-sesion";
     redirectUrl.searchParams.set("error", "confirmacion");
-    return NextResponse.redirect(redirectUrl);
+    return new NextResponse(null, {
+      status: 307,
+      headers: { location: getAuthCallbackRedirectLocation(redirectUrl) },
+    });
   }
 
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
   const isRecovery = !claimsError && hasPasswordRecoveryClaim(claimsData?.claims);
   redirectUrl.pathname = isRecovery ? "/restablecer-contrasena" : "/catalogo";
-  response.headers.set("location", redirectUrl.toString());
+  response.headers.set("location", getAuthCallbackRedirectLocation(redirectUrl));
 
   return response;
 }

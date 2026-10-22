@@ -1,9 +1,22 @@
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
+import { resolveLegacyAuthRedirect } from "@/features/auth/auth-origin-redirect";
+import { getRevaSiteUrl } from "@/infrastructure/config/site";
 import { updateSupabaseSession } from "@/infrastructure/supabase/proxy";
 
-/** Refreshes Auth cookies without making public routes require authentication. */
+/** Canonicalizes legacy-host Auth entry GETs while preserving session-bound callbacks and mutations. */
 export async function proxy(request: NextRequest) {
+  const hasSupabaseSessionCookie = request.cookies.getAll().some(({ name }) => name.includes("-auth-token"));
+  const destination = resolveLegacyAuthRedirect({
+    hasSupabaseSessionCookie,
+    method: request.method,
+    officialOrigin: getRevaSiteUrl().origin,
+    requestUrl: request.url,
+  });
+
+  if (destination) return NextResponse.redirect(destination, 307);
+
   return updateSupabaseSession(request);
 }
 
