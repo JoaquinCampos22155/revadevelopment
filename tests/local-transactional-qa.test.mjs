@@ -79,7 +79,45 @@ test("local QA preserves an existing credentials file without resetting password
 });
 
 test("opening local credentials launches the viewer without waiting for it to close", async () => {
-  const started = performance.now();
-  await launchDetachedProcess(process.execPath, ["-e", "setTimeout(() => {}, 400)"]);
-  assert.ok(performance.now() - started < 300);
+  const directory = await mkdtemp(path.join(os.tmpdir(), "reva-detached-viewer-test-"));
+  const readyPath = path.join(directory, "ready");
+  const releasePath = path.join(directory, "release");
+  const closedPath = path.join(directory, "closed");
+  const script = "const fs = require('node:fs'); const [ready, release, closed] = process.argv.slice(1); fs.writeFileSync(ready, 'ready'); const watcher = setInterval(() => { if (fs.existsSync(release)) { clearInterval(watcher); fs.writeFileSync(closed, 'closed'); } }, 10);";
+
+  try {
+    const launch = launchDetachedProcess(process.execPath, ["-e", script, readyPath, releasePath, closedPath]);
+    await waitForFile(readyPath);
+
+    let timeout;
+    const launchSettledBeforeClose = await Promise.race([
+      launch.then(() => true),
+      new Promise((resolve) => { timeout = setTimeout(() => resolve(false), 5_000); }),
+    ]);
+    clearTimeout(timeout);
+
+    assert.equal(launchSettledBeforeClose, true);
+    await assert.rejects(readFile(closedPath, "utf8"), (error) => error.code === "ENOENT");
+  } finally {
+    await writeFile(releasePath, "release").catch(() => undefined);
+    await waitForFile(closedPath).catch(() => undefined);
+    await rm(directory, { recursive: true, force: true });
+  }
 });
+
+async function waitForFile(filePath) {
+  const deadline = Date.now() + 5_000;
+
+  while (Date.now() < deadline) {
+    try {
+      await readFile(filePath);
+      return;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+
+  throw new Error(`Timed out waiting for a test marker: ${path.basename(filePath)}`);
+}
