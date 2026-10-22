@@ -26,6 +26,7 @@
 # misc
 .DS_Store
 *.pem
+*.key
 
 # debug
 npm-debug.log*
@@ -37,6 +38,16 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Local credentials and database backups; source migrations and SQL tests remain trackable.
+**/credentials.json
+/backups/
+/supabase/backups/
+*.dump
+*.dump.gz
+*.backup
+*.backup.gz
+*.sql.gz
+
 # vercel
 .vercel
 
@@ -44,6 +55,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Private REVA master reference; customer-facing pages and content remain trackable.
-/docs/private/REVA_CONTENT_MASTER.md
-/docs/private/REVA_KEY_MANAGEMENT.md
+# Private REVA references; customer-facing pages and public project documentation remain trackable.
+/docs/private/
