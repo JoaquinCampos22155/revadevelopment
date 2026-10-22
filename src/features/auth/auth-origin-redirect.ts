@@ -17,14 +17,32 @@ type LegacyAuthRedirectInput = Readonly<{
   hasSupabaseSessionCookie: boolean;
   method: string;
   officialOrigin: string;
+  requestHost: string | null;
   requestUrl: string;
 }>;
+
+function isLegacyRenderHost(hostHeader: string | null): boolean {
+  if (!hostHeader) return false;
+
+  try {
+    const parsedHost = new URL(`http://${hostHeader}`);
+    return parsedHost.hostname === renderHost
+      && !parsedHost.username
+      && !parsedHost.password
+      && parsedHost.pathname === "/"
+      && !parsedHost.search
+      && !parsedHost.hash;
+  } catch {
+    return false;
+  }
+}
 
 /** Redirects only legacy-host Auth page GETs, keeping callbacks and session-bound recovery on their origin. */
 export function resolveLegacyAuthRedirect({
   hasSupabaseSessionCookie,
   method,
   officialOrigin,
+  requestHost,
   requestUrl,
 }: LegacyAuthRedirectInput): string | null {
   if (method !== "GET") return null;
@@ -40,7 +58,7 @@ export function resolveLegacyAuthRedirect({
   }
 
   if (
-    request.hostname !== renderHost
+    (request.hostname !== renderHost && !isLegacyRenderHost(requestHost))
     || official.origin !== "https://revagt.com"
     || official.pathname !== "/"
     || official.search

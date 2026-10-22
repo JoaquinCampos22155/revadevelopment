@@ -6,12 +6,18 @@ const redirectModule = await import("../src/features/auth/auth-origin-redirect.t
   throw error;
 });
 
-function resolveRedirect(url, method = "GET", hasSupabaseSessionCookie = false) {
+function resolveRedirect(
+  url,
+  method = "GET",
+  hasSupabaseSessionCookie = false,
+  requestHost = new URL(url).host,
+) {
   return redirectModule?.resolveLegacyAuthRedirect?.({
     hasSupabaseSessionCookie,
     method,
     officialOrigin: "https://revagt.com",
     requestUrl: url,
+    requestHost,
   }) ?? null;
 }
 
@@ -20,6 +26,7 @@ function resolveRedirectTo(url, officialOrigin) {
     hasSupabaseSessionCookie: false,
     method: "GET",
     officialOrigin,
+    requestHost: new URL(url).host,
     requestUrl: url,
   }) ?? null;
 }
@@ -36,6 +43,45 @@ test("Render password recovery redirects to the same official route", () => {
     resolveRedirect("https://reva-gt.onrender.com/recuperar-contrasena?estado=solicitud-enviada"),
     "https://revagt.com/recuperar-contrasena?estado=solicitud-enviada",
   );
+});
+
+test("Render redirect matches the validated incoming Host when Next uses an internal request URL", () => {
+  assert.equal(
+    resolveRedirect(
+      "http://localhost:10000/iniciar-sesion",
+      "GET",
+      false,
+      "reva-gt.onrender.com:10000",
+    ),
+    "https://revagt.com/iniciar-sesion",
+  );
+});
+
+test("unrelated Host values do not trigger a canonical redirect", () => {
+  assert.equal(
+    resolveRedirect(
+      "http://localhost:10000/iniciar-sesion",
+      "GET",
+      false,
+      "attacker.example",
+    ),
+    null,
+  );
+});
+
+test("malformed or userinfo-bearing Host values cannot spoof the legacy host", () => {
+  for (const requestHost of [
+    "reva-gt.onrender.com.attacker.example",
+    "attacker@reva-gt.onrender.com",
+    "reva-gt.onrender.com/attacker",
+    "reva-gt.onrender.com,attacker.example",
+  ]) {
+    assert.equal(
+      resolveRedirect("http://localhost:10000/iniciar-sesion", "GET", false, requestHost),
+      null,
+      requestHost,
+    );
+  }
 });
 
 test("Render reset redirect preserves a possible session cookie origin", () => {
