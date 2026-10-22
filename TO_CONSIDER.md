@@ -10,11 +10,11 @@ For durable engineering law, use `AGENTS.md`. For approved business rules, publi
 
 ### Production domain, URLs, and SEO operations
 
-- **State:** No final production domain has been selected.
-- **Why deferred:** Development uses localhost and must not invent production URLs.
-- **Reconsider:** Before the first production deployment.
-- **Trigger:** A production domain and hosting plan are approved.
-- **Required decision:** `metadataBase`, canonical URLs, sitemap, robots policy, Auth Site URL and redirects, image-domain strategy, and Search Console ownership.
+- **State (2026-10-22):** `https://revagt.com` is the approved official domain and resolves with HTTPS; `www.revagt.com` redirects to the apex. The Render hostname remains accessible, and both hosts now emit official-apex canonical URLs. The developer reports Supabase Auth URL settings and email templates were updated, but those Dashboard values remain unverified.
+- **Why still open:** Live Render Auth entry GETs have not yet been redirected by the local, undeployed code. Both hosts currently send a tokenless Auth callback to the internal `https://localhost:10000` host; a local allowlisted relative-redirect fix is implemented but not deployed. Auth callbacks, allowlists, and actual production login/recovery still need verification.
+- **Reconsider:** Before declaring domain/Auth consolidation complete or relying on official-domain Auth emails.
+- **Payment provider boundary:** Current operational concept remains administrator-generated/manual Recurrente links and manual payment verification. Recurrente-hosted Checkout, API integration, and webhooks remain future evaluation only; no integration is approved by this domain/Auth change.
+- **Required actions:** Release the local Auth redirects/callback fix; verify Render's effective configuration through the Dashboard and preserve all existing Supabase Auth allowlist entries; verify registration, recovery, confirmation, reset, login/logout and sessions on the official host. Live Catalog/PDP currently have canonical URLs but no `og:url` metadata; decide whether route-specific Open Graph URL metadata is needed. Existing sitemap/robots endpoints were not found in source and returned 404; decide their SEO need separately rather than adding them as part of this Auth change.
 - **Category:** Pre-launch requirement.
 
 ### Production transactional email identity
@@ -437,3 +437,9 @@ M017–M024 and the manual Recurrente purchase lifecycle now exist and pass loca
 - **Still required before legal/fiscal certification or transactional activation:** Confirm seller payout method and final intake/notification procedure; donation routing/consent and Drop capacity/schedule; operational delivery serviceability/cost/timing; exact Order/hold expiry, late-payment/refund/recovery behavior; merchant onboarding, payment-link process and current Recurrente terms/fees; data-retention periods/backups and deletion evidence; and qualified Guatemala legal/fiscal review including FEL/tax issuer/consumer requirements. Privacy contact email is provisional until REVA owns a domain. The Terms/Privacy pages remain informational, not legal/fiscal certification.
 - **Boundary:** Current informational pages publish approved business policies while accurately distinguishing future/unimplemented operations. Obtain qualified Guatemala legal/fiscal review before treating them as enforceable contract terms or activating transactional data collection/payment.
 - **Category:** Public content and commercial-policy graduation gate.
+
+## Official domain/Auth transition — 2026-10-21/22
+
+`https://revagt.com` is the selected public domain; live DNS/HTTPS checks passed and `www` redirects to the apex. The Render host remains accessible. On 2026-10-22, Catalog/PDP canonicals from both public hosts used the official apex; this confirms effective public URL generation but not the Render variable value or deployed commit. The developer reports Supabase Auth Site URL, redirect allowlist, email templates, and Render configuration were updated; Dashboard values remain unverified. Preserve existing Render and local callback allowlist entries. Local Auth entry GET redirects and the relative callback redirect fix are not deployed. Live tokenless `/auth/confirm` still redirects to internal `https://localhost:10000/...`; release and verify the code fix before claiming domain/Auth consolidation. No Dashboard setting was changed.
+
+The developer reports M017–M024 applied, Pro scheduled backups, verified Storage downloads, and production AES/HMAC configuration. This assessment did not independently verify those external states. Production transaction activation remains off.

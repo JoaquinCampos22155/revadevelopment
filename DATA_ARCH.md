@@ -508,6 +508,10 @@ M021–M024 were applied forward-only to the isolated local Supabase instance. T
 
 ## Evolution Rules
 
+### Hosted transactional foundation status — 2026-10-22
+
+The developer reports that hosted migrations M017–M024 are applied and verified, Supabase Pro scheduled backups are active, Storage backup objects were checked, and production AES/HMAC keys are configured. Those external states were not independently inspected in this domain/Auth task; no key values are recorded here. The historical preflight notes above describe their recorded dates and must not be read as current verification. Application transactional Checkout remains gated to development plus an explicit flag and loopback Supabase; the reported hosted foundation does not enable customer-data collection.
+
 This document evolves only through approved architectural changes. A migration must not silently introduce a new data concept, relationship, provider dependency, public exposure, or authorization model.
 
 When an approved implementation changes the data model, update this document in the same change. When a decision is still uncertain, keep it out of migrations until it has an explicit owner and approval.

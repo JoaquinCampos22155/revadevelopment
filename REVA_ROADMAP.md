@@ -13,9 +13,9 @@ This document is REVA's durable high-level direction from the current MVP toward
 
 ## Current Baseline
 
-REVA has a public MVP deployed on Render with a Supabase backend, public Catalog and PDPs, Product Manager, curated recommendations, and real inventory. Migrations M001–M016 are part of the implemented architecture. The current production deployment does not replace the planned custom-domain workstream.
+REVA has a public MVP deployed on Render with a Supabase backend, public Catalog and PDPs, Product Manager, curated recommendations, and real inventory. Migrations M001–M016 are part of the implemented architecture. The approved official domain is `https://revagt.com`; read-only checks on 2026-10-22 found both the apex and Render hostname serving HTTPS with Catalog/Product canonicals set to the official apex, and `www` redirecting to the apex. This confirms the runtime is using the official canonical origin, but does not expose Render's variable value or deployed commit. Supabase Auth URL settings remain unverified.
 
-Sprint 30 adds an anonymous, browser-local Cart/selection with no reservation. The approved official `/checkout` now resolves current public Products and opens a WhatsApp purchase inquiry, without transmitting form fields or creating a transaction. Orders, reservations, payment integration/link issuance or verification, FEL, chatbot, and analytics do **not** currently exist. Their absence is intentional; the Cart and inquiry do not imply any of them.
+The anonymous Cart remains browser-local and does not reserve inventory. The public `/checkout` remains non-transactional and opens a WhatsApp inquiry; it does not submit or persist customer form data. Transactional request/Order schema and manual payment coordination are implemented, and the developer reports hosted migrations M017–M024 applied. That external migration and production-key state was not re-verified in this domain task. Production customer-data collection and transactional Checkout remain disabled; payment integration/automated verification, FEL, chatbot, and analytics are not active.
 
 ## Approved Preferred Workstream Order (2026-10-08)
 
@@ -55,7 +55,10 @@ No 2.5D substitute or 3D prototype is in scope while this milestone is deferred.
 
 ### Custom Domain
 
-- Final domain, Render configuration, `REVA_SITE_URL`, Supabase Auth URLs, canonical/SEO settings, privacy documentation, and marketing/QR links.
+- **Selected:** `https://revagt.com` is the official public domain; `https://reva-gt.onrender.com` remains an alternative technical entry point. DNS/HTTPS were checked read-only, and `www` returned a permanent redirect to the apex.
+- **Current state:** live Catalog and PDP canonical tags now use the official apex. Render Auth-entry GET redirects and a safe callback redirect correction are present only in the local working tree and are not deployed. Live Render login/recovery entries still return 200; live tokenless `/auth/confirm` currently redirects to internal `https://localhost:10000/...` on both hosts. The local callback correction emits relative, allowlisted destinations and preserves host-scoped callback cookies.
+- **Auth configuration:** the developer reports the Supabase Site URL/Redirect URLs and email templates have been updated; those Dashboard settings remain independently unverified. POST Server Actions and `/auth/confirm` are excluded from the legacy-host proxy redirect; a reset request with a Supabase session cookie remains on its current origin.
+- **Do not:** globally redirect the Render hostname or assume domain consolidation is complete until the local fixes are released, runtime callbacks are rechecked, Supabase settings are verified, and safe real Auth flows pass.
 
 ### Cart / Selection
 
@@ -173,7 +176,7 @@ The preferred order is not permission to activate transactional checkout before 
 
 ### Official non-transactional Checkout
 
-The official customer journey supports direct single-Product entry from PDP and multi-Product entry from Cart through one `/checkout` route. It uses only public Product slugs as selection references, the current public projection as the authority for availability and price, and an explicit user-initiated WhatsApp inquiry containing public Product facts only. Checkout delivery/contact/billing inputs are temporary browser-memory review fields and are neither submitted nor stored. This is not a confirmed purchase or payment flow. Orders, temporary inventory reservations, secure customer-data submission, payment-link issuance/verification, and FEL remain future architecture requiring separate approval.
+The official customer journey supports direct single-Product entry from PDP and multi-Product entry from Cart through one `/checkout` route. Public Checkout remains non-transactional: delivery/contact/billing inputs are temporary browser-memory review fields and are not submitted or stored, and the public conversion is an explicit WhatsApp inquiry. A development-gated transactional request/Order backend and manual Recurrente coordination are implemented. The developer reports hosted migrations M017–M024 and production encryption keys configured; these control-plane and database states were not independently verified in this domain QA. Production transactional Checkout remains disabled. Automated payment verification, FEL and real customer-data collection activation remain future gates requiring separate approval.
 
 ### Checkout geography map
 
