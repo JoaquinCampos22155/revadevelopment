@@ -17,6 +17,7 @@ import type {
 } from "@/features/catalog/server/product.types";
 import type { Money } from "@/types/money";
 import type { Database, Json } from "@/infrastructure/supabase/database.types";
+import { getCatalogPageRange, resolveCatalogPagination } from "@/features/catalog/catalog-pagination";
 
 type PublishedProductPreviewRow =
   Database["api"]["Views"]["published_product_previews"]["Row"];
@@ -210,15 +211,40 @@ export class SupabasePublicProductRepository implements ProductRepository {
 
   public async listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage> {
     const { filters, page, pageSize } = query;
-    const first = (page - 1) * pageSize;
+    let requestedPage = page;
+    let knownTotal: number | null = null;
+
+    if (page > 1) {
+      let countRequest = this.client
+        .schema("api")
+        .from("published_product_previews")
+        .select("slug", { count: "exact", head: true });
+
+      if (filters.audiences.length) countRequest = countRequest.in("audience", filters.audiences);
+      if (filters.brands.length) countRequest = countRequest.in("brand", filters.brands);
+      if (filters.colors.length) countRequest = countRequest.in("color", filters.colors);
+      if (filters.conditionRatings.length) countRequest = countRequest.in("condition_rating", filters.conditionRatings);
+      if (filters.garmentTypes.length) countRequest = countRequest.in("garment_type", filters.garmentTypes);
+      if (filters.sizes.length) countRequest = countRequest.in("size_label", filters.sizes);
+      if (filters.minPriceCents !== null) countRequest = countRequest.gte("price_cents", filters.minPriceCents);
+      if (filters.maxPriceCents !== null) countRequest = countRequest.lte("price_cents", filters.maxPriceCents);
+
+      const { count, error } = await countRequest;
+      if (error) throw new Error("The public Product catalog could not be counted.");
+      knownTotal = count ?? 0;
+      requestedPage = resolveCatalogPagination(page, knownTotal, pageSize).currentPage;
+    }
+
+    const { first, last } = getCatalogPageRange(requestedPage, pageSize);
     let request = this.client
       .schema("api")
       .from("published_product_previews")
       .select(
         "slug, title, price, audience, brand, garment_type, color, size_label, condition_rating, primary_image_id, primary_image_alt_text, primary_image_width, primary_image_height",
-        { count: "exact" },
+        knownTotal === null ? { count: "exact" } : {},
       )
-      .order("title", { ascending: true });
+      .order("title", { ascending: true })
+      .order("slug", { ascending: true });
 
     if (filters.audiences.length) request = request.in("audience", filters.audiences);
     if (filters.brands.length) request = request.in("brand", filters.brands);
@@ -229,13 +255,13 @@ export class SupabasePublicProductRepository implements ProductRepository {
     if (filters.minPriceCents !== null) request = request.gte("price_cents", filters.minPriceCents);
     if (filters.maxPriceCents !== null) request = request.lte("price_cents", filters.maxPriceCents);
 
-    const { count, data, error } = await request.range(first, first + pageSize - 1);
+    const { count, data, error } = await request.range(first, last);
 
     if (error) {
       throw new Error("The public Product catalog could not be read.");
     }
 
-    return { items: data.map((row) => mapPreview(row, this.imageService)), page, pageSize, total: count ?? 0 };
+    return { items: data.map((row) => mapPreview(row, this.imageService)), page, pageSize, total: knownTotal ?? count ?? 0 };
   }
 
   public async listPublishedFacets(): Promise<PublishedCatalogFacets> {
@@ -250,4 +276,5 @@ export class SupabasePublicProductRepository implements ProductRepository {
 
     return mapCatalogFacets(data);
   }
+
 }

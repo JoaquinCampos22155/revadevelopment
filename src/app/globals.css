@@ -66,6 +66,19 @@ body {
   animation: reva-route-arrive var(--reva-motion-quick) ease-out both;
 }
 
+.reva-catalog-page-enter {
+  animation: reva-catalog-page-arrive 220ms var(--reva-motion-ease) both;
+}
+
+.reva-catalog-page-enter > .reva-product-tile {
+  animation: none;
+}
+
+@keyframes reva-catalog-page-arrive {
+  from { opacity: 0; translate: 0 8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
 ::selection {
   background: var(--reva-surface-muted);
   color: var(--reva-text-primary);
@@ -145,6 +158,37 @@ details[open] > summary .reva-disclosure-icon {
 .reva-cart-dialog::backdrop {
   background: rgb(20 34 39 / 0%);
   transition: background-color 220ms ease;
+}
+
+.reva-catalog-filter-dialog {
+  display: none;
+  opacity: 0;
+  transition: opacity 180ms ease, display 180ms allow-discrete, overlay 180ms allow-discrete;
+}
+
+.reva-catalog-filter-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  opacity: 1;
+}
+
+.reva-catalog-filter-dialog::backdrop {
+  background: rgb(20 34 39 / 0%);
+  transition: background-color 180ms ease;
+}
+
+.reva-catalog-filter-dialog[open]::backdrop {
+  background: rgb(20 34 39 / 48%);
+}
+
+.reva-catalog-filter-panel {
+  transform: translateY(1.5rem);
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reva-catalog-filter-dialog[open] .reva-catalog-filter-panel {
+  transform: translateY(0);
 }
 
 .reva-cart-dialog[open]::backdrop {
@@ -368,6 +412,18 @@ details[open] > summary .reva-disclosure-icon {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reva-catalog-filter-dialog,
+  .reva-catalog-filter-dialog::backdrop,
+  .reva-catalog-filter-panel {
+    transition: none;
+  }
+
+  .reva-catalog-page-enter {
+    animation: none;
+    opacity: 1;
+    translate: none;
+  }
+
   .reva-motion-enter,
   .reva-motion-enter--second,
   .reva-motion-enter--third,

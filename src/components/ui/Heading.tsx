@@ -6,7 +6,9 @@ type HeadingVariant = "clean" | "editorial" | "compact";
 type HeadingProps = Readonly<{
   children: ReactNode;
   className?: string;
+  id?: string;
   level?: HeadingLevel;
+  tabIndex?: number;
   variant?: HeadingVariant;
 }>;
 
@@ -32,7 +34,9 @@ const headingTags = {
 export function Heading({
   children,
   className,
+  id,
   level = 2,
+  tabIndex,
   variant = "clean",
 }: HeadingProps) {
   const Tag = headingTags[level];
@@ -40,5 +44,5 @@ export function Heading({
     .filter(Boolean)
     .join(" ");
 
-  return <Tag className={classes}>{children}</Tag>;
+  return <Tag className={classes} id={id} tabIndex={tabIndex}>{children}</Tag>;
 }

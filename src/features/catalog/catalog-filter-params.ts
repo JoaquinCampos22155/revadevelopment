@@ -4,10 +4,10 @@ import { isConditionRating, type ConditionRating } from "@/features/catalog/cond
 import { isGarmentType, type GarmentType } from "@/features/catalog/garment-types";
 import { isProductSize, type ProductSize } from "@/features/catalog/sizes";
 import type { PublishedCatalogFacets, PublishedCatalogFilters, PublishedCatalogQuery } from "@/features/catalog/server/catalog-filter.types";
+import { CATALOG_PAGE_SIZE } from "@/features/catalog/catalog-pagination";
 
 export type CatalogSearchParams = Readonly<Record<string, string | ReadonlyArray<string> | undefined>>;
 
-const pageSize = 24;
 const maximumPage = 10_000;
 const maximumPriceIntegerDigits = 10;
 
@@ -114,7 +114,7 @@ export function parseCatalogSearchParams(
 
   return {
     hasActiveFilters: hasFilters(filters),
-    query: { filters, page: pageFrom(params), pageSize },
+    query: { filters, page: pageFrom(params), pageSize: CATALOG_PAGE_SIZE },
   };
 }
 
