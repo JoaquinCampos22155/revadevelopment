@@ -11,7 +11,7 @@ export type PublicProductContact = Readonly<{
 }>;
 
 /** Publicly approved fallback channels for the REVA contact route. */
-export const REVA_PUBLIC_CONTACT_EMAIL = "cam22155@uvg.edu.gt";
+export const REVA_PUBLIC_CONTACT_EMAIL = "informacionreva@revagt.com";
 
 function readWhatsAppNumber(): string | null {
   const rawValue = process.env.REVA_WHATSAPP_NUMBER?.trim();

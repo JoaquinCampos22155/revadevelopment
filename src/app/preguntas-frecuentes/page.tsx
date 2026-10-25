@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
+import { REVA_PUBLIC_CONTACT_EMAIL } from "@/infrastructure/config/site-contact";
 
 export const metadata: Metadata = {
   title: "Preguntas frecuentes | REVA",
@@ -40,7 +41,7 @@ const groups = [
   ] },
   { id: "cuenta", title: "Cuenta, créditos y privacidad", accent: "text-reva-brand-strong", questions: [
     ["¿Cómo creo una cuenta?", "El registro disponible utiliza correo electrónico y contraseña. Algunas funciones de perfil todavía no están implementadas."],
-    ["¿Cómo puedo hacer una solicitud de privacidad?", "Puedes consultar, solicitar acceso, corrección o eliminación de información por el correo público cam22155@uvg.edu.gt o por el WhatsApp oficial de REVA. Antes de revelar o modificar información, REVA verificará razonablemente tu identidad y autoridad. El correo es provisional y cambiará cuando REVA establezca un dominio propio. No hay eliminación automática de cuentas ni un plazo de respuesta prometido; pueden conservarse los registros que deban mantenerse por obligaciones aplicables."],
+    ["¿Cómo puedo hacer una solicitud de privacidad?", `Puedes consultar, solicitar acceso, corrección o eliminación de información por el correo público ${REVA_PUBLIC_CONTACT_EMAIL} o por el WhatsApp oficial de REVA. Antes de revelar o modificar información, REVA verificará razonablemente tu identidad y autoridad. No hay eliminación automática de cuentas ni un plazo de respuesta prometido; pueden conservarse los registros que deban mantenerse por obligaciones aplicables.`],
     ["¿Qué son los créditos REVA?", "No existe actualmente un saldo de créditos disponible para compras. No uses respuestas de documentos de planificación como una promesa de crédito activo."],
     ["¿Qué datos guarda el carrito?", "Solo una lista local de referencias públicas de prendas en ese navegador; no crea un registro de carrito en el servidor ni reserva las piezas. Consulta el Aviso de privacidad para más detalle."],
   ] },

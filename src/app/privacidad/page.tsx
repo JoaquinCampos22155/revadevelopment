@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
-import { getWhatsAppGeneralContactUrl } from "@/infrastructure/config/site-contact";
+import { getWhatsAppGeneralContactUrl, REVA_PUBLIC_CONTACT_EMAIL } from "@/infrastructure/config/site-contact";
 
 export const metadata: Metadata = {
   title: "Privacidad | REVA",
@@ -132,9 +132,8 @@ export default function PrivacyPage() {
         <div className="mt-12 flex flex-wrap items-center justify-between gap-5 border-t border-reva-border pt-5 sm:mt-16">
           <div className="max-w-[75ch] text-sm leading-6 text-reva-secondary">
             <p>Canales para consultas o solicitudes de privacidad:</p>
-            <a className="mr-5 inline-flex min-h-11 items-center font-medium text-reva-primary underline decoration-reva-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="mailto:cam22155@uvg.edu.gt">cam22155@uvg.edu.gt</a>
+            <a className="mr-5 inline-flex min-h-11 items-center font-medium text-reva-primary underline decoration-reva-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={`mailto:${REVA_PUBLIC_CONTACT_EMAIL}`}>{REVA_PUBLIC_CONTACT_EMAIL}</a>
             {whatsappPrivacyUrl ? <a className="inline-flex min-h-11 items-center font-medium text-reva-primary underline decoration-reva-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={whatsappPrivacyUrl} rel="noreferrer" target="_blank">WhatsApp de REVA<span className="sr-only"> (abre en una pestaña nueva)</span></a> : null}
-            <p className="mt-1">Este correo es provisional y cambiará cuando REVA establezca un dominio propio.</p>
           </div>
           <Link className="inline-flex min-h-11 items-center text-sm font-medium text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/contacto">Ver canales de contacto</Link>
         </div>
