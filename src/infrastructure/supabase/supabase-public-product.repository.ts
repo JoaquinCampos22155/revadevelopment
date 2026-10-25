@@ -17,6 +17,7 @@ import type {
 } from "@/features/catalog/server/product.types";
 import type { Money } from "@/types/money";
 import type { Database, Json } from "@/infrastructure/supabase/database.types";
+import { collectPublishedProductSlugs } from "@/features/catalog/catalog-seo";
 import { getCatalogPageRange, resolveCatalogPagination } from "@/features/catalog/catalog-pagination";
 
 type PublishedProductPreviewRow =
@@ -277,4 +278,17 @@ export class SupabasePublicProductRepository implements ProductRepository {
     return mapCatalogFacets(data);
   }
 
+  public async listPublishedSlugs(): Promise<ReadonlyArray<string>> {
+    return collectPublishedProductSlugs(async (offset, limit) => {
+      const { data, error } = await this.client
+        .schema("api")
+        .from("published_product_previews")
+        .select("slug")
+        .order("slug", { ascending: true })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw new Error("The published Product slugs for the sitemap could not be read.");
+      return data.flatMap((row) => row.slug ? [row.slug] : []);
+    });
+  }
 }

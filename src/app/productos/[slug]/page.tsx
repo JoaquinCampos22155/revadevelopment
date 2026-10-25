@@ -12,6 +12,7 @@ import { PdpMobileStickyPurchase } from "@/features/catalog/components/PdpMobile
 import { audienceLabel, colorLabel, garmentTypeLabel } from "@/features/catalog/public-product.presentation";
 import { conditionLabels } from "@/features/catalog/condition";
 import { getProductAtmosphere } from "@/features/catalog/product-atmosphere";
+import { createProductStructuredData } from "@/features/catalog/product-structured-data";
 import { createPublicProductService } from "@/features/catalog/server/public-product.service";
 import { getPublicProductUrl } from "@/infrastructure/config/site";
 
@@ -34,15 +35,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const conditionNote = product.conditionNotes?.trim();
   const gallery = product.images.map((image) => ({alt:image.altText,height:image.height,src:image.url,width:image.width}));
 
-  const structuredProduct = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.title,
-    description: product.description,
-    image: product.images.map((image) => image.url),
-    ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
-    category: garmentTypeLabel(product.garmentType),
-  };
+  const structuredProduct = createProductStructuredData({ ...product, garmentType: garmentTypeLabel(product.garmentType) }, canonicalUrl);
 
   return (
     <main

@@ -33,4 +33,8 @@ export class ProductService {
   public listPublishedFacets(): Promise<PublishedCatalogFacets> {
     return this.productRepository.listPublishedFacets();
   }
+
+  public listPublishedSlugs(): Promise<ReadonlyArray<string>> {
+    return this.productRepository.listPublishedSlugs();
+  }
 }

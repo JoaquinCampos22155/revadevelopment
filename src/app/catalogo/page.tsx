@@ -8,6 +8,7 @@ import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
 import { parseCatalogSearchParams, type CatalogSearchParams } from "@/features/catalog/catalog-filter-params";
 import { buildCatalogPageHref, resolveCatalogPagination } from "@/features/catalog/catalog-pagination";
+import { getCatalogMetadataPolicy } from "@/features/catalog/catalog-seo";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { CatalogPageNavigationFocus } from "@/features/catalog/components/CatalogPageNavigationFocus";
 import { CatalogFilters } from "@/features/catalog/components/CatalogFilters";
@@ -17,11 +18,14 @@ import { createPublicProductService } from "@/features/catalog/server/public-pro
 
 type CatalogPageProps = Readonly<{ searchParams: Promise<CatalogSearchParams> }>;
 
-function hasSearchParams(params: CatalogSearchParams): boolean { return Object.values(params).some((value) => typeof value === "string" ? value.length > 0 : value?.length); }
-
 export async function generateMetadata({ searchParams }: CatalogPageProps): Promise<Metadata> {
-  const hasFilters = hasSearchParams(await searchParams);
-  return { title: "Catálogo de ropa de segunda mano | REVA", description: "Explora prendas de segunda mano y moda circular seleccionadas por REVA.", alternates: { canonical: "/catalogo" }, robots: hasFilters ? { follow: true, index: false } : undefined };
+  const policy = getCatalogMetadataPolicy(await searchParams);
+  return {
+    title: "Catálogo de ropa de segunda mano | REVA",
+    description: "Explora prendas de segunda mano y moda circular seleccionadas por REVA.",
+    alternates: { canonical: policy.canonical },
+    robots: policy.index ? undefined : { follow: true, index: false },
+  };
 }
 
 /** Keeps Catalog focused on browsing real published inventory with server-owned filtering. */

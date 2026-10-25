@@ -16,4 +16,5 @@ export interface ProductRepository {
   listRecommended(): Promise<ReadonlyArray<PublishedProductPreview>>;
   listPublished(query: PublishedCatalogQuery): Promise<PublishedCatalogPage>;
   listPublishedFacets(): Promise<PublishedCatalogFacets>;
+  listPublishedSlugs(): Promise<ReadonlyArray<string>>;
 }
