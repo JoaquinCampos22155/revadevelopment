@@ -255,6 +255,7 @@ export function CatalogFilters({ facets, filters, hasActiveFilters }: CatalogFil
         aria-labelledby="catalog-mobile-filter-heading"
         aria-modal="true"
         className="reva-catalog-filter-dialog fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-transparent p-0 text-reva-primary lg:hidden"
+        id="catalog-mobile-filter-dialog"
         onClick={(event) => { if (event.target === dialogRef.current) setIsMobileOpen(false); }}
         onKeyDown={(event) => {
           if (event.key !== "Tab" || !dialogRef.current) return;
