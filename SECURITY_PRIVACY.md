@@ -230,6 +230,10 @@ The independent reviewer determines whether the evidence is sufficient. A signed
 
 Security/privacy changes require proportionate validation and documentation of both intended protections and residual risk. Update this document when a gap is remediated, a new data category appears, a provider changes, or a faculty-review artifact is created. Keep implementation history in `SPRINTS.md` and technical architecture in `DATA_ARCH.md` rather than duplicating them here.
 
+### Manual external Product sale audit — local implementation (2026-10-27)
+
+The local-only manual-sale lifecycle event adds no customer, contact, address, billing, or payment-credential data. It records only Product lifecycle identity/state, the authenticated Admin Profile, a true external-payment attestation, and a database timestamp in a private RLS-enabled table with no direct `anon`, `authenticated`, or `service_role` table privileges. The dedicated RPC is the only ordinary request path and independently enforces the current Admin session and Product-state/active-reservation checks. `SECURITY DEFINER` is limited to that RPC because direct Product `status` updates are intentionally revoked; its fixed empty search path and authenticated-only grant are covered by local pgTAP tests. The attestation is an Admin declaration, not provider verification. Hosted migration state and operational access to this audit history remain separate review requirements; this feature does not authorize hosted changes or real customer-data collection.
+
 ### Transactional backend — local-only implementation status (2026-10-15)
 
 The purchase-request/Order flow is enabled only when all local-development gates are satisfied, including a loopback Supabase URL; it is not active in production. The local database was empty of customer records before test resets and tests use synthetic values. Do not enter real customer information in this local prototype. The official Checkout retains its existing non-transactional behavior when the local gate is off.
