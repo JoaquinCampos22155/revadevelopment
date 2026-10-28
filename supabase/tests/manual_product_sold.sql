@@ -44,6 +44,10 @@ insert into public.products (
   ('94000000-0000-0000-0000-000000000206', '94000000-0000-0000-0000-000000000106', '94000000-0000-0000-0000-000000000001', 'RV-998906', 'manual-sale-reservation-conflict', 'Manual Sale Reservation Conflict', 'Fixture', 45.00, 'mujer', 'camisas', 'M', 3, 'published', '2026-10-01T10:00:00Z', '2026-10-01T10:01:00Z'),
   ('94000000-0000-0000-0000-000000000207', '94000000-0000-0000-0000-000000000107', '94000000-0000-0000-0000-000000000001', 'RV-998907', 'manual-sale-stale', 'Manual Sale Stale', null, null, null, null, null, null, 'draft', null, null);
 
+select is((select count(*)::integer from public.products where id in ('94000000-0000-0000-0000-000000000201','94000000-0000-0000-0000-000000000204') and audience = 'mujer'), 2, 'published and reserved Products with a valid audience are accepted');
+select throws_ok($$update public.products set audience = null where id = '94000000-0000-0000-0000-000000000201'$$, '23514', null, 'published Product cannot lose its required audience');
+select throws_ok($$update public.products set audience = null where id = '94000000-0000-0000-0000-000000000204'$$, '23514', null, 'reserved Product cannot lose its required audience');
+
 insert into public.product_images (id, product_id, storage_key, alt_text, position, width, height, mime_type)
 values ('94000000-0000-0000-0000-000000000301', '94000000-0000-0000-0000-000000000201', 'products/manual-sale-fixture.webp', 'Camisa de prueba', 1, 800, 1000, 'image/webp');
 

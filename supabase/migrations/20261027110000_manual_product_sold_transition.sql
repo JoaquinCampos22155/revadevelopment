@@ -9,6 +9,7 @@ alter table public.products
     or (
       description is not null and btrim(description) <> ''
       and price is not null
+      and audience is not null and btrim(audience) <> ''
       and garment_type is not null and btrim(garment_type) <> ''
       and condition_rating is not null
       and published_at is not null
