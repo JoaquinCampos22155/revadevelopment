@@ -4,6 +4,9 @@ import { homedir } from "node:os";
 import path from "node:path";
 
 import { chromium } from "playwright";
+import { requireLocalQaIntegrationOptIn } from "../local-qa-test-authorization.mjs";
+
+requireLocalQaIntegrationOptIn();
 
 const baseUrl = process.env.REVA_LOCAL_AUTH_BASE_URL ?? "http://127.0.0.1:3000";
 const credentialsPath = path.join(

@@ -8,8 +8,11 @@ import path from "node:path";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-import { decryptSensitiveValue, encryptSensitiveValue } from "../src/features/transactions/server/encryption.ts";
-import { assertLocalSupabaseEndpoints } from "./local-transactional-qa.mjs";
+import { requireLocalQaMutationOptIn } from "../local-qa-test-authorization.mjs";
+import { decryptSensitiveValue, encryptSensitiveValue } from "../../src/features/transactions/server/encryption.ts";
+import { assertLocalSupabaseEndpoints } from "../local-transactional-qa.mjs";
+
+requireLocalQaMutationOptIn();
 
 const localDirectory = path.join(process.env.LOCALAPPDATA ?? path.join(homedir(), "AppData", "Local"), "REVA", "transactional-qa");
 const lastFlowPath = path.join(localDirectory, "last-flow.json");
