@@ -563,6 +563,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_mark_product_sold: {
+        Args: {
+          p_expected_status: string
+          p_external_payment_verified: boolean
+          p_product_id: string
+        }
+        Returns: {
+          product_id: string
+          slug: string
+        }[]
+      }
       add_product_recommendation: {
         Args: { p_product_id: string }
         Returns: {
