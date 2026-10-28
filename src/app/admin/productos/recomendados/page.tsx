@@ -6,6 +6,7 @@ import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
 import { ProductRecommendationManagementList } from "@/features/merchandising/components/ProductRecommendationManagementList";
 import { createProductRecommendationReadService } from "@/features/merchandising/server/product-recommendation.composition";
+import { ProductAdminAtmosphere } from "@/features/product-manager/components/ProductAdminAtmosphere";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,8 @@ export const metadata: Metadata = {
 export default async function ProductRecommendationsPage() {
   const recommendations = await (await createProductRecommendationReadService()).list();
 
-  return <main id="main-content"><Section><div className="mx-auto max-w-4xl space-y-8">
+  return <main id="main-content"><ProductAdminAtmosphere><Section><div className="mx-auto max-w-4xl space-y-8">
     <div className="space-y-4"><Button href="/admin/productos" variant="outline">Volver a productos</Button><div className="space-y-3"><Text variant="label">Administración interna</Text><Heading level={1} variant="editorial">Recomendado por REVA</Heading><Text className="max-w-2xl" variant="body">Ordena las piezas que aparecen en Inicio. Solo los productos publicados y visibles pueden agregarse.</Text></div></div>
     <ProductRecommendationManagementList recommendations={recommendations} />
-  </div></Section></main>;
+  </div></Section></ProductAdminAtmosphere></main>;
 }

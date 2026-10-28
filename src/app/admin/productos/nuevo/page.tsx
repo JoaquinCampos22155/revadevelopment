@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Heading } from "@/components/ui/Heading";
 import { Text } from "@/components/ui/Text";
 import { ProductDraftForm } from "@/features/product-manager/components/ProductDraftForm";
+import { ProductAdminAtmosphere } from "@/features/product-manager/components/ProductAdminAtmosphere";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ function getGuatemalaToday(): string {
 export default function NewProductDraftPage() {
   return (
     <main id="main-content">
-      <Section>
+      <ProductAdminAtmosphere><Section>
         <div className="mx-auto max-w-5xl space-y-8">
           <div className="space-y-4 border-b border-reva-border pb-6">
             <Button href="/admin/productos" variant="outline">Volver a productos</Button>
@@ -41,7 +42,7 @@ export default function NewProductDraftPage() {
           </div>
           <ProductDraftForm today={getGuatemalaToday()} />
         </div>
-      </Section>
+      </Section></ProductAdminAtmosphere>
     </main>
   );
 }

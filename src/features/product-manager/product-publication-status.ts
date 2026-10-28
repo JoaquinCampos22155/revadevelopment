@@ -2,12 +2,13 @@ import type { ProductStatus } from "@/features/catalog/server/product.types";
 
 export type ProductPublicationStatusPresentation = Readonly<{
   domainLabel: string | null;
-  label: "No publicado" | "Publicado";
-  tone: "non-public" | "public";
+  label: "No publicado" | "Publicado" | "Vendido";
+  tone: "non-public" | "public" | "sold";
 }>;
 
 /** Separates customer-facing Catalog visibility from the underlying commercial lifecycle. */
 export function getProductPublicationStatusPresentation(status: ProductStatus, isPubliclyVisible: boolean): ProductPublicationStatusPresentation {
+  if (status === "sold") return { domainLabel: null, label: "Vendido", tone: "sold" };
   if (isPubliclyVisible) return { domainLabel: null, label: "Publicado", tone: "public" };
 
   const domainLabel = {
@@ -15,7 +16,7 @@ export function getProductPublicationStatusPresentation(status: ProductStatus, i
     draft: null,
     published: "Preparando publicación",
     reserved: "Reservado",
-    sold: "Vendido",
+    sold: null,
   }[status];
 
   return { domainLabel, label: "No publicado", tone: "non-public" };

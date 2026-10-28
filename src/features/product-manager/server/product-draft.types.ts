@@ -50,12 +50,21 @@ export type ProductDraft = Readonly<{
 export type ProductManagerProductSummary = Readonly<{
   id: ProductDraftId;
   isPubliclyVisible: boolean;
+  primaryImage: ProductManagerPrimaryImage | null;
   price: Money | null;
   publishedAt: Date | null;
   sku: string;
   status: ProductStatus;
   title: string;
   updatedAt: Date;
+}>;
+
+export type ProductManagerPrimaryImage = Readonly<{
+  altText: string;
+  height: number;
+  isPublic: boolean;
+  url: string;
+  width: number;
 }>;
 
 /** Keeps pagination application-owned while the database stays a bounded read surface. */

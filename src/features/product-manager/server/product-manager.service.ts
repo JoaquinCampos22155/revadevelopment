@@ -1,5 +1,6 @@
 import type { ProductManagerRepository } from "@/features/product-manager/server/product-manager.repository";
 import type { ProductDraft, ProductDraftId, ProductManagerProductPage } from "@/features/product-manager/server/product-draft.types";
+import type { ProductManagerSort } from "@/features/product-manager/product-manager-listing";
 
 export const productManagerPageSize = 25;
 
@@ -11,11 +12,13 @@ export class ProductManagerService {
     return this.repository.findById(id);
   }
 
-  public list(page: number): Promise<ProductManagerProductPage> {
+  public list(page: number, search: string, sort: ProductManagerSort | null): Promise<ProductManagerProductPage> {
     const normalizedPage = Number.isSafeInteger(page) && page > 0 ? page : 1;
     return this.repository.list({
       limit: productManagerPageSize + 1,
       offset: (normalizedPage - 1) * productManagerPageSize,
+      search,
+      sort,
     });
   }
 }
