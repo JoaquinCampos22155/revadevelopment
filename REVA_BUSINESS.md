@@ -296,3 +296,9 @@ The approved future temporary-request flow expires each request 24 hours after s
 ## Implementation Guardrails
 
 Before implementing business-facing work, distinguish an approved REVA fact from a partially defined direction, external research, and an unresolved decision. Do not fill gaps with industry defaults, generic ecommerce assumptions, or invented promises. When a public policy is blocked, prefer truthful high-level language or omission.
+
+## Assisted purchase and manual payment strategy — 2026-10-28
+
+**APPROVED direction; not a claim of current production activation.** REVA will continue assisted sales through WhatsApp. In the future transactional flow, Checkout submits an encrypted temporary request without reserving inventory; an authorized Admin reviews it and, after confirming availability, atomically approves it into an Order with a three-hour reservation. The Admin coordinates with the buyer, generates and sends a Recurrente payment link manually, and verifies payment directly in Recurrente before the system records the paid transition and allows fulfillment. No payment is created or verified automatically.
+
+Automated Recurrente Checkout/API integration and Svix webhooks are **postponed indefinitely** until separately authorized. Do not build or imply them as part of the approved manual process. Delivery coverage/cost, applicable billing/FEL sequencing, refunds and operational details remain subject to their existing approval and qualified review gates. The public `/checkout` remains non-transactional until separately released; this decision alone does not authorize real customer-data collection.

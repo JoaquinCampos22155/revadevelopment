@@ -1,5 +1,7 @@
 # REVA Roadmap
 
+> **Current-state clarification — 2026-10-28:** Assisted WhatsApp sales with manually generated/sent Recurrente payment links and direct human verification is the approved future operational direction. Automated Recurrente Checkout/API and Svix webhooks are postponed indefinitely until separate authorization. Public `/checkout` remains non-transactional and production customer-data collection remains disabled. The Admin request/Order implementation and M026 paginated lists in this Sprint are local-only; do not interpret older sequencing notes below as current production functionality or migration state.
+
 ## Purpose and Authority
 
 This document is REVA's durable high-level direction from the current MVP toward the final graduation-ready product. It owns strategic workstreams, their dependencies, and current priorities; it is not a Sprint history, implementation authorization, or provider-selection record.
