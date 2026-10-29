@@ -3,6 +3,13 @@ import "server-only";
 import { decryptSensitiveValue, loadTransactionalKeyrings, type EncryptedSensitiveValue } from "@/features/transactions/server/encryption";
 import { isLocalTransactionalRequestsEnabled } from "@/features/transactions/server/local-purchase-requests";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server-client";
+import { SupabaseStorageService } from "@/infrastructure/supabase/supabase-storage.service";
+import {
+  parseAdminListPage,
+  type AdminListPage,
+  type AdminOrderListFilters,
+  type AdminPurchaseRequestListFilters,
+} from "@/features/transactions/transactional-admin-presentation";
 
 type CipherFields = Readonly<Record<string, EncryptedSensitiveValue>>;
 type JsonRecord = Record<string, unknown>;
@@ -45,17 +52,19 @@ export type PurchaseRequestListItem = Readonly<{
   createdAt: string;
   expiresAt: string;
   id: string;
-  items: readonly RequestItem[];
+  productCount: number;
   publicReference: string;
+  status: string;
   subtotal: string;
 }>;
 
-export type DecryptedPurchaseRequest = PurchaseRequestListItem & Readonly<{
+export type DecryptedPurchaseRequest = Omit<PurchaseRequestListItem, "productCount" | "status"> & Readonly<{
   billing: Readonly<Record<string, string>>;
   billingType: "cf" | "nit";
   contact: Readonly<Record<string, string>>;
   delivery: Readonly<Record<string, string>>;
   accessEvents: readonly AccessEvent[];
+  items: readonly RequestItem[];
   municipalityCode: string;
 }>;
 
@@ -72,22 +81,43 @@ function parseItems(value: unknown): readonly RequestItem[] {
   });
 }
 
-export async function listPurchaseRequests(): Promise<readonly PurchaseRequestListItem[]> {
-  if (!isLocalTransactionalRequestsEnabled()) return [];
-  const result = await callAdminRpc<unknown>("admin_list_purchase_requests");
-  if (!Array.isArray(result)) return [];
-  return result.flatMap((row) => {
-    if (!isRecord(row) || typeof row.id !== "string" || typeof row.public_reference !== "string"
-        || typeof row.created_at !== "string" || typeof row.expires_at !== "string") return [];
-    return [{
-      createdAt: row.created_at,
-      expiresAt: row.expires_at,
-      id: row.id,
-      items: parseItems(row.items),
-      publicReference: row.public_reference,
-      subtotal: Number(row.merchandise_subtotal).toFixed(2),
-    }];
+function moneyString(value: unknown): string | null {
+  const amount = typeof value === "number" || typeof value === "string" ? Number(value) : Number.NaN;
+  return Number.isFinite(amount) && amount >= 0 ? amount.toFixed(2) : null;
+}
+
+function parsePurchaseRequestListItem(value: unknown): PurchaseRequestListItem | null {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.public_reference !== "string"
+      || typeof value.created_at !== "string" || typeof value.expires_at !== "string"
+      || !Number.isInteger(value.product_count) || (value.product_count as number) < 0
+      || value.status !== "pending_review") return null;
+  const subtotal = moneyString(value.merchandise_subtotal);
+  if (subtotal === null) return null;
+  return {
+    createdAt: value.created_at,
+    expiresAt: value.expires_at,
+    id: value.id,
+    productCount: value.product_count as number,
+    publicReference: value.public_reference,
+    status: value.status,
+    subtotal,
+  };
+}
+
+function pageNumber(page: string): number {
+  const value = Number(page);
+  return Number.isInteger(value) && value >= 1 && value <= 100000 ? value : 1;
+}
+
+export async function listPurchaseRequests(filters: AdminPurchaseRequestListFilters): Promise<AdminListPage<PurchaseRequestListItem>> {
+  if (!isLocalTransactionalRequestsEnabled()) return { items: [], page: 1, pageCount: 0, pageSize: 20, totalCount: 0 };
+  const result = await callAdminRpc<unknown>("admin_list_purchase_requests_v2", {
+    p_page: pageNumber(filters.page), p_page_size: 20, p_search: filters.search,
+    p_status: filters.status, p_date_order: filters.dateOrder,
   });
+  const parsed = parseAdminListPage(result, parsePurchaseRequestListItem);
+  if (!parsed) throw new Error("Transactional admin data is unavailable.");
+  return parsed;
 }
 
 export async function getPurchaseRequest(requestId: string): Promise<DecryptedPurchaseRequest | null> {
@@ -117,38 +147,65 @@ export type OrderListItem = Readonly<{
   finalTotal: string | null;
   fulfillmentStatus: string;
   id: string;
+  productCount: number;
   merchandiseSubtotal: string;
   paymentStatus: string;
   publicReference: string;
   shippingAmount: string | null;
   status: string;
+  thumbnail: Readonly<{ altText: string | null; height: number | null; imageId: string; url: string; width: number | null }> | null;
 }>;
 
-export async function listOrders(): Promise<readonly OrderListItem[]> {
-  if (!isLocalTransactionalRequestsEnabled()) return [];
-  const result = await callAdminRpc<unknown>("admin_list_orders");
-  if (!Array.isArray(result)) return [];
-  return result.flatMap((row) => {
-    if (!isRecord(row) || typeof row.id !== "string" || typeof row.public_reference !== "string"
-        || typeof row.created_at !== "string") return [];
-    return [{
-      createdAt: row.created_at,
-      finalTotal: row.final_total === null ? null : Number(row.final_total).toFixed(2),
-      fulfillmentStatus: String(row.fulfillment_status),
-      id: row.id,
-      merchandiseSubtotal: Number(row.merchandise_subtotal).toFixed(2),
-      paymentStatus: String(row.payment_status),
-      publicReference: row.public_reference,
-      shippingAmount: row.shipping_amount === null ? null : Number(row.shipping_amount).toFixed(2),
-      status: String(row.status),
-    }];
-  });
+function parseOrderListItem(value: unknown): Omit<OrderListItem, "thumbnail"> & Readonly<{ thumbnail: Readonly<{ altText: string | null; height: number | null; imageId: string; width: number | null }> | null }> | null {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.public_reference !== "string"
+      || typeof value.created_at !== "string" || typeof value.status !== "string"
+      || typeof value.payment_status !== "string" || typeof value.fulfillment_status !== "string"
+      || !Number.isInteger(value.product_count) || (value.product_count as number) < 0) return null;
+  const merchandiseSubtotal = moneyString(value.merchandise_subtotal);
+  const finalTotal = value.final_total === null ? null : moneyString(value.final_total);
+  const shippingAmount = value.shipping_amount === null ? null : moneyString(value.shipping_amount);
+  if (merchandiseSubtotal === null || (value.final_total !== null && finalTotal === null)
+      || (value.shipping_amount !== null && shippingAmount === null)) return null;
+  let thumbnail: Readonly<{ altText: string | null; height: number | null; imageId: string; width: number | null }> | null = null;
+  if (isRecord(value.product_thumbnail) && typeof value.product_thumbnail.image_id === "string"
+      && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value.product_thumbnail.image_id)) {
+    const width = Number.isInteger(value.product_thumbnail.width) && (value.product_thumbnail.width as number) > 0 ? value.product_thumbnail.width as number : null;
+    const height = Number.isInteger(value.product_thumbnail.height) && (value.product_thumbnail.height as number) > 0 ? value.product_thumbnail.height as number : null;
+    thumbnail = { altText: typeof value.product_thumbnail.alt_text === "string" ? value.product_thumbnail.alt_text : null, height, imageId: value.product_thumbnail.image_id, width };
+  }
+  return {
+    createdAt: value.created_at, finalTotal, fulfillmentStatus: value.fulfillment_status,
+    id: value.id, merchandiseSubtotal, paymentStatus: value.payment_status,
+    productCount: value.product_count as number, publicReference: value.public_reference,
+    shippingAmount, status: value.status, thumbnail,
+  };
+}
+
+export async function listOrders(filters: AdminOrderListFilters): Promise<AdminListPage<OrderListItem>> {
+  if (!isLocalTransactionalRequestsEnabled()) return { items: [], page: 1, pageCount: 0, pageSize: 20, totalCount: 0 };
+  const page = pageNumber(filters.page);
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.rpc("admin_list_orders_v2" as never, {
+    p_page: page, p_page_size: 20, p_search: filters.search, p_order_status: filters.status,
+    p_payment_status: filters.payment, p_fulfillment_status: filters.fulfillment, p_date_order: filters.dateOrder,
+  } as never);
+  if (error) throw new Error("Transactional admin data is unavailable.");
+  const parsed = parseAdminListPage(data, parseOrderListItem);
+  if (!parsed) throw new Error("Transactional admin data is unavailable.");
+  const storage = new SupabaseStorageService(client);
+  return {
+    ...parsed,
+    items: parsed.items.map(({ thumbnail, ...order }) => ({
+      ...order,
+      thumbnail: thumbnail ? { ...thumbnail, url: storage.createPublicProductImageUrl(thumbnail.imageId) } : null,
+    })),
+  };
 }
 
 export async function getOrder(orderId: string): Promise<Readonly<{
   billing: Readonly<Record<string, string>> | null;
   contact: Readonly<Record<string, string>> | null;
-  delivery: Readonly<Record<string, string>> | null;
+  delivery: (Readonly<Record<string, string>> & Readonly<{ municipalityCode: string }>) | null;
   events: readonly unknown[];
   dataAccessEvents: readonly AccessEvent[];
   fulfillmentStatus: string;
@@ -173,6 +230,10 @@ export async function getOrder(orderId: string): Promise<Readonly<{
     return decryptFields(snapshot.encrypted_fields, snapshot.encryption_context_id);
   };
   const itemRows = Array.isArray(result.items) ? result.items : [];
+  const deliveryFields = readSnapshot(result.delivery);
+  const municipalityCode = isRecord(result.delivery) && typeof result.delivery.municipality_code === "string"
+    ? result.delivery.municipality_code
+    : "";
   const items = itemRows.flatMap((item) => {
     if (!isRecord(item) || typeof item.sku !== "string" || typeof item.title !== "string"
         || typeof item.price !== "number" && typeof item.price !== "string") return [];
@@ -181,7 +242,7 @@ export async function getOrder(orderId: string): Promise<Readonly<{
   return {
     billing: readSnapshot(result.billing),
     contact: readSnapshot(result.contact),
-    delivery: readSnapshot(result.delivery),
+    delivery: deliveryFields ? { ...deliveryFields, municipalityCode } : null,
     events: Array.isArray(result.events) ? result.events : [],
     dataAccessEvents: (Array.isArray(result.data_access_events) ? result.data_access_events : []).flatMap((event) => isRecord(event) && typeof event.created_at === "string" && typeof event.purpose === "string" ? [{ createdAt: event.created_at, purpose: event.purpose }] : []),
     finalTotal: result.final_total === null ? null : Number(result.final_total).toFixed(2),
