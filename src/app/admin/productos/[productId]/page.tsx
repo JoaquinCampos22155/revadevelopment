@@ -11,6 +11,7 @@ import { ProductMediaManager } from "@/features/product-manager/components/Produ
 import { ProductManualSalePanel } from "@/features/product-manager/components/ProductManualSalePanel";
 import { ProductPublicationPanel } from "@/features/product-manager/components/ProductPublicationPanel";
 import { ProductRecommendationPanel } from "@/features/merchandising/components/ProductRecommendationPanel";
+import { ProductAdminAtmosphere } from "@/features/product-manager/components/ProductAdminAtmosphere";
 import { createProductRecommendationReadService } from "@/features/merchandising/server/product-recommendation.composition";
 import { getProductPublicationStatusPresentation } from "@/features/product-manager/product-publication-status";
 import { createProductManagerReadService } from "@/features/product-manager/server/product-draft.composition";
@@ -44,7 +45,7 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
   const recommendation = await (await createProductRecommendationReadService()).getStatus(draft.id);
 
   return (
-    <main id="main-content">
+    <main id="main-content"><ProductAdminAtmosphere>
       <Section>
         <div className="mx-auto max-w-5xl space-y-8">
           <div className="space-y-4">
@@ -70,6 +71,6 @@ export default async function ProductDraftPage({ params }: ProductDraftPageProps
           {recommendation ? <ProductRecommendationPanel eligible={recommendation.eligible} position={recommendation.position} productId={draft.id} /> : null}
         </div>
       </Section>
-    </main>
+    </ProductAdminAtmosphere></main>
   );
 }

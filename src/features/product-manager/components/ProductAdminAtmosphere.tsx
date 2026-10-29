@@ -33,6 +33,14 @@ export function ProductAdminAtmosphere({ children }: Readonly<{ children: ReactN
           <path d="m51 14 24 11 24-11 24 18-13 25-12-8v112H52V49l-12 8-13-25 24-18Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
           <path d="m51 14 8 24 16 11 16-11 8-24M75 49v112" stroke="currentColor" strokeWidth="1.5" />
         </svg>
+        <svg className="absolute left-[4%] top-[18%] hidden h-40 w-32 rotate-[5deg] 2xl:block" fill="none" viewBox="0 0 120 180">
+          <path d="m37 17 23 10 23-10 24 18-12 24-11-7v104H37V52l-11 7-12-24 23-18Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+          <path d="m37 17 7 23 16 10 16-10 7-23M60 50v96" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+        <svg className="absolute right-[5%] top-[72%] hidden h-44 w-36 rotate-[-5deg] 2xl:block" fill="none" viewBox="0 0 150 190">
+          <path d="M39 18h72l-7 42 24 101H80l-5-63-5 63H22L46 60l-7-42Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+          <path d="M39 18h72M46 60h59M75 60v40" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
       </div>
       <div className="relative z-10">{children}</div>
     </div>
