@@ -4,6 +4,15 @@ export type CheckoutEntry = "cart" | "product" | "empty" | "invalid";
 export type CheckoutSelection = Readonly<{ entry: CheckoutEntry; slugs: readonly string[] }>;
 export type CheckoutPriceSnapshot = Readonly<{ price: string; slug: string }>;
 
+export function sameCheckoutSelection(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((slug, index) => slug === right[index]);
+}
+
+/** Creates a stable remount key for selection-specific Checkout review state. */
+export function checkoutSelectionKey(slugs: readonly string[]): string {
+  return JSON.stringify(slugs);
+}
+
 type CheckoutSearchParams = Readonly<{
   product?: string | readonly string[];
   products?: string | readonly string[];

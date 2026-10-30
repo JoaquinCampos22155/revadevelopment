@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { cartSubtotal } from "@/features/cart/cart-total";
 import { createCheckoutWhatsAppUrl, createLocalCheckoutPurchaseRequest } from "@/features/checkout/server/checkout.actions";
 import { getCheckoutProgress } from "@/features/checkout/checkout-progress";
+import { checkoutSelectionKey, sameCheckoutSelection } from "@/features/checkout/checkout-selection";
 import { formatCheckoutContactName, validateCheckoutDelivery, type CheckoutDeliveryErrors, type CheckoutDeliveryField } from "@/features/checkout/checkout-validation";
 import { GUATEMALA_MUNICIPALITIES, findGuatemalaMunicipality, getVerifiedZoneCatalog, type GuatemalaMunicipalityCode } from "@/features/checkout-prototype/municipalities";
 import type { CheckoutResolvedItem } from "@/features/checkout/checkout.types";
@@ -57,15 +59,60 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
   requestedSlugs: readonly string[];
   selectionIssue: "empty" | "invalid" | null;
 }>) {
-  const [items, setItems] = useState(initialItems);
   const [contact, setContact] = useState(EMPTY_CONTACT);
   const [municipalityCode, setMunicipalityCode] = useState<GuatemalaMunicipalityCode>("0101");
   const [zone, setZone] = useState("");
   const [billing, setBilling] = useState(INITIAL_BILLING_DEMO);
+  const latestSelectionRef = useRef(requestedSlugs);
+  useLayoutEffect(() => {
+    latestSelectionRef.current = requestedSlugs;
+  }, [requestedSlugs]);
+
+  return <CheckoutPageContent
+    key={checkoutSelectionKey(requestedSlugs)}
+    canContactOnWhatsApp={canContactOnWhatsApp}
+    billing={billing}
+    contact={contact}
+    entry={entry}
+    initialItems={initialItems}
+    initialReadError={initialReadError}
+    latestSelectionRef={latestSelectionRef}
+    localTransactionalRequestsEnabled={localTransactionalRequestsEnabled}
+    municipalityCode={municipalityCode}
+    requestedSlugs={requestedSlugs}
+    selectionIssue={selectionIssue}
+    setContact={setContact}
+    setBilling={setBilling}
+    setMunicipalityCode={setMunicipalityCode}
+    setZone={setZone}
+    zone={zone}
+  />;
+}
+
+function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, initialItems, initialReadError, latestSelectionRef, localTransactionalRequestsEnabled, municipalityCode, requestedSlugs, selectionIssue, setBilling, setContact, setMunicipalityCode, setZone, zone }: Readonly<{
+  canContactOnWhatsApp: boolean;
+  billing: typeof INITIAL_BILLING_DEMO;
+  contact: ContactDetails;
+  entry: CheckoutEntry;
+  initialItems: readonly CheckoutResolvedItem[];
+  initialReadError: boolean;
+  latestSelectionRef: { current: readonly string[] };
+  localTransactionalRequestsEnabled: boolean;
+  municipalityCode: GuatemalaMunicipalityCode;
+  requestedSlugs: readonly string[];
+  selectionIssue: "empty" | "invalid" | null;
+  setBilling: Dispatch<SetStateAction<typeof INITIAL_BILLING_DEMO>>;
+  setContact: Dispatch<SetStateAction<ContactDetails>>;
+  setMunicipalityCode: Dispatch<SetStateAction<GuatemalaMunicipalityCode>>;
+  setZone: Dispatch<SetStateAction<string>>;
+  zone: string;
+}>) {
+  const router = useRouter();
+  const items = initialItems;
   const [reviewReady, setReviewReady] = useState(false);
   const [validationErrors, setValidationErrors] = useState<CheckoutDeliveryErrors>({});
-  const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState(initialReadError ? "No pudimos verificar tu selección. Intenta actualizarla antes de continuar." : "");
+  const [pending, setPending] = useState(false);
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   const idempotencyKey = useRef<string | null>(null);
   const deliveryFieldRefs = useRef<Partial<Record<CheckoutDeliveryField, HTMLInputElement | HTMLSelectElement | null>>>({});
@@ -113,6 +160,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
   }
 
   function proceedToPurchase() {
+    if (pending) return;
     const errors = validateCheckoutDelivery({ ...contact, municipalityCode });
     setValidationErrors(errors);
     const firstInvalidField = Object.keys(errors)[0] as CheckoutDeliveryField | undefined;
@@ -126,6 +174,7 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
 
   async function continueToLocalPurchaseRequest() {
     if (pending || unavailable || currentSlugs.length === 0 || !canContactOnWhatsApp) return;
+    const submittedSlugs = [...currentSlugs];
     idempotencyKey.current ??= globalThis.crypto.randomUUID();
     setPending(true);
     setNotice("");
@@ -144,9 +193,11 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
         },
         municipalityCode,
       }, idempotencyKey.current);
+      if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current)) return;
       if (result.status === "changed") {
         const refreshed = await createCheckoutWhatsAppUrl(currentSlugs, expected);
-        if (refreshed.items.length) setItems(refreshed.items);
+        if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current)) return;
+        if (refreshed.items.length) router.refresh();
         setReviewReady(false);
         idempotencyKey.current = null;
         setNotice("El precio cambió mientras verificábamos. Revisa el resumen actualizado antes de continuar.");
@@ -170,19 +221,21 @@ export function CheckoutPageClient({ canContactOnWhatsApp, entry, initialItems, 
 
   async function continueToWhatsApp() {
     if (pending || unavailable || currentSlugs.length === 0 || !canContactOnWhatsApp) return;
+    const submittedSlugs = [...currentSlugs];
     setPending(true);
     setNotice("");
     try {
       const expected = products.map(({ slug, price }) => ({ slug, price }));
       const result = await createCheckoutWhatsAppUrl(currentSlugs, expected);
+      if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current)) return;
       if (result.status === "changed") {
-        setItems(result.items);
+        router.refresh();
         setReviewReady(false);
         setNotice("El precio cambió desde la última revisión. Revisa el resumen actualizado antes de continuar.");
         return;
       }
       if (result.status === "unavailable") {
-        setItems(result.items);
+        router.refresh();
         setReviewReady(false);
         setNotice("La disponibilidad cambió o no pudimos verificar una prenda. No continuaremos con una selección sin verificar.");
         return;

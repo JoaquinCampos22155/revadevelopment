@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createCheckoutContactMessage } from "../src/features/checkout/checkout-contact-message.ts";
-import { createCheckoutHref, hasCheckoutPriceChanged, parseCheckoutSelection } from "../src/features/checkout/checkout-selection.ts";
+import { checkoutSelectionKey, createCheckoutHref, hasCheckoutPriceChanged, parseCheckoutSelection, sameCheckoutSelection } from "../src/features/checkout/checkout-selection.ts";
 import { getCheckoutProgress } from "../src/features/checkout/checkout-progress.ts";
 import { formatCheckoutContactName, validateCheckoutDelivery } from "../src/features/checkout/checkout-validation.ts";
 import { INITIAL_BILLING_DEMO, selectBillingDemoType, updateBillingDemoNit, updateBillingDemoRecipientName } from "../src/features/checkout-prototype/billing-demo.ts";
@@ -38,6 +38,18 @@ test("final inquiry requires the same ordered public slugs and current prices as
   assert.equal(hasCheckoutPriceChanged([{ ...reviewed[0], price: "125.00" }, reviewed[1]], reviewed), true);
   assert.equal(hasCheckoutPriceChanged([...reviewed].reverse(), reviewed), true);
   assert.equal(hasCheckoutPriceChanged(reviewed.slice(0, 1), reviewed), true);
+});
+
+test("selection-specific Checkout state remounts for distinct ordered selections", () => {
+  assert.equal(checkoutSelectionKey(["featured-jacket"]), '["featured-jacket"]');
+  assert.notEqual(checkoutSelectionKey(["featured-jacket"]), checkoutSelectionKey(["cart-dress"]));
+  assert.notEqual(checkoutSelectionKey(["dress-a", "dress-b"]), checkoutSelectionKey(["dress-b", "dress-a"]));
+});
+
+test("Checkout selection identity is ordered and stale asynchronous results are detectable", () => {
+  assert.equal(sameCheckoutSelection(["dress-a", "dress-b"], ["dress-a", "dress-b"]), true);
+  assert.equal(sameCheckoutSelection(["dress-a", "dress-b"], ["dress-b", "dress-a"]), false);
+  assert.equal(sameCheckoutSelection(["featured-jacket"], ["cart-dress"]), false);
 });
 
 test("WhatsApp inquiry contains public current Product facts only", () => {
