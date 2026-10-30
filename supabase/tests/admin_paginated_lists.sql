@@ -6,6 +6,7 @@ select no_plan();
 create temporary table m026_fixture_context on commit drop as
 select
   upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)) as prefix,
+  upper(replace(gen_random_uuid()::text, '-', '')) as full_reference_suffix,
   gen_random_uuid() as admin_id,
   gen_random_uuid() as customer_id,
   gen_random_uuid() as intake_a_id,
@@ -24,7 +25,8 @@ create temporary table m026_order_fixture_ids (
 ) on commit drop;
 
 insert into m026_order_fixture_ids (sequence_number, id, public_reference)
-select g, gen_random_uuid(), 'REVA-' || context.prefix || lpad((1000 + g)::text, 4, '0')
+select g, gen_random_uuid(), case when g = 105 then 'REVA-' || context.full_reference_suffix
+  else 'REVA-' || context.prefix || lpad((1000 + g)::text, 4, '0') end
 from generate_series(1, 105) as g
 cross join m026_fixture_context as context;
 
@@ -71,7 +73,8 @@ insert into private.purchase_requests (
   contact_ciphertext, contact_key_version, delivery_ciphertext, delivery_key_version,
   municipality_code, billing_type, billing_ciphertext, billing_key_version
 )
-select request_id, 'REVA-' || prefix || request_number,
+select request_id, case when request_number = '0002' then 'REVA-' || full_reference_suffix
+  else 'REVA-' || prefix || request_number end,
   now() - request_age, now() + interval '24 hours' - request_age,
   decode(md5(prefix || request_number || '-a') || md5(prefix || request_number || '-b'), 'hex'),
   '{"fixture":"hidden"}', 1, '{"fixture":"hidden"}', 1, '0101', 'cf', '{"fixture":"hidden"}', 1
@@ -117,19 +120,24 @@ grant select on m026_fixture_context, m026_order_fixture_ids to authenticated, a
 set local role authenticated;
 select set_config('request.jwt.claim.sub', (select admin_id::text from m026_fixture_context), true);
 
-select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->>'total_count')::integer, 2, 'request result count includes all matching fixture requests');
+select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->>'total_count')::integer, 1, 'request result count includes all prefix-matching fixture requests');
 select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->'items'->0->>'public_reference'), 'REVA-' || (select prefix from m026_fixture_context) || '0001', 'request list is newest-first and reference-stable');
 select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context) || '0001', 'pending_review', 'oldest')->>'total_count')::integer, 1, 'request prefix search and pending filter return one fixture match');
+select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select full_reference_suffix from m026_fixture_context), 'all', 'newest')->>'total_count')::integer, 1, 'request RPC accepts an exact complete 37-character public reference');
+select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select full_reference_suffix from m026_fixture_context), 'all', 'newest')->'items'->0->>'public_reference'), 'REVA-' || (select full_reference_suffix from m026_fixture_context), 'exact request search returns the complete reference unchanged');
+select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || repeat('A', 59), 'all', 'newest')->'items'), '[]'::jsonb, 'request RPC accepts a valid 64-character search');
 select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->'items'->0->>'product_count')::integer, 2, 'request product count uses its item snapshots');
 select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->'items'->0->>'merchandise_subtotal')::numeric, 70::numeric, 'request subtotal uses snapshot prices');
-select is((public.admin_list_purchase_requests_v2(3, 1, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->>'page')::integer, 2, 'request out-of-range page clamps within fixture results');
+select is((public.admin_list_purchase_requests_v2(3, 1, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')->>'page')::integer, 1, 'request out-of-range page clamps within fixture results');
 select is((public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context) || 'FFFF', 'all', 'newest')->'items'), '[]'::jsonb, 'request empty state has an empty item array');
 select ok(position('ciphertext' in public.admin_list_purchase_requests_v2(1, 20, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'newest')::text) = 0, 'request list never returns encrypted personal fields');
 
-select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'all', 'all', 'newest')->>'total_count')::integer, 105, 'Order RPC can page across more than the legacy 100-row ceiling');
-select is(jsonb_array_length(public.admin_list_orders_v2(3, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'all', 'all', 'newest')->'items'), 5, 'last Order page returns the remaining bounded fixture results');
+select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'all', 'all', 'newest')->>'total_count')::integer, 104, 'Order RPC can page across more than the legacy 100-row ceiling');
+select is(jsonb_array_length(public.admin_list_orders_v2(3, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'all', 'all', 'newest')->'items'), 4, 'last Order page returns the remaining bounded fixture results');
 select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'all', 'all', 'newest')->'items'->0->>'public_reference'), 'REVA-' || (select prefix from m026_fixture_context) || case when (select id from m026_order_fixture_ids where sequence_number = 1) > (select id from m026_order_fixture_ids where sequence_number = 2) then '1001' else '1002' end, 'equal timestamps use a deterministic descending UUID tie-break');
 select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context) || '1001', 'pending_payment', 'pending_manual', 'not_ready', 'newest')->>'total_count')::integer, 1, 'Order reference and status filters apply server-side');
+select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select full_reference_suffix from m026_fixture_context), 'all', 'all', 'all', 'newest')->>'total_count')::integer, 1, 'Order RPC accepts an exact complete 37-character public reference');
+select is((public.admin_list_orders_v2(1, 50, 'REVA-' || repeat('A', 59), 'all', 'all', 'all', 'newest')->'items'), '[]'::jsonb, 'Order RPC accepts a valid 64-character search');
 select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context) || '1001', 'all', 'pending_manual', 'all', 'newest')->'items'->0->>'payment_status'), 'pending_manual', 'Order list reports current manual payment state');
 select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'late_unverified', 'all', 'newest')->>'total_count')::integer, 1, 'late-payment incident state can be filtered within fixture results');
 select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context) || '1001', 'all', 'all', 'all', 'newest')->'items'->0->>'product_count')::integer, 2, 'Order Product count uses immutable item snapshots');
@@ -139,12 +147,15 @@ select is((public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m02
 select ok(position('contact' in public.admin_list_orders_v2(1, 50, 'REVA-' || (select prefix from m026_fixture_context), 'all', 'all', 'all', 'newest')::text) = 0, 'Order list never returns encrypted customer contact data');
 select throws_ok($$select public.admin_list_purchase_requests_v2(0, 20, '', 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'request page lower bound is enforced');
 select throws_ok($$select public.admin_list_purchase_requests_v2(1, 51, '', 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'request page size upper bound is enforced');
-select throws_ok($$select public.admin_list_purchase_requests_v2(1, 20, repeat('x', 33), 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'request search length is bounded');
+select throws_ok($$select public.admin_list_purchase_requests_v2(1, 20, repeat('x', 65), 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'request search above 64 characters is rejected');
+select throws_ok($$select public.admin_list_purchase_requests_v2(1, 20, 'REVA;DROP', 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'request search rejects characters outside the reference alphabet');
 select throws_ok($$select public.admin_list_purchase_requests_v2(1, 20, '', 'expired', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'unsupported request status is rejected');
 select throws_ok($$select public.admin_list_purchase_requests_v2(1, 20, '', null, 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'null request status is rejected');
 select throws_ok($$select public.admin_list_purchase_requests_v2(1, 20, '', 'all', null)$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'null request date ordering is rejected');
 select throws_ok($$select public.admin_list_orders_v2(1, 20, '', 'unexpected', 'all', 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'unsupported Order state is rejected');
 select throws_ok($$select public.admin_list_orders_v2(1, 20, '', 'all', null, 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'null Order payment filter is rejected');
+select throws_ok($$select public.admin_list_orders_v2(1, 20, repeat('x', 65), 'all', 'all', 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'Order search above 64 characters is rejected');
+select throws_ok($$select public.admin_list_orders_v2(1, 20, 'REVA;DROP', 'all', 'all', 'all', 'newest')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'Order search rejects characters outside the reference alphabet');
 select throws_ok($$select public.admin_list_orders_v2(1, 20, '', 'all', 'all', 'all', 'unordered')$$, '22023', 'INVALID_ADMIN_LIST_FILTER', 'unsupported Order date order is rejected');
 select ok(not has_function_privilege('anon', 'public.admin_list_purchase_requests_v2(integer,integer,text,text,text)', 'EXECUTE'), 'anonymous role has no request-list RPC grant');
 select ok(not has_function_privilege('anon', 'public.admin_list_orders_v2(integer,integer,text,text,text,text,text)', 'EXECUTE'), 'anonymous role has no Order-list RPC grant');

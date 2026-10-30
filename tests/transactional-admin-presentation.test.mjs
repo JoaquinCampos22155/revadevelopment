@@ -60,6 +60,8 @@ test("Admin WhatsApp link opens contact selection without putting buyer phone in
   assert.equal(url.origin, "https://wa.me");
   assert.equal(url.pathname, "/");
   assert.equal(url.searchParams.get("text"), "Hola, doy seguimiento a tu solicitud de compra en REVA. Referencia: REVA-ABCDEF123456");
+  const currentReference = "REVA-0123456789ABCDEF0123456789ABCDEF";
+  assert.ok(getAdminWhatsAppUrl(currentReference));
   assert.equal(link.includes("50255551234"), false);
   assert.equal(getAdminWhatsAppUrl("internal-uuid"), null);
 });
@@ -73,6 +75,14 @@ test("request list filters normalize reference, valid status, ordering, and boun
   assert.deepEqual(normalizeAdminPurchaseRequestListFilters({
     search: "%_unsafe", status: "expired", dateOrder: "sideways", page: "999999999999",
   }), { search: "", status: "all", dateOrder: "newest", page: "1" });
+  const fullReference = "REVA-0123456789ABCDEF0123456789ABCDEF";
+  assert.equal(normalizeAdminPurchaseRequestListFilters({ search: fullReference }).search, fullReference);
+  assert.equal(normalizeAdminOrderListFilters({ search: fullReference }).search, fullReference);
+  assert.equal(normalizeAdminPurchaseRequestListFilters({ search: "A".repeat(64) }).search, "A".repeat(64));
+  assert.equal(normalizeAdminOrderListFilters({ search: "A".repeat(64) }).search, "A".repeat(64));
+  assert.equal(normalizeAdminPurchaseRequestListFilters({ search: "A".repeat(65) }).search, "");
+  assert.equal(normalizeAdminOrderListFilters({ search: "A".repeat(65) }).search, "");
+  assert.equal(normalizeAdminPurchaseRequestListFilters({ search: "REVA-0123;DROP" }).search, "");
 });
 
 test("Admin list RPC envelope rejects inconsistent counts or rows", () => {

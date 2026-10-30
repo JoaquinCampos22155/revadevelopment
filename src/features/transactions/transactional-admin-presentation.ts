@@ -48,7 +48,7 @@ function allowedFilter(value: string | undefined, known: ReadonlySet<string>): s
 
 function normalizedReference(value: string | undefined): string {
   const candidate = (value ?? "").trim().toUpperCase();
-  return candidate.length <= 32 && /^[A-Z0-9-]*$/.test(candidate) ? candidate : "";
+  return candidate.length <= 64 && /^[A-Z0-9-]*$/.test(candidate) ? candidate : "";
 }
 
 export function parseAdminListPage<T>(value: unknown, parseItem: (item: unknown) => T | null): AdminListPage<T> | null {
@@ -223,7 +223,7 @@ export function getSpanishReservationStatus(status: string): string {
 
 /** Opens WhatsApp's contact picker with a non-sensitive reference and no buyer phone in the URL. */
 export function getAdminWhatsAppUrl(publicReference: string): string | null {
-  const reference = /^REVA-[A-F0-9]{12}$/.test(publicReference) ? publicReference : null;
+  const reference = /^REVA-(?:[A-F0-9]{12}|[A-F0-9]{32})$/.test(publicReference) ? publicReference : null;
   if (!reference) return null;
 
   const message = `Hola, doy seguimiento a tu solicitud de compra en REVA. Referencia: ${reference}`;
