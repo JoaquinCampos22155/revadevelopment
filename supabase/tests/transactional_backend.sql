@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(46);
 
 select ok(
   has_sequence_privilege('authenticated', 'private.product_sku_sequence', 'USAGE'),
@@ -53,16 +53,20 @@ select throws_ok(
   '22023', 'INVALID_PURCHASE_REQUEST',
   'submission rejects oversized encrypted contact payload before persistence'
 );
-select * from public.create_purchase_request(
-  '93000000-0000-0000-0000-000000000001',
-  array['tx-shirt-one','tx-shirt-two'],
-  '[{"slug":"tx-shirt-one","price":"10.00"},{"slug":"tx-shirt-two","price":"20.00"}]'::jsonb,
-  '{"first_name":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
-  '{"street":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
-  '0101', 'cf', '{}'::jsonb,
-  decode(repeat('ab', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('ab',32))),
-  decode(repeat('cd', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('cd',32))),
-  null, 1::smallint, 1::smallint
+select matches(
+  (select public_reference from public.create_purchase_request(
+    '93000000-0000-0000-0000-000000000001',
+    array['tx-shirt-one','tx-shirt-two'],
+    '[{"slug":"tx-shirt-one","price":"10.00"},{"slug":"tx-shirt-two","price":"20.00"}]'::jsonb,
+    '{"first_name":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+    '{"street":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+    '0101', 'cf', '{}'::jsonb,
+    decode(repeat('ab', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('ab',32))),
+    decode(repeat('cd', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('cd',32))),
+    null, 1::smallint, 1::smallint
+  )),
+  '^REVA-[A-F0-9]{32}$',
+  'new public request references retain the full UUID-derived random value'
 );
 reset role;
 select is((select count(*)::integer from private.orders o join private.order_items i on i.order_id=o.id where i.product_id in ('92000000-0000-0000-0000-000000000001','92000000-0000-0000-0000-000000000002')), 0, 'purchase request submission does not create an Order for its fixture Products');
@@ -88,6 +92,27 @@ select is((select status from public.create_purchase_request(
 )), 'existing', 'same idempotency digest returns the existing safe reference instead of duplicating the request');
 
 select is((select status from public.create_purchase_request(
+  '93000000-0000-0000-0000-000000000098',
+  array['tx-shirt-one'],
+  '[{"slug":"tx-shirt-one","price":"12.00"}]'::jsonb,
+  '{"first_name":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '{"street":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '0101', 'cf', '{}'::jsonb,
+  decode(repeat('ab', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('ab',32))),
+  decode(repeat('cd', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('cd',32))), null, 1::smallint, 1::smallint
+)), 'changed', 'idempotency key cannot recover an existing request for a different Product selection');
+select is((select status from public.create_purchase_request(
+  '93000000-0000-0000-0000-000000000099',
+  array['tx-shirt-one','tx-shirt-two'],
+  '[{"slug":"tx-shirt-one","price":"10.00"},{"slug":"tx-shirt-two","price":"20.00"}]'::jsonb,
+  '{"first_name":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '{"street":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '0101', 'cf', '{}'::jsonb,
+  decode(repeat('ab', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('ab',32))),
+  decode(repeat('cd', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('cd',32))), null, 1::smallint, 1::smallint
+)), 'existing', 'selection mismatch did not replace the original idempotent request');
+
+select is((select status from public.create_purchase_request(
   '93000000-0000-0000-0000-000000000002',
   array['tx-shirt-two'],
   '[{"slug":"tx-shirt-two","price":"20.00"}]'::jsonb,
@@ -109,6 +134,19 @@ select is((select count(*)::integer from private.inventory_reservations where pr
 select is((select count(*)::integer from private.purchase_request_items where request_id = '93000000-0000-0000-0000-000000000001'), 2, 'request snapshots trusted Products and prices');
 
 update public.products set price = 12.00 where id = '92000000-0000-0000-0000-000000000001';
+set local role service_role;
+select is((select status from public.create_purchase_request(
+  '93000000-0000-0000-0000-000000000097',
+  array['tx-shirt-one','tx-shirt-two'],
+  '[{"slug":"tx-shirt-one","price":"12.00"},{"slug":"tx-shirt-two","price":"20.00"}]'::jsonb,
+  '{"first_name":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '{"street":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '0101', 'cf', '{}'::jsonb,
+  decode(repeat('ab', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('ab',32))),
+  decode(repeat('cd', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('cd',32))), null, 1::smallint, 1::smallint
+)), 'changed', 'idempotency key rejects the same Product selection after its authoritative price snapshot changes');
+reset role;
+select is((select count(*)::integer from private.purchase_requests where idempotency_digest=decode(repeat('ab',32),'hex')), 1, 'changed price retry does not create a duplicate request');
 set local role service_role;
 select is((select status from public.create_purchase_request(
   '93000000-0000-0000-0000-000000000003',
@@ -165,13 +203,38 @@ select is((select status from public.products where id = '92000000-0000-0000-000
 select ok((select public_media_ready_at is not null from public.products where id = '92000000-0000-0000-0000-000000000001'), 'released Product returns to public projection');
 select is((select count(*)::integer from private.order_contacts c join private.order_items i on i.order_id=c.order_id where i.product_id='92000000-0000-0000-0000-000000000001') + (select count(*)::integer from private.order_delivery_snapshots d join private.order_items i on i.order_id=d.order_id where i.product_id='92000000-0000-0000-0000-000000000001') + (select count(*)::integer from private.order_billing_snapshots b join private.order_items i on i.order_id=b.order_id where i.product_id='92000000-0000-0000-0000-000000000001'), 0, 'cancellation deletes this fixture Order personal-data snapshots');
 
+set local role service_role;
+select is((select status from public.create_purchase_request(
+  '93000000-0000-0000-0000-000000000004',
+  array['tx-shirt-two'],
+  '[{"slug":"tx-shirt-two","price":"20.00"}]'::jsonb,
+  '{"first_name":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '{"street":{"keyVersion":1,"nonce":"AA","ciphertext":"AA","tag":"AA"}}'::jsonb,
+  '0101', 'cf', '{}'::jsonb,
+  decode(repeat('de', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('de',32))),
+  decode(repeat('78', 32), 'hex'), jsonb_build_array(jsonb_build_object('version',1,'digest',repeat('78',32))), null, 1::smallint, 1::smallint
+)), 'created', 'independent nonexpired request fixture is created');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '90000000-0000-0000-0000-000000000001', true);
+select is(jsonb_typeof(public.admin_get_purchase_request('93000000-0000-0000-0000-000000000002')), 'object', 'Admin detail access creates an expiring-request audit event for cleanup verification');
+reset role;
 update private.purchase_requests set created_at = now() - interval '25 hours', expires_at = now() - interval '1 hour'
 where id = '93000000-0000-0000-0000-000000000002';
+update private.purchase_request_rate_limits set expires_at=now()-interval '1 second'
+where fingerprint_digest=decode(repeat('12',32),'hex');
+update private.purchase_request_rate_limits set expires_at=now()+interval '24 hours'
+where fingerprint_digest=decode(repeat('78',32),'hex');
 set local role service_role;
 select public.cleanup_transactional_records();
 reset role;
 select is((select count(*)::integer from private.purchase_requests where id='93000000-0000-0000-0000-000000000002'), 0, 'expired request and encrypted personal data are deleted');
 select is((select count(*)::integer from private.purchase_request_items where request_id='93000000-0000-0000-0000-000000000002'), 0, 'dependent expired request item snapshots are deleted');
+select is((select count(*)::integer from private.personal_data_access_events where resource_type='purchase_request' and resource_id='93000000-0000-0000-0000-000000000002'), 0, 'expired request access audit events are deleted');
+select is((select count(*)::integer from private.purchase_requests where id='93000000-0000-0000-0000-000000000004'), 1, 'independent nonexpired request survives cleanup');
+select is((select count(*)::integer from private.purchase_request_items where request_id='93000000-0000-0000-0000-000000000004'), 1, 'nonexpired request item snapshot survives cleanup');
+select is((select count(*)::integer from private.purchase_request_rate_limits where fingerprint_digest=decode(repeat('12',32),'hex')), 0, 'expired origin fingerprint quota is removed');
+select is((select count(*)::integer from private.purchase_request_rate_limits where fingerprint_digest=decode(repeat('78',32),'hex')), 1, 'nonexpired origin fingerprint quota is preserved');
 update private.orders set source_request_expires_at=now()-interval '1 second'
 where id=(select i.order_id from private.order_items i where i.product_id='92000000-0000-0000-0000-000000000001');
 set local role service_role;

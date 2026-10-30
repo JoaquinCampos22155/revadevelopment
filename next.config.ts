@@ -39,9 +39,8 @@ const nextConfig: NextConfig = {
     // application policy remains the authoritative accepted-file ceiling.
     proxyClientMaxBodySize: "13mb",
     serverActions: {
-      // Proxy and Route Handler requests share this framework body boundary.
-      // Keep it above the approved source-file policy without changing that policy.
-      bodySizeLimit: "13mb",
+      // Server Actions carry bounded text; Product image uploads use a separate Route Handler.
+      bodySizeLimit: "1mb",
     },
   },
   images: supabaseOrigin ? {

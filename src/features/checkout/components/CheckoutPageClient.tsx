@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { cartSubtotal } from "@/features/cart/cart-total";
 import { createCheckoutWhatsAppUrl, createLocalCheckoutPurchaseRequest } from "@/features/checkout/server/checkout.actions";
 import { getCheckoutProgress } from "@/features/checkout/checkout-progress";
+import { checkoutRequestScopeKey, clearCheckoutHandoff, getCheckoutHandoffStorageKey, readCheckoutHandoff, writeCheckoutHandoff, type CheckoutRequestHandoff } from "@/features/checkout/checkout-request-handoff";
 import { checkoutSelectionKey, sameCheckoutSelection } from "@/features/checkout/checkout-selection";
 import { formatCheckoutContactName, validateCheckoutDelivery, type CheckoutDeliveryErrors, type CheckoutDeliveryField } from "@/features/checkout/checkout-validation";
 import { GUATEMALA_MUNICIPALITIES, findGuatemalaMunicipality, getVerifiedZoneCatalog, type GuatemalaMunicipalityCode } from "@/features/checkout-prototype/municipalities";
@@ -109,27 +110,69 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
 }>) {
   const router = useRouter();
   const items = initialItems;
-  const [reviewReady, setReviewReady] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<CheckoutDeliveryErrors>({});
-  const [notice, setNotice] = useState(initialReadError ? "No pudimos verificar tu selección. Intenta actualizarla antes de continuar." : "");
-  const [pending, setPending] = useState(false);
-  const reviewHeading = useRef<HTMLHeadingElement>(null);
-  const idempotencyKey = useRef<string | null>(null);
-  const deliveryFieldRefs = useRef<Partial<Record<CheckoutDeliveryField, HTMLInputElement | HTMLSelectElement | null>>>({});
-  const municipality = findGuatemalaMunicipality(municipalityCode);
-  const zoneCatalog = getVerifiedZoneCatalog(municipalityCode);
   const products = useMemo(() => items.flatMap(({ product }) => product ? [product] : []), [items]);
   const unavailable = items.length !== requestedSlugs.length || items.some(({ product }) => !product);
   const subtotal = cartSubtotal(products.map(({ price }) => price));
   const currentSlugs = items.map(({ slug }) => slug);
+  const requestScopeKey = checkoutRequestScopeKey(products.map(({ slug, price }) => ({ slug, price })));
+  const handoffStorageKey = getCheckoutHandoffStorageKey(requestScopeKey);
+  const [reviewReady, setReviewReady] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<CheckoutDeliveryErrors>({});
+  const [notice, setNotice] = useState(initialReadError ? "No pudimos verificar tu selección. Intenta actualizarla antes de continuar." : "");
+  const [pending, setPending] = useState(false);
+  const [handoff, setHandoff] = useState<CheckoutRequestHandoff | null>(null);
+  const [handoffLoadedForScope, setHandoffLoadedForScope] = useState(localTransactionalRequestsEnabled && products.length > 0 ? "" : requestScopeKey);
+  const handoffReady = !localTransactionalRequestsEnabled || handoffLoadedForScope === requestScopeKey;
+  const [handoffStorageAvailable, setHandoffStorageAvailable] = useState(true);
+  const [pendingAttempt, setPendingAttempt] = useState(false);
+  const [handoffCopyNotice, setHandoffCopyNotice] = useState("");
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const handoffHeading = useRef<HTMLHeadingElement>(null);
+  const idempotencyKey = useRef<string | null>(null);
+  const latestRequestScopeRef = useRef("");
+  const deliveryFieldRefs = useRef<Partial<Record<CheckoutDeliveryField, HTMLInputElement | HTMLSelectElement | null>>>({});
+  const municipality = findGuatemalaMunicipality(municipalityCode);
+  const zoneCatalog = getVerifiedZoneCatalog(municipalityCode);
   const progress = getCheckoutProgress(reviewReady);
+
+  useLayoutEffect(() => {
+    latestRequestScopeRef.current = requestScopeKey;
+  }, [requestScopeKey]);
+
+  useEffect(() => {
+    if (!localTransactionalRequestsEnabled || products.length === 0) {
+      return;
+    }
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      try {
+        const saved = readCheckoutHandoff(window.sessionStorage, handoffStorageKey, requestScopeKey);
+        idempotencyKey.current = saved?.idempotencyKey ?? null;
+        setHandoff(saved?.publicReference ? saved : null);
+        setPendingAttempt(Boolean(saved && !saved.publicReference));
+        if (saved && !saved.publicReference) {
+          setNotice("Este navegador recuerda un intento pendiente. Si REVA ya recibió la solicitud, reintentar con la misma selección recuperará su referencia sin crear otra.");
+        }
+      } catch {
+        setHandoffStorageAvailable(false);
+        setNotice("El almacenamiento temporal de sesión no está disponible; no se enviarán solicitudes desde este navegador.");
+      }
+      setHandoffLoadedForScope(requestScopeKey);
+    });
+    return () => { cancelled = true; };
+  }, [handoffStorageKey, localTransactionalRequestsEnabled, products.length, requestScopeKey]);
 
   useEffect(() => {
     if (reviewReady) reviewHeading.current?.focus();
   }, [reviewReady]);
 
+  useEffect(() => {
+    if (handoff) handoffHeading.current?.focus();
+  }, [handoff]);
+
   function updateContact(field: keyof ContactDetails, value: string) {
-    idempotencyKey.current = null;
+    if (pending) return;
     const next = updateContactValue(contact, field, value);
     setContact(next);
     if (Object.keys(validationErrors).length > 0) {
@@ -139,7 +182,7 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
   }
 
   function updateMunicipality(code: GuatemalaMunicipalityCode) {
-    idempotencyKey.current = null;
+    if (pending) return;
     setMunicipalityCode(code);
     setZone("");
     setReviewReady(false);
@@ -149,7 +192,7 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
   }
 
   function updateBillingType(type: BillingDemoType) {
-    idempotencyKey.current = null;
+    if (pending) return;
     setBilling((current) => selectBillingDemoType(current, type));
     setReviewReady(false);
   }
@@ -173,9 +216,31 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
   }
 
   async function continueToLocalPurchaseRequest() {
-    if (pending || unavailable || currentSlugs.length === 0 || !canContactOnWhatsApp) return;
+    if (pending || !handoffReady || !handoffStorageAvailable || unavailable || currentSlugs.length === 0 || !canContactOnWhatsApp) return;
     const submittedSlugs = [...currentSlugs];
+    const submittedScopeKey = requestScopeKey;
+    const storageKey = getCheckoutHandoffStorageKey(submittedScopeKey);
     idempotencyKey.current ??= globalThis.crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const pendingHandoff: CheckoutRequestHandoff = {
+      expiresAt,
+      idempotencyKey: idempotencyKey.current,
+      publicReference: null,
+      selectionKey: submittedScopeKey,
+      whatsappUrl: null,
+    };
+    try {
+      if (!writeCheckoutHandoff(window.sessionStorage, storageKey, pendingHandoff)) {
+        setHandoffStorageAvailable(false);
+        setNotice("No pudimos conservar una clave temporal segura en este navegador. No enviamos la solicitud; habilita el almacenamiento de sesión e inténtalo de nuevo.");
+        return;
+      }
+    } catch {
+      setHandoffStorageAvailable(false);
+      setNotice("No pudimos conservar una clave temporal segura en este navegador. No enviamos la solicitud; habilita el almacenamiento de sesión e inténtalo de nuevo.");
+      return;
+    }
+    setPendingAttempt(true);
     setPending(true);
     setNotice("");
     try {
@@ -192,30 +257,78 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
           zone,
         },
         municipalityCode,
-      }, idempotencyKey.current);
-      if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current)) return;
+      }, pendingHandoff.idempotencyKey);
+      if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current) || latestRequestScopeRef.current !== submittedScopeKey) return;
       if (result.status === "changed") {
         const refreshed = await createCheckoutWhatsAppUrl(currentSlugs, expected);
-        if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current)) return;
+        if (!sameCheckoutSelection(submittedSlugs, latestSelectionRef.current) || latestRequestScopeRef.current !== submittedScopeKey) return;
         if (refreshed.items.length) router.refresh();
         setReviewReady(false);
+        clearCheckoutHandoff(window.sessionStorage, storageKey);
         idempotencyKey.current = null;
-        setNotice("El precio cambió mientras verificábamos. Revisa el resumen actualizado antes de continuar.");
+        setPendingAttempt(false);
+        setNotice("La selección o el precio asociado a un intento anterior cambió. Revisa el resumen actualizado antes de continuar.");
         return;
       }
       if (result.status === "rate-limited") {
         setNotice("Por seguridad, espera un momento antes de volver a enviar esta solicitud.");
         return;
       }
-      if (result.status === "unavailable" || result.status === "invalid" || !result.url) {
+      if (result.status === "unavailable" || result.status === "invalid") {
         setNotice("No pudimos guardar la solicitud. Revisa la selección e inténtalo de nuevo.");
         return;
       }
-      window.location.assign(result.url);
+      if ((result.status !== "created" && result.status !== "existing") || !result.publicReference || !result.expiresAt) {
+        setNotice("No pudimos confirmar el registro. Puedes reintentar con la misma selección sin crear una solicitud duplicada.");
+        return;
+      }
+      const registeredHandoff: CheckoutRequestHandoff = {
+        expiresAt: result.expiresAt,
+        idempotencyKey: pendingHandoff.idempotencyKey,
+        publicReference: result.publicReference,
+        selectionKey: submittedScopeKey,
+        whatsappUrl: result.url ?? null,
+      };
+      setHandoff(registeredHandoff);
+      setPendingAttempt(false);
+      if (!writeCheckoutHandoff(window.sessionStorage, storageKey, registeredHandoff)) {
+        setNotice("La solicitud quedó registrada, pero el navegador no pudo guardar su referencia para una recarga. Copia la referencia antes de salir.");
+      } else if (result.status === "existing") {
+        setNotice("Recuperamos la solicitud existente para esta selección; no creamos otra.");
+      }
     } catch {
-      setNotice("No pudimos guardar la solicitud ahora. Tus datos siguen en esta pantalla; inténtalo de nuevo.");
+      setNotice("No pudimos confirmar la respuesta. Tus datos siguen en esta pantalla; reintentar con la misma selección recuperará la solicitud si ya se registró.");
     } finally {
       setPending(false);
+    }
+  }
+
+  function startAnotherRequest() {
+    try {
+      clearCheckoutHandoff(window.sessionStorage, handoffStorageKey);
+    } catch {
+      setHandoffStorageAvailable(false);
+    }
+    idempotencyKey.current = null;
+    setHandoff(null);
+    setPendingAttempt(false);
+    setHandoffCopyNotice("");
+    setNotice("");
+    setContact(EMPTY_CONTACT);
+    setMunicipalityCode("0101");
+    setZone("");
+    setBilling(INITIAL_BILLING_DEMO);
+    setReviewReady(false);
+    setValidationErrors({});
+  }
+
+  async function copyPublicReference() {
+    if (!handoff?.publicReference) return;
+    try {
+      await navigator.clipboard.writeText(handoff.publicReference);
+      setHandoffCopyNotice("Referencia copiada.");
+    } catch {
+      setHandoffCopyNotice("No pudimos copiarla automáticamente. Selecciona la referencia para copiarla.");
     }
   }
 
@@ -265,6 +378,31 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
     </main>;
   }
 
+  if (localTransactionalRequestsEnabled && handoff?.publicReference && handoff.selectionKey === requestScopeKey) {
+    return <main className="min-h-screen bg-reva-background px-4 py-14 text-reva-primary sm:px-8 sm:py-20" id="main-content">
+      <section aria-labelledby="request-confirmation-heading" className="mx-auto max-w-2xl rounded-[1.75rem] border border-reva-brand-strong/20 bg-white p-6 shadow-[0_24px_70px_-48px_rgba(32,53,61,0.55)] sm:p-10">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-reva-brand-strong">Solicitud temporal · no es una compra confirmada</p>
+        <h1 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl" id="request-confirmation-heading" ref={handoffHeading} tabIndex={-1}>Recibimos tu solicitud.</h1>
+        <p className="mt-4 text-sm leading-6 text-reva-secondary">El equipo REVA revisará la disponibilidad y coordinará cobertura, entrega y pago contigo. Enviar la solicitud no reserva las prendas, no crea una orden y no confirma un pago.</p>
+        <div className="mt-6 rounded-2xl border border-reva-border bg-[#f5f8f7] p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-reva-secondary">Tu referencia pública</p>
+          <p className="mt-2 break-all font-mono text-xl font-semibold tracking-wide text-reva-primary" aria-label={`Referencia ${handoff.publicReference}`}>{handoff.publicReference}</p>
+          <button className="mt-3 min-h-11 rounded-full px-3 text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" onClick={() => void copyPublicReference()} type="button">Copiar referencia</button>
+          <p aria-live="polite" className="mt-1 min-h-5 text-xs text-reva-secondary">{handoffCopyNotice}</p>
+          <p className="mt-2 text-xs leading-5 text-reva-secondary">Esta referencia identifica la solicitud, pero no permite consultar ni modificar tus datos.</p>
+        </div>
+        <p className="mt-5 text-xs leading-5 text-reva-secondary">La solicitud expira el {new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(handoff.expiresAt))}. WhatsApp es un servicio externo; el mensaje solo se prepara para que tú lo revises y presiones Enviar.</p>
+        {notice ? <p aria-live="polite" className="mt-4 rounded-xl border-l-2 border-reva-brand-strong/50 bg-[#f5f8f7] px-4 py-3 text-sm leading-6 text-reva-secondary" role="status">{notice}</p> : null}
+        {handoff.whatsappUrl ? <a className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-reva-brand-strong px-6 text-sm font-semibold text-white transition hover:bg-reva-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2 motion-reduce:transition-none sm:w-auto" href={handoff.whatsappUrl} rel="noopener noreferrer" target="_blank">Continuar a WhatsApp</a> : <p className="mt-6 rounded-xl bg-[#f5f2ee] px-4 py-3 text-sm leading-6 text-reva-secondary">La solicitud sigue registrada, pero no pudimos preparar el enlace de WhatsApp. Conserva la referencia y contacta a REVA desde la página de contacto.</p>}
+        {handoff.whatsappUrl ? <p className="mt-3 text-xs leading-5 text-reva-secondary">Si cierras WhatsApp o no se abre, vuelve a usar el botón. No crea otra solicitud.</p> : null}
+        <div className="mt-7 flex flex-col gap-3 border-t border-reva-border pt-5 sm:flex-row sm:items-center">
+          <button className="inline-flex min-h-11 items-center justify-center rounded-full border border-reva-brand-strong/30 px-5 text-sm font-semibold text-reva-primary transition hover:bg-[#eef3f3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" onClick={startAnotherRequest} type="button">Iniciar otra solicitud</button>
+          <Link className="inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/catalogo">Volver al catálogo</Link>
+        </div>
+      </section>
+    </main>;
+  }
+
   return <main className="checkout-atmosphere relative isolate min-h-screen bg-reva-background pb-16 text-reva-primary" id="main-content">
     <div className="relative z-10">
     <header className="relative overflow-hidden border-b border-[#d3dcdd] bg-[radial-gradient(ellipse_at_78%_14%,rgba(61,90,102,0.12),transparent_42%),linear-gradient(135deg,#f8faf9_0%,#eef3f3_62%,#f5f7f5_100%)]">
@@ -292,13 +430,14 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
       <div className="min-w-0">
         <div className="mb-8 rounded-2xl border border-reva-warning/25 bg-[#faf6ed] px-4 py-3.5 sm:flex sm:items-center sm:gap-3 sm:px-5">
           <span aria-hidden="true" className="mb-1 inline-grid size-6 shrink-0 place-items-center rounded-full border border-reva-warning/40 text-xs text-reva-warning sm:mb-0">i</span>
-          <p className="text-xs leading-5 text-reva-secondary"><strong className="font-semibold text-reva-primary">Privacidad:</strong> {localTransactionalRequestsEnabled ? "esta instancia local de desarrollo guardará tu solicitud de prueba en Supabase local con los campos personales cifrados; no uses datos reales. El mensaje de WhatsApp solo incluye referencia, prendas verificadas y subtotal." : "los datos de contacto, entrega y facturación permanecen en este navegador; no se guardan ni se envían a REVA. La consulta de WhatsApp incluye datos públicos de las prendas, subtotal y una pregunta sobre disponibilidad y entrega; no agregues datos personales."} Consulta <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/terminos">Términos</Link> y <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/privacidad">Privacidad</Link>.</p>
+          <p className="text-xs leading-5 text-reva-secondary"><strong className="font-semibold text-reva-primary">Privacidad:</strong> {localTransactionalRequestsEnabled ? "al enviar, esta instancia local procesa temporalmente la solicitud con datos personales cifrados para que el equipo REVA pueda revisarla; expirará en 24 horas y no reserva prendas. REVA podría contactarte al número de WhatsApp indicado. WhatsApp es un servicio externo y el mensaje solo incluye tu referencia, prendas y precios públicos; no uses datos reales en esta prueba." : "los datos de contacto, entrega y facturación permanecen en este navegador; no se guardan ni se envían a REVA. La consulta de WhatsApp incluye datos públicos de las prendas, subtotal y una pregunta sobre disponibilidad y entrega; no agregues datos personales."} Consulta <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/terminos">Términos</Link> y <Link className="font-semibold text-reva-brand-strong underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/privacidad">Privacidad</Link>.</p>
         </div>
 
         {notice ? <p aria-live="polite" className="mb-6 rounded-xl border-l-2 border-reva-warning bg-[#faf6ed] px-4 py-3 text-sm leading-6 text-reva-secondary">{notice}</p> : null}
         {unavailable ? <div className="mb-6 rounded-xl border border-reva-danger/25 bg-white p-4" role="alert"><p className="font-semibold text-reva-primary">Hay prendas que no pudimos verificar.</p><p className="mt-1 text-sm leading-6 text-reva-secondary">No continuaremos con una selección que incluya prendas no disponibles o sin imagen pública. Vuelve a revisar tu carrito.</p><Link className="mt-3 inline-flex min-h-10 items-center text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/carrito">Revisar carrito</Link></div> : null}
 
-        <form autoComplete="off" noValidate onSubmit={reviewDetails}>
+        <form aria-busy={pending} autoComplete="off" noValidate onSubmit={reviewDetails}>
+          <fieldset aria-label="Datos de Checkout" className="contents" disabled={pending}>
           <section aria-labelledby="delivery-heading" className="rounded-[1.75rem] bg-[#f7f6f2] px-4 py-6 sm:px-7 sm:py-8">
             <SectionMarker headingId="delivery-heading" number="01" eyebrow="Datos para revisar" title="¿Dónde te encontramos?" />
             {Object.keys(validationErrors).length > 0 ? <p className="mt-4 rounded-xl border-l-2 border-reva-danger bg-white px-4 py-3 text-sm text-reva-danger" role="alert">Completa los campos obligatorios indicados para continuar.</p> : null}
@@ -311,7 +450,7 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
               <label className={labelClass}>Correo electrónico <span className="font-normal text-reva-secondary">(opcional)</span><input autoComplete="off" className={fieldClass} onChange={(event) => updateContact("email", event.target.value)} placeholder="Correo" type="email" value={contact.email} /></label>
               <div className="flex min-h-[4.8rem] flex-col justify-center rounded-xl border border-reva-border/70 bg-white/75 px-4 py-3"><span className="text-xs uppercase tracking-[0.12em] text-reva-secondary">Departamento</span><span className="mt-1 font-medium">Guatemala <span className="ml-1 text-xs font-normal text-reva-secondary">· alcance actual de REVA</span></span></div>
               <label className={labelClass} htmlFor="checkout-municipality">Municipio {requiredLabel}<select aria-describedby={validationErrors.municipalityCode ? "checkout-municipality-error" : undefined} aria-invalid={Boolean(validationErrors.municipalityCode)} aria-required="true" className={`${geographicFieldClass} ${validationErrors.municipalityCode ? invalidFieldClass : ""}`} id="checkout-municipality" onChange={(event) => updateMunicipality(event.target.value as GuatemalaMunicipalityCode)} ref={(element) => { deliveryFieldRefs.current.municipalityCode = element; }} required value={municipalityCode}><option value="">Selecciona un municipio</option>{GUATEMALA_MUNICIPALITIES.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}</select>{validationErrors.municipalityCode ? <span className="mt-1.5 block text-xs font-medium text-reva-danger" id="checkout-municipality-error">{validationErrors.municipalityCode}</span> : null}</label>
-              <label className={labelClass}>Zona o sector <span className="font-normal text-reva-secondary">(opcional)</span>{zoneCatalog ? <select className={geographicFieldClass} onChange={(event) => { idempotencyKey.current = null; setZone(event.target.value); setReviewReady(false); }} value={zone}><option value="">Selecciona una zona, si aplica</option>{zoneCatalog.zones.map((number) => <option key={number} value={`Zona ${number}`}>Zona {number}</option>)}</select> : <input className={fieldClass} onChange={(event) => { idempotencyKey.current = null; setZone(event.target.value); setReviewReady(false); }} placeholder="Zona o sector, si aplica" value={zone} />}<span className="mt-1.5 block text-xs font-normal leading-5 text-reva-secondary">Puedes dejarlo vacío si no lo conoces.</span></label>
+              <label className={labelClass}>Zona o sector <span className="font-normal text-reva-secondary">(opcional)</span>{zoneCatalog ? <select className={geographicFieldClass} onChange={(event) => { setZone(event.target.value); setReviewReady(false); }} value={zone}><option value="">Selecciona una zona, si aplica</option>{zoneCatalog.zones.map((number) => <option key={number} value={`Zona ${number}`}>Zona {number}</option>)}</select> : <input className={fieldClass} onChange={(event) => { setZone(event.target.value); setReviewReady(false); }} placeholder="Zona o sector, si aplica" value={zone} />}<span className="mt-1.5 block text-xs font-normal leading-5 text-reva-secondary">Puedes dejarlo vacío si no lo conoces.</span></label>
               <label className={labelClass}>Colonia o residencial <span className="font-normal text-reva-secondary">(opcional)</span><input className={fieldClass} onChange={(event) => updateContact("neighborhood", event.target.value)} placeholder="Colonia o residencial" value={contact.neighborhood} /></label>
               <label className={labelClass} htmlFor="checkout-street">Calle o avenida {requiredLabel}<input aria-describedby={validationErrors.street ? "checkout-street-error" : undefined} aria-invalid={Boolean(validationErrors.street)} autoComplete="off" className={`${fieldClass} ${validationErrors.street ? invalidFieldClass : ""}`} id="checkout-street" ref={(element) => { deliveryFieldRefs.current.street = element; }} onChange={(event) => updateContact("street", event.target.value)} placeholder="Calle o avenida" required value={contact.street} />{validationErrors.street ? <span className="mt-1.5 block text-xs font-medium text-reva-danger" id="checkout-street-error">{validationErrors.street}</span> : null}</label>
               <label className={labelClass} htmlFor="checkout-house-number">Casa o lote {requiredLabel}<input aria-describedby={validationErrors.houseNumber ? "checkout-house-error" : undefined} aria-invalid={Boolean(validationErrors.houseNumber)} autoComplete="off" className={`${fieldClass} ${validationErrors.houseNumber ? invalidFieldClass : ""}`} id="checkout-house-number" ref={(element) => { deliveryFieldRefs.current.houseNumber = element; }} onChange={(event) => updateContact("houseNumber", event.target.value)} placeholder="Número de casa o lote" required value={contact.houseNumber} />{validationErrors.houseNumber ? <span className="mt-1.5 block text-xs font-medium text-reva-danger" id="checkout-house-error">{validationErrors.houseNumber}</span> : null}</label>
@@ -330,7 +469,7 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
                   {(["cf", "nit"] as const).map((type) => <label className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm transition-colors motion-reduce:transition-none ${billing.type === type ? "border-reva-brand-strong/50 bg-white font-medium text-reva-primary shadow-sm" : "border-reva-border bg-white/65 text-reva-secondary hover:border-reva-brand-strong/30"}`} key={type}><input checked={billing.type === type} className="size-4 accent-[#294b58] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-reva-focus" name="billing-type" onChange={() => updateBillingType(type)} type="radio" /><span>{type === "cf" ? "Consumidor Final (CF)" : "Factura con NIT"}</span></label>)}
                 </div>
               </fieldset>
-              {billing.type === "cf" ? <p className="mt-4 rounded-xl border-l-2 border-reva-brand-strong/45 bg-white/80 px-4 py-3 text-xs leading-5 text-reva-secondary" role="status">CF seleccionado para esta vista. No se pide NIT. Esto no determina si CF aplica a una transacción futura.</p> : <div className="mt-4 border-t border-reva-border/70 pt-4"><div className="grid gap-x-4 gap-y-4 sm:grid-cols-2"><label className={labelClass} htmlFor="checkout-billing-name">Nombre a facturar <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-name" onChange={(event) => { idempotencyKey.current = null; setBilling((current) => updateBillingDemoRecipientName(current, event.target.value)); setReviewReady(false); }} value={billing.recipientName} /></label><label className={labelClass} htmlFor="checkout-billing-nit">NIT <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-nit" onChange={(event) => { idempotencyKey.current = null; setBilling((current) => updateBillingDemoNit(current, event.target.value)); setReviewReady(false); }} value={billing.nit} /></label></div></div>}
+              {billing.type === "cf" ? <p className="mt-4 rounded-xl border-l-2 border-reva-brand-strong/45 bg-white/80 px-4 py-3 text-xs leading-5 text-reva-secondary" role="status">CF seleccionado para esta vista. No se pide NIT. Esto no determina si CF aplica a una transacción futura.</p> : <div className="mt-4 border-t border-reva-border/70 pt-4"><div className="grid gap-x-4 gap-y-4 sm:grid-cols-2"><label className={labelClass} htmlFor="checkout-billing-name">Nombre a facturar <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-name" onChange={(event) => { setBilling((current) => updateBillingDemoRecipientName(current, event.target.value)); setReviewReady(false); }} value={billing.recipientName} /></label><label className={labelClass} htmlFor="checkout-billing-nit">NIT <span className="font-normal text-reva-secondary">(solo revisión)</span><input autoComplete="off" className={fieldClass} id="checkout-billing-nit" onChange={(event) => { setBilling((current) => updateBillingDemoNit(current, event.target.value)); setReviewReady(false); }} value={billing.nit} /></label></div></div>}
               <p className="mt-3 border-l-2 border-reva-brand-strong/35 pl-3 text-xs leading-5 text-reva-secondary">No hay validación fiscal ni envío de estos datos. Los criterios de facturación requieren confirmación calificada antes de implementar FEL.</p>
             </div>
           </section>
@@ -354,15 +493,16 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
                   <div className="sm:col-span-2"><dt className="text-xs text-reva-secondary">Dirección</dt><dd className="mt-1 font-medium">{[contact.neighborhood, contact.street, contact.houseNumber, contact.apartment, contact.reference].filter(Boolean).join(" · ") || "Sin indicar"}</dd></div>
                   <div className="sm:col-span-2"><dt className="text-xs text-reva-secondary">Facturación</dt><dd className="mt-1 font-medium">{billing.type === "cf" ? "Consumidor Final (CF) · sin NIT" : `Factura con NIT${billing.recipientName ? ` · ${billing.recipientName}` : ""}${billing.nit ? ` · ${billing.nit}` : ""}`}</dd></div>
                 </dl>
-                <p className="mt-4 border-t border-reva-border/80 pt-4 text-xs leading-5 text-reva-secondary">Estos datos se muestran solo para tu revisión; no se transmiten a REVA. El mensaje de WhatsApp incluirá las prendas y sus precios públicos actuales.</p>
+                <p className="mt-4 border-t border-reva-border/80 pt-4 text-xs leading-5 text-reva-secondary">{localTransactionalRequestsEnabled ? "Al proceder, tus datos se guardarán cifrados en una solicitud temporal de 24 horas para revisión del equipo REVA; no se reserva inventario ni se crea una orden. El mensaje externo de WhatsApp no incluye información personal." : "Estos datos se muestran solo para tu revisión; no se transmiten a REVA. El mensaje de WhatsApp incluirá las prendas y sus precios públicos actuales."}</p>
               </div> : null}
               <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
                 <button className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-reva-brand-strong/30 bg-white px-6 text-sm font-semibold text-reva-primary transition hover:bg-[#eef3f3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus focus-visible:ring-offset-2 motion-reduce:transition-none sm:w-auto" type="submit">{reviewReady ? "Actualizar revisión" : "Revisar antes de continuar"}</button>
-              {canContactOnWhatsApp ? <Button className="w-full sm:w-auto" disabled={pending || unavailable} onClick={proceedToPurchase} variant="solid">{pending ? localTransactionalRequestsEnabled ? "Guardando solicitud…" : "Verificando prendas…" : "Proceder a compra"}</Button> : <div><p className="text-sm text-reva-secondary">La consulta por WhatsApp no está disponible ahora.</p><Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/contacto">Ver canales de contacto</Link></div>}
+              {canContactOnWhatsApp ? <Button className="w-full sm:w-auto" disabled={pending || unavailable || (localTransactionalRequestsEnabled && (!handoffReady || !handoffStorageAvailable))} onClick={proceedToPurchase} variant="solid">{pending ? localTransactionalRequestsEnabled ? "Guardando solicitud…" : "Verificando prendas…" : localTransactionalRequestsEnabled && pendingAttempt ? "Reintentar esta solicitud" : "Proceder a compra"}</Button> : <div><p className="text-sm text-reva-secondary">La consulta por WhatsApp no está disponible ahora.</p><Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/contacto">Ver canales de contacto</Link></div>}
               </div>
               <p className="mt-5 text-center text-[0.68rem] font-medium text-reva-secondary">Esta consulta no crea orden, reserva, cotización de envío, factura ni pago.</p>
             </div>
           </section>
+          </fieldset>
         </form>
       </div>
 
@@ -370,7 +510,7 @@ function CheckoutPageContent({ billing, canContactOnWhatsApp, contact, entry, in
         <div className="overflow-hidden rounded-[1.5rem] border border-reva-border bg-white shadow-[0_24px_70px_-48px_rgba(32,53,61,0.55)] lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-contain">
           <div className="relative isolate flex items-start justify-between gap-4 overflow-hidden bg-[#e5edf1] px-5 py-5 sm:px-6 lg:sticky lg:top-0 lg:z-10"><div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-14 size-40 rounded-full border border-reva-brand-strong/10" /><div><p className="text-[0.64rem] font-semibold uppercase tracking-[0.17em] text-reva-brand-strong">Resumen actual</p><h2 className="mt-1 font-serif text-2xl text-reva-primary" id="summary-heading">Tus prendas</h2></div><span className="grid size-10 place-items-center rounded-full border border-white/80 bg-white/75 font-serif text-sm text-reva-brand-strong">{String(products.length).padStart(2, "0")}</span></div>
           <ul aria-label="Productos de tu selección" className="divide-y divide-reva-border/70 px-5 sm:px-6">{items.map(({ product, slug }) => <li className="flex gap-3 py-4" key={slug}>{product ? <div className="relative aspect-[4/5] w-[4.25rem] shrink-0 overflow-hidden rounded-lg bg-reva-muted"><Image alt={product.image.alt} className="object-cover" fill sizes="68px" src={product.image.src} /></div> : <div aria-hidden="true" className="grid aspect-[4/5] w-[4.25rem] shrink-0 place-items-center rounded-lg bg-[#f5e9e7] text-xs font-semibold text-reva-danger">No disponible</div>}<div className="min-w-0 flex-1 self-center">{product ? <><p className="text-[0.6rem] font-semibold uppercase tracking-[0.13em] text-reva-secondary">Pieza única · {product.condition}</p><h3 className="mt-1 font-serif text-base leading-snug text-reva-primary">{product.title}</h3><p className="mt-1 text-xs text-reva-secondary">{product.sizeLabel ? `Talla ${product.sizeLabel}` : "Talla no indicada"}</p><p className="mt-2 text-sm font-semibold tabular-nums">Q {product.price}</p></> : <><p className="text-[0.6rem] font-semibold uppercase tracking-[0.13em] text-reva-danger">No disponible</p><h3 className="mt-1 break-all text-sm text-reva-primary">No se pudo verificar esta prenda</h3></>}</div></li>)}</ul>
-          <div className="border-t border-reva-border bg-[#fbfbf9] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-4"><span className="text-sm text-reva-secondary">Subtotal de prendas</span><span className="font-serif text-xl tabular-nums text-reva-primary">{subtotal}</span></div><div className="mt-4 flex items-center justify-between gap-4 border-t border-reva-border/70 pt-4"><span className="text-sm text-reva-secondary">Entrega</span><span className="text-right text-xs text-reva-secondary">Por confirmar con REVA</span></div><p className="mt-4 rounded-xl bg-[#f5f2ee] px-3.5 py-3 text-xs leading-5 text-reva-secondary">El precio es actual según la ficha pública, pero disponibilidad y cualquier costo de entrega se confirman antes de aceptar la compra.</p><p className="mt-4 text-center text-[0.66rem] uppercase tracking-[0.12em] text-reva-secondary">No es un total de pago</p><Button className="mt-5 w-full" disabled={pending || unavailable || !canContactOnWhatsApp} onClick={proceedToPurchase} variant="solid">{pending ? localTransactionalRequestsEnabled ? "Guardando solicitud…" : "Verificando prendas…" : "Proceder a compra"}</Button></div>
+          <div className="border-t border-reva-border bg-[#fbfbf9] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-4"><span className="text-sm text-reva-secondary">Subtotal de prendas</span><span className="font-serif text-xl tabular-nums text-reva-primary">{subtotal}</span></div><div className="mt-4 flex items-center justify-between gap-4 border-t border-reva-border/70 pt-4"><span className="text-sm text-reva-secondary">Entrega</span><span className="text-right text-xs text-reva-secondary">Por confirmar con REVA</span></div><p className="mt-4 rounded-xl bg-[#f5f2ee] px-3.5 py-3 text-xs leading-5 text-reva-secondary">El precio es actual según la ficha pública, pero disponibilidad y cualquier costo de entrega se confirman antes de aceptar la compra.</p><p className="mt-4 text-center text-[0.66rem] uppercase tracking-[0.12em] text-reva-secondary">No es un total de pago</p><Button className="mt-5 w-full" disabled={pending || unavailable || !canContactOnWhatsApp || (localTransactionalRequestsEnabled && (!handoffReady || !handoffStorageAvailable))} onClick={proceedToPurchase} variant="solid">{pending ? localTransactionalRequestsEnabled ? "Guardando solicitud…" : "Verificando prendas…" : localTransactionalRequestsEnabled && pendingAttempt ? "Reintentar esta solicitud" : "Proceder a compra"}</Button></div>
         </div>
         <p className="mt-4 px-1 text-xs leading-5 text-reva-secondary">La disponibilidad se confirmará antes de continuar.</p>
       </aside>

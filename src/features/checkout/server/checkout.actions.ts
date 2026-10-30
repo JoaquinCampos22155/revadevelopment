@@ -11,6 +11,7 @@ import { isLocalTransactionalRequestsEnabled, submitLocalPurchaseRequest, type L
 import { getCurrentUserProfile } from "@/features/users/server/current-user.service";
 import { isTrustedRevaOrigin } from "@/infrastructure/config/site";
 import { headers } from "next/headers";
+import { isCheckoutActionPayloadWithinLimit } from "@/features/checkout/checkout-request-limits";
 
 type CheckoutActionResult = Readonly<{
   items: readonly CheckoutResolvedItem[];
@@ -56,7 +57,12 @@ export async function createCheckoutWhatsAppUrl(slugs: unknown, expected: unknow
   }
 }
 
-type LocalRequestResult = Readonly<{ status: "changed" | "invalid" | "rate-limited" | "ready" | "unavailable"; url?: string }>;
+type LocalRequestResult = Readonly<{
+  expiresAt?: string;
+  publicReference?: string;
+  status: "changed" | "created" | "existing" | "invalid" | "rate-limited" | "unavailable";
+  url?: string;
+}>;
 
 function safeText(value: unknown, maxLength: number): string | null {
   if (typeof value !== "string") return null;
@@ -111,6 +117,7 @@ export async function createLocalCheckoutPurchaseRequest(
   idempotencyKey: unknown,
 ): Promise<LocalRequestResult> {
   if (!isLocalTransactionalRequestsEnabled()) return { status: "unavailable" };
+  if (!isCheckoutActionPayloadWithinLimit({ details, expected, idempotencyKey, slugs })) return { status: "invalid" };
   if (!validSlugs(slugs) || !validSnapshot(expected)) return { status: "invalid" };
   const requested = normalizeCartItems(slugs);
   if (requested.length !== slugs.length || expected.length !== requested.length) return { status: "invalid" };
@@ -121,17 +128,16 @@ export async function createLocalCheckoutPurchaseRequest(
 
   const requestHeaders = await headers();
   if (!isTrustedRevaOrigin(requestHeaders.get("origin"))) return { status: "unavailable" };
-  const forwardedAddress = requestHeaders.get("x-forwarded-for")?.split(",", 1)[0]?.trim();
-  const directAddress = requestHeaders.get("x-real-ip")?.trim();
-  const fingerprint = (forwardedAddress || directAddress || "local-unknown").slice(0, 64);
+  // This write path is loopback-only. Do not accept spoofable forwarded headers as an identity.
+  const fingerprint = "reva-local-development";
   const profile = await getCurrentUserProfile();
   if (!isWhatsAppConfigured()) return { status: "unavailable" };
 
   try {
     const result = await submitLocalPurchaseRequest(input, profile?.id ?? null, fingerprint);
     if (result.status === "changed" || result.status === "rate-limited") return { status: result.status };
-    if (result.status !== "created" && result.status !== "existing" || !result.url) return { status: "unavailable" };
-    return { status: "ready", url: result.url };
+    if (result.status !== "created" && result.status !== "existing" || !result.publicReference || !result.expiresAt) return { status: "unavailable" };
+    return { expiresAt: result.expiresAt, publicReference: result.publicReference, status: result.status, url: result.url };
   } catch {
     return { status: "unavailable" };
   }

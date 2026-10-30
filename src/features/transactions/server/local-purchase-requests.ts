@@ -4,6 +4,10 @@ import { createHmac, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 import { encryptSensitiveValue, loadTransactionalKeyrings, type EncryptedSensitiveValue } from "@/features/transactions/server/encryption";
+import {
+  isLocalTransactionalRequestsEnabled as isLocalTransactionalRequestsEnabledForEnvironment,
+  isLoopbackSupabaseUrl,
+} from "@/features/transactions/local-transactional-gate";
 import { getWhatsAppPurchaseRequestUrl } from "@/infrastructure/config/site-contact";
 
 type RequestContact = Readonly<{ email: string; firstName: string; lastName: string; phone: string }>;
@@ -26,20 +30,14 @@ export type LocalPurchaseRequestInput = Readonly<{
 
 export type LocalPurchaseRequestResult = Readonly<{
   status: "created" | "existing" | "changed" | "rate-limited" | "unavailable";
+  expiresAt?: string;
+  publicReference?: string;
   url?: string;
 }>;
 
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
-
 /** The write path is deliberately enabled only in explicit local development. */
 export function isLocalTransactionalRequestsEnabled(): boolean {
-  if (process.env.NODE_ENV !== "development" || process.env.REVA_LOCAL_TRANSACTIONAL_ENABLED !== "true") return false;
-  try {
-    const hostname = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname.replace(/^\[|\]$/g, "");
-    return LOOPBACK_HOSTS.has(hostname);
-  } catch {
-    return false;
-  }
+  return isLocalTransactionalRequestsEnabledForEnvironment(process.env);
 }
 
 function getLocalKeyrings() {
@@ -56,8 +54,7 @@ function createLocalClient() {
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !publishableKey || !serviceRoleKey) throw new Error("Local Supabase is not configured for transactional requests.");
-  const hostname = new URL(url).hostname.replace(/^\[|\]$/g, "");
-  if (!LOOPBACK_HOSTS.has(hostname)) throw new Error("Transactional service credential is restricted to local Supabase.");
+  if (!isLoopbackSupabaseUrl(url)) throw new Error("Transactional service credential is restricted to local Supabase.");
 
   return createClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, detectSessionInUrl: false, persistSession: false },
@@ -74,13 +71,14 @@ function encryptFields(fields: Readonly<Record<string, string>>, requestId: stri
   )]));
 }
 
-function safeRpcResult(value: unknown): Readonly<{ items: readonly Readonly<{ price: string; quantity: number; sku: string; title: string }>[]; publicReference: string; status: string; subtotal: string }> | null {
+function safeRpcResult(value: unknown): Readonly<{ expiresAt?: string; items: readonly Readonly<{ price: string; quantity: number; sku: string; title: string }>[]; publicReference?: string; status: string; subtotal: string }> | null {
   if (!Array.isArray(value) || value.length !== 1 || typeof value[0] !== "object" || value[0] === null) return null;
   const row = value[0] as Record<string, unknown>;
   if (!["created", "existing", "changed", "rate_limited"].includes(String(row.status))) return null;
-  if (row.status === "rate_limited") return { items: [], publicReference: "", status: "rate_limited", subtotal: "" };
+  if (row.status === "rate_limited") return { items: [], status: "rate_limited", subtotal: "" };
   if (row.status === "changed") return { items: [], publicReference: "", status: "changed", subtotal: "" };
-  if (typeof row.public_reference !== "string" || !/^REVA-[A-F0-9]{12}$/.test(row.public_reference)
+  if (typeof row.public_reference !== "string" || !/^REVA-(?:[A-F0-9]{12}|[A-F0-9]{32})$/.test(row.public_reference)
+      || typeof row.expires_at !== "string" || !Number.isFinite(Date.parse(row.expires_at))
       || typeof row.merchandise_subtotal !== "number" && typeof row.merchandise_subtotal !== "string"
       || !Array.isArray(row.items)) return null;
 
@@ -97,6 +95,7 @@ function safeRpcResult(value: unknown): Readonly<{ items: readonly Readonly<{ pr
   if (items.length !== row.items.length || items.length < 1) return null;
   return {
     items,
+    expiresAt: row.expires_at,
     publicReference: row.public_reference,
     status: String(row.status),
     subtotal: Number(row.merchandise_subtotal).toFixed(2),
@@ -170,10 +169,20 @@ export async function submitLocalPurchaseRequest(
   if (result.status === "changed") return { status: "changed" };
   if (result.status === "rate_limited") return { status: "rate-limited" };
 
-  const url = getWhatsAppPurchaseRequestUrl({
-    items: result.items,
+  let url: string | undefined;
+  try {
+    url = getWhatsAppPurchaseRequestUrl({
+      items: result.items.map(({ price, quantity, title }) => ({ price, quantity, title })),
+      publicReference: result.publicReference ?? "",
+      subtotal: result.subtotal,
+    }) ?? undefined;
+  } catch {
+    url = undefined;
+  }
+  return {
+    expiresAt: result.expiresAt,
     publicReference: result.publicReference,
-    subtotal: result.subtotal,
-  });
-  return url ? { status: result.status as "created" | "existing", url } : { status: "unavailable" };
+    status: result.status as "created" | "existing",
+    url,
+  };
 }
