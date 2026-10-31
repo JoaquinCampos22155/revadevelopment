@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { Section } from "@/components/layout/Section";
 import { Heading } from "@/components/ui/Heading";
@@ -43,7 +42,6 @@ function requestPageHref(filters: ReturnType<typeof normalizeAdminPurchaseReques
 const controlClass = "mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus";
 
 export default async function TransactionManagementPage({ searchParams }: Props) {
-  if (!isLocalTransactionalRequestsEnabled()) notFound();
   await requireCurrentAdmin();
   const query = await searchParams;
   const filters = normalizeAdminPurchaseRequestListFilters({ dateOrder: valueOf(query.dateOrder), page: valueOf(query.page), search: valueOf(query.search), status: valueOf(query.status) });
@@ -52,7 +50,8 @@ export default async function TransactionManagementPage({ searchParams }: Props)
   const resultCode = valueOf(query.result);
   const resultMessage = resultCode ? resultMessages[resultCode] ?? "No se pudo completar la acción. Recarga y revisa el estado actual." : null;
   return <TransactionalAdminShell activeTab="requests"><main id="main-content"><Section><div className="mx-auto max-w-6xl space-y-8">
-    <header className="space-y-3"><Text variant="label">Administración interna · Ventas y órdenes</Text><Heading className="mt-2" level={1} variant="editorial">Solicitudes</Heading><Text className="max-w-2xl" variant="body">Una solicitud temporal no es una venta. Revisar y aprobar confirma disponibilidad y precios; la orden resultante queda pendiente de pago y reserva cada prenda por tres horas.</Text><Link className="inline-flex min-h-11 items-center text-sm font-semibold text-reva-brand-strong underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href="/admin/productos">← Gestión de Productos</Link></header>
+    <header className="space-y-3"><Text variant="label">Administración interna · Ventas y órdenes</Text><Heading className="mt-2" level={1} variant="editorial">Solicitudes</Heading><Text className="max-w-2xl" variant="body">Una solicitud temporal no es una venta. Revisar y aprobar confirma disponibilidad y precios; la orden resultante queda pendiente de pago y reserva cada prenda por tres horas.</Text></header>
+    {!isLocalTransactionalRequestsEnabled() ? <p className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950" role="status">Vista administrativa de solo lectura. El detalle cifrado y las acciones operativas están deshabilitados en esta configuración.</p> : null}
     {resultMessage ? <p aria-live="polite" className="rounded-xl border-l-2 border-reva-brand-strong bg-white px-4 py-3 text-sm leading-6 text-reva-primary" role="status">{resultMessage}</p> : null}
     <section aria-labelledby="requests-heading" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2"><div><Text variant="label">Bandeja de revisión</Text><h2 className="mt-1 font-sans text-2xl font-semibold tracking-tight" id="requests-heading">Solicitudes vigentes</h2><Text variant="quiet">Intenciones de compra sin reservar. Prioriza el plazo de revisión.</Text></div><span className="text-xs font-medium text-reva-secondary">Sin datos personales en esta lista</span></div>
@@ -69,7 +68,7 @@ export default async function TransactionManagementPage({ searchParams }: Props)
           <p className="mt-2 text-sm text-reva-secondary">{request.productCount} {request.productCount === 1 ? "prenda" : "prendas"} · creada {new Date(request.createdAt).toLocaleString("es-GT")}</p>
           <p className="mt-1 text-sm text-reva-primary"><span className="font-semibold">Plazo de revisión:</span> <ExpirationCountdown expiresAt={request.expiresAt} /></p>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0"><p className="text-sm font-semibold text-reva-primary">Subtotal · {money(request.subtotal)}</p><Link className="inline-flex min-h-11 items-center justify-center rounded-full border border-reva-border px-4 text-sm font-semibold text-reva-primary hover:bg-reva-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={`/admin/solicitudes/${request.id}`}>Revisar solicitud</Link></div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0"><p className="text-sm font-semibold text-reva-primary">Subtotal · {money(request.subtotal)}</p>{isLocalTransactionalRequestsEnabled() ? <Link className="inline-flex min-h-11 items-center justify-center rounded-full border border-reva-border px-4 text-sm font-semibold text-reva-primary hover:bg-reva-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={`/admin/solicitudes/${request.id}`}>Revisar solicitud</Link> : null}</div>
       </li>)}</ul>
       <nav aria-label="Páginas de solicitudes" className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
         {requestResult.page.page > 1 ? <Link className="inline-flex min-h-11 items-center rounded-full border border-reva-border px-4 text-sm font-semibold text-reva-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={requestPageHref(filters, requestResult.page.page - 1)}>← Anterior</Link> : <span aria-disabled="true" className="inline-flex min-h-11 items-center rounded-full border border-slate-200 px-4 text-sm text-slate-500">← Anterior</span>}

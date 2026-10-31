@@ -110,7 +110,6 @@ function pageNumber(page: string): number {
 }
 
 export async function listPurchaseRequests(filters: AdminPurchaseRequestListFilters): Promise<AdminListPage<PurchaseRequestListItem>> {
-  if (!isLocalTransactionalRequestsEnabled()) return { items: [], page: 1, pageCount: 0, pageSize: 20, totalCount: 0 };
   const result = await callAdminRpc<unknown>("admin_list_purchase_requests_v2", {
     p_page: pageNumber(filters.page), p_page_size: 20, p_search: filters.search,
     p_status: filters.status, p_date_order: filters.dateOrder,
@@ -182,7 +181,6 @@ function parseOrderListItem(value: unknown): Omit<OrderListItem, "thumbnail"> & 
 }
 
 export async function listOrders(filters: AdminOrderListFilters): Promise<AdminListPage<OrderListItem>> {
-  if (!isLocalTransactionalRequestsEnabled()) return { items: [], page: 1, pageCount: 0, pageSize: 20, totalCount: 0 };
   const page = pageNumber(filters.page);
   const client = await createSupabaseServerClient();
   const { data, error } = await client.rpc("admin_list_orders_v2" as never, {

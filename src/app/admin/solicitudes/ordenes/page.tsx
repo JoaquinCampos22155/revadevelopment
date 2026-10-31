@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { Section } from "@/components/layout/Section";
 import { Heading } from "@/components/ui/Heading";
@@ -42,7 +41,6 @@ function pageHref(filters: ReturnType<typeof normalizeAdminOrderListFilters>, pa
 }
 
 export default async function AdminOrdersPage({ searchParams }: Props) {
-  if (!isLocalTransactionalRequestsEnabled()) notFound();
   await requireCurrentAdmin();
   const query = await searchParams;
   const filters = normalizeAdminOrderListFilters({
@@ -61,6 +59,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
   return <TransactionalAdminShell activeTab="orders"><main id="main-content"><Section><div className="mx-auto max-w-6xl space-y-8">
     <header className="space-y-3"><Text variant="label">Gestión de pago y entrega</Text><Heading level={1} variant="editorial">Órdenes</Heading><Text className="max-w-2xl" variant="body">Coordina pago y preparación por separado. Una orden pendiente no es una venta confirmada; solo la verificación administrativa manual registra el pago como recibido.</Text></header>
+    {!isLocalTransactionalRequestsEnabled() ? <p className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950" role="status">Vista administrativa de solo lectura. El detalle cifrado y las acciones operativas están deshabilitados en esta configuración.</p> : null}
     <form action="/admin/solicitudes/ordenes" className="grid gap-4 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-6" method="get">
       <label className="block text-sm font-medium text-reva-primary xl:col-span-2">Buscar referencia<input className={`${inputClass} mt-2`} maxLength={64} name="search" placeholder="REVA-…" defaultValue={filters.search} /></label>
       <label className="block text-sm font-medium text-reva-primary">Estado de orden<select className={`${selectClass} mt-2`} defaultValue={filters.status} name="status"><option value="all">Todos</option><option value="pending_payment">Pendiente de pago</option><option value="paid">Pagada</option><option value="fulfilling">En preparación</option><option value="completed">Completada</option><option value="cancelled">Cancelada</option><option value="expired">Expirada</option></select></label>
@@ -75,7 +74,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       <ul className="grid gap-4 md:grid-cols-2">{result.items.map((order) => <li className="overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-sm" key={order.id}>
         <div className="flex items-start gap-4 border-b border-slate-100 px-4 py-4 sm:px-5"><AdminOrderThumbnail thumbnail={order.thumbnail} /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="break-all font-semibold text-reva-primary">{order.publicReference}</p><p className="mt-1 text-sm text-reva-secondary">Creada {new Date(order.createdAt).toLocaleString("es-GT")}</p></div><p className="text-lg font-semibold tabular-nums text-reva-primary">{getAdminOrderTotalDisplay(order.finalTotal, order.status)}</p></div></div></div>
         <dl className="grid gap-3 px-4 py-4 text-sm sm:grid-cols-2 sm:px-5"><div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Estado de orden</dt><dd className="mt-1">{getSpanishOrderStatus("order", order.status)}</dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Prendas</dt><dd className="mt-1">{order.productCount} · subtotal Q {order.merchandiseSubtotal}</dd></div><div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Pago</dt><dd className="mt-2"><span className={`inline-flex min-h-7 items-center rounded-full border px-3 text-xs font-semibold ${statusToneClass[getAdminStatusTone("payment", order.paymentStatus)]}`}>{getSpanishOrderStatus("payment", order.paymentStatus)}</span></dd></div><div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-slate-600">Preparación</dt><dd className="mt-2"><span className={`inline-flex min-h-7 items-center rounded-full border px-3 text-xs font-semibold ${statusToneClass[getAdminStatusTone("fulfillment", order.fulfillmentStatus)]}`}>{getSpanishOrderStatus("fulfillment", order.fulfillmentStatus)}</span></dd></div></dl>
-        <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full border border-reva-border px-4 text-sm font-semibold text-reva-primary hover:bg-reva-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={`/admin/solicitudes/ordenes/${order.id}`}>Abrir orden</Link>
+        {isLocalTransactionalRequestsEnabled() ? <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full border border-reva-border px-4 text-sm font-semibold text-reva-primary hover:bg-reva-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={`/admin/solicitudes/ordenes/${order.id}`}>Abrir orden</Link> : null}
       </li>)}</ul>
       <nav aria-label="Páginas de órdenes" className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
         {result.page > 1 ? <Link className="inline-flex min-h-11 items-center rounded-full border border-reva-border px-4 text-sm font-semibold text-reva-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus" href={pageHref(filters, result.page - 1)}>← Anterior</Link> : <span aria-disabled="true" className="inline-flex min-h-11 items-center rounded-full border border-slate-200 px-4 text-sm text-slate-500">← Anterior</span>}

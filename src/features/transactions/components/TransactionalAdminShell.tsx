@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+
+import { AdminSectionNavigation } from "@/components/layout/AdminSectionNavigation";
 
 type TransactionalAdminShellProps = Readonly<{
   activeTab: "requests" | "orders";
@@ -25,22 +26,9 @@ export function TransactionalAdminShell({ activeTab, children }: TransactionalAd
         )}
       </div>
       <div className="relative z-10">
-        <nav aria-label="Administración de ventas y órdenes" className="mx-auto flex w-full max-w-7xl gap-2 px-4 pt-6 sm:px-6 lg:px-8">
-          <Link
-            aria-current={activeTab === "requests" ? "page" : undefined}
-            className={activeTab === "requests"
-              ? "inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-reva-primary shadow-sm ring-1 ring-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus"
-              : "inline-flex min-h-11 items-center rounded-full px-5 text-sm font-medium text-reva-secondary hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus"}
-            href="/admin/solicitudes"
-          >Solicitudes</Link>
-          <Link
-            aria-current={activeTab === "orders" ? "page" : undefined}
-            className={activeTab === "orders"
-              ? "inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-reva-primary shadow-sm ring-1 ring-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus"
-              : "inline-flex min-h-11 items-center rounded-full px-5 text-sm font-medium text-reva-secondary hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reva-focus"}
-            href="/admin/solicitudes/ordenes"
-          >Órdenes</Link>
-        </nav>
+        <div className="mx-auto w-full max-w-7xl">
+          <AdminSectionNavigation activeSection={activeTab} />
+        </div>
         {children}
       </div>
     </div>
